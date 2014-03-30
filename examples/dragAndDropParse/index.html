@@ -50,6 +50,55 @@
         return /^[\x00-\x7F]*$/.test(str);
     }
 
+    function dumpDataSet(dataSet, output)
+    {
+        for(var propertyName in dataSet.elements) {
+            var element = dataSet.elements[propertyName];
+            var text = element.tag;
+            text += " length=" + element.length + "; ";
+            if(element.vr) {
+                text += " VR=" + element.vr +"; ";
+            }
+            if(element.items)
+            {
+                output.push('<li>'+ text + '</li>');
+                output.push('<ul>');
+                element.items.forEach(function(item)
+                {
+                    dumpDataSet(item.dataSet, output);
+                });
+                output.push('</ul>');
+            }
+            else {
+                if(element.length < 128) {
+                    var str = dataSet.string(propertyName);
+                    if(isASCII(str))
+                    {
+                        text += str;
+                    }
+                    else
+                    {
+                        if(element.length == 2)
+                        {
+                            text += dataSet.uint16(propertyName);
+                        }
+                        else if(element.length == 4)
+                        {
+                            text += dataSet.uint32(propertyName);
+                        }
+                        else{
+                            text += "<i>binary data</i>";
+                        }
+                    }
+                }
+                else {
+                    text += "<i>data too long to show</i>";
+                }
+            }
+            output.push('<li>'+ text + '</li>');
+        }
+    }
+
 
     function handleFileSelect(evt) {
         evt.stopPropagation();
@@ -67,40 +116,7 @@
                 var arrayBuffer = reader.result;
                 var byteArray = new Uint8Array(arrayBuffer);
                 var dataSet = dicomParser.parseDicom(byteArray);
-                for(var propertyName in dataSet.elements) {
-                    var element = dataSet.elements[propertyName];
-                    var text = element.tag;
-                    text += " length=" + element.length + "; ";
-                    if(element.vr) {
-                        text += " VR=" + element.vr +"; ";
-                    }
-                    if(element.length < 128) {
-                        var str = dataSet.string(propertyName);
-                        if(isASCII(str))
-                        {
-                            text += str;
-                        }
-                        else
-                        {
-                            if(element.length == 2)
-                            {
-                                text += dataSet.uint16(propertyName);
-                            }
-                            else if(element.length == 4)
-                            {
-                                text += dataSet.uint32(propertyName);
-                            }
-                            else{
-                                text += "<i>binary data</i>";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        text += "<i>data too long to show</i>";
-                    }
-                    output.push('<li>'+ text + '</li>');
-                }
+                dumpDataSet(dataSet, output);
                 document.getElementById('dropZone').innerHTML = '<ul>' + output.join('') + '</ul>';
             };
 

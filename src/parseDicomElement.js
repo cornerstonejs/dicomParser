@@ -30,9 +30,10 @@ var dicomParser = (function (dicomParser)
 
     function readTag(byteStream)
     {
-        var groupNumber = byteStream.readUint16();
+        var groupNumber =  byteStream.readUint16() * 256 * 256;
         var elementNumber = byteStream.readUint16();
-        return "x" + ('00000000' + ((groupNumber << 16) + elementNumber).toString(16)).substr(-8);
+        var tag = "x" + ('00000000' + (groupNumber + elementNumber).toString(16)).substr(-8);
+        return tag;
     }
 
     dicomParser.parseDicomElementImplicit = function(byteStream)
@@ -79,7 +80,17 @@ var dicomParser = (function (dicomParser)
             element.dataOffset = byteStream.position;
         }
 
-        byteStream.seek(element.length);
+        // if VR is SQ, parse the sequence items
+        if(element.vr === 'SQ')
+        {
+            dicomParser.parseSequenceItemsExplicit(byteStream, element);
+        }
+        else {
+            // TODO: Handle undefined length for OB,OW and UN
+            byteStream.seek(element.length);
+        }
+
+
         return element;
     };
 
