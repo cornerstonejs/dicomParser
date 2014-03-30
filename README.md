@@ -1,25 +1,18 @@
 dicomParser
 ===========
 
-Javascript parser for DICOM Part 10 byte streams like you might get from WADO.  Target environment
-is the browser, not Node.js
+Javascript parser for DICOM Part 10 byte streams.  Target environment is the browser.
 
 [Click here for an live example of the library in action!](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
-
 
 Features
 ========
 * Alpha - not released
 
-Features
-========
-
-* Parses DICOM Part 10 byte streams
-
 Backlog
 ========
 
-* Add support for sequences
+* Finish support for sequences (mostly working for explicit at least, not yet for implicit)
 * Add support for elements with undefined lengths
 * Add conversion functions for the VR's that don't have them yet
 * Figure out how to automatically generate documentation from the source (jsdoc)
