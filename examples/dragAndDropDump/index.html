@@ -9,11 +9,9 @@
     <style>
 
         #dropZone {
-            height: 500px;
+            min-height: 500px;
             width: 100%;
-            display:inline-block;
-            background-color: lightgray;
-            overflow: auto
+            background-color: #F0F0F0;
         }
 
 
@@ -35,13 +33,9 @@
         </p>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-        <span id="status">
-            <span class="glyphicon glyphicon-thumbs-up"></span>Status: Ready (no file loaded)
-        </span>
-        </div>
-    </div>
+
+    <div id="status" class="alert alert-success"><span class="glyphicon glyphicon-thumbs-up"></span>Status: Ready (no file loaded)</div>
+
     <div class="row">
         <div class="col-md-12">
             <div id="dropZone">
@@ -51,6 +45,10 @@
 
 </div>
 </body>
+
+<!-- jquery - included to make things easier to demo, not needed by dicomParser -->
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+
 <!-- include the cornerstone library -->
 <script src="../../dist/dicomParser.js"></script>
 
@@ -86,6 +84,8 @@
             if(element.vr) {
                 text += " VR=" + element.vr +"; ";
             }
+
+            var color = 'black';
 
             // Here we check for Sequence items and iterate over them if present.  items will not be set in the
             // element object for elements that don't have SQ VR type.  Note that implicit little endian
@@ -146,18 +146,26 @@
                     }
                     else
                     {
+                        color = '#C8C8C8';
                         // If it is some other length and we have no string
                         text += "<i>binary data</i>";
                     }
+
+                    if(element.length ===0) {
+                        color = '#C8C8C8';
+                    }
+
                 }
                 else {
+                    color = '#C8C8C8';
+
                     // Add text saying the data is too long to show...
                     text += "<i>data too long to show</i>";
                 }
             }
             // finally we add the string to our output array surrounded by li elements so it shows up in the
             // DOM as a list
-            output.push('<li>'+ text + '</li>');
+            output.push('<li style="color:' + color +';">'+ text + '</li>');
         }
     }
 
@@ -166,6 +174,8 @@
     {
         // clear any data currently being displayed as we parse this next file
         document.getElementById('dropZone').innerHTML = '';
+        $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
+
         document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-time"></span>Status: Loading file, please wait..';
 
         var reader = new FileReader();
@@ -198,16 +208,19 @@
                     var time = end - start;
                     var pixelData = dataSet.elements.x7fe00010;
                     if(pixelData) {
+                        $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
                         document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-thumbs-up"></span>Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)';
                     }
                     else
                     {
-                        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-exclamation"></span><strong>Status: Warning - pixel data found </strong>(file of size ' + byteStr + ' parsed in ' + time + 'ms)';
+                        $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
+                        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-exclamation"></span>Status: Warning - pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)';
                     }
                 }
                 catch(err)
                 {
-                    document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-thumbs-down"></span><strong>Status: Error - ' + err + ' </strong>(file of size ' + byteStr + ' )';
+                    $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+                    document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-thumbs-down"></span>Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
                 }
             },10);
         };

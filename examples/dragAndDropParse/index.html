@@ -37,6 +37,8 @@
 
         <br>
 
+        <div id="status" class="alert alert-success"><span class="glyphicon glyphicon-thumbs-up"></span>Status: Ready (no file loaded)</div>
+
         <div class="panel panel-default ">
             <div class="panel-heading">
                 <h3 class="panel-title">Patient Information</h3>
@@ -335,14 +337,15 @@
         {
             var attr = $(value).attr('data-dicom');
             var element = dataSet.elements[attr];
+            var text = "";
             if(element !== undefined)
             {
                 var str = dataSet.string(attr);
                 if(str !== undefined) {
-                    $(value).text(str);
+                    text = str;
                 }
             }
-
+            $(value).text(text);
         });
 
         $('span[data-dicomUint]').each(function(index, value)
@@ -370,6 +373,10 @@
     // This function will read the file into memory and then start dumping it
     function dumpFile(file)
     {
+        $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
+
+        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-time"></span>Status: Loading file, please wait..';
+
         var reader = new FileReader();
         reader.onload = function(file) {
             var arrayBuffer = reader.result;
@@ -378,11 +385,44 @@
             // Uint8Array so we create that here
             var byteArray = new Uint8Array(arrayBuffer);
 
-            // Invoke the paresDicom function and get back a DataSet object with the contents
-            var dataSet = dicomParser.parseDicom(byteArray);
+            var kb = byteArray.length / 1024;
+            var mb = kb / 1024;
+            var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
+            document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-cog"></span>Status: Parsing ' + byteStr + ' bytes, please wait..';
 
-            // Here we call dumpDataSet to update the DOM with the contents of the dataSet
-            dumpDataSet(dataSet);
+            // set a short timeout to do the parse so the DOM has time to update itself with the above message
+            setTimeout(function() {
+
+                var dataSet;
+                // Invoke the paresDicom function and get back a DataSet object with the contents
+                try {
+                    var start = new Date().getTime();
+
+                    dataSet = dicomParser.parseDicom(byteArray);
+                    // Here we call dumpDataSet to update the DOM with the contents of the dataSet
+                    dumpDataSet(dataSet);
+
+                    var end = new Date().getTime();
+                    var time = end - start;
+                    var pixelData = dataSet.elements.x7fe00010;
+                    if(pixelData) {
+                        $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-thumbs-up"></span>Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)';
+                    }
+                    else
+                    {
+                        $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
+                        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-exclamation"></span>Status: Warning - pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)';
+                    }
+
+                }
+                catch(err)
+                {
+                    $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+                    document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-thumbs-down"></span>Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
+                }
+
+            }, 30);
         };
 
         reader.readAsArrayBuffer(file);
