@@ -662,11 +662,12 @@ var dicomParser = (function (dicomParser)
         element.length = element.parsedLength;
         if(element.parsedLength === -1)
         {
-            // read tag following this element to figure out if this is a sequence
-            if(element.tag === 'xfffee000')
+            // read the next tag to determine if this is a sequence or not
+            var nextTag = readTag(byteStream);
+            byteStream.seek(-4);
+            if(nextTag === 'xfffee000')
             {
                 // parse the sequence
-                //byteStream.seek(-4);
                 dicomParser.parseSequenceItemsImplicit(byteStream, element);
                 element.length = byteStream.byteArray.length - element.dataOffset;
                 return element;
