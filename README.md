@@ -82,8 +82,8 @@ _License is extremely liberal so it could be used in any type of project_
 
 DICOM is an open standard and parsing it is easy enough that it should be freely available for
 all types of products - personal, open source and commercial.  I am hoping that the MIT license
-help it see wide adoption to help the most people (and in the end, patients).  I will dual license
-it under GPL if someone asks.
+will help it see the widest possible adoption (which will in the end help the most patients).
+I will dual license it under GPL if someone asks.
 
 _Only deals with parsing DICOM - no code to actually display the images_
 
@@ -93,16 +93,17 @@ help it reach the widest adoption.
 
 _Designed to work well in a browser_
 
-There are some good javascript DICOM parsing libraries available for the server side via node.js but they
+There are some good javascript DICOM parsing libraries available for the server development on node.js but they
 won't automatically work in a browser.  I needed a library that let me easily parse WADO responses and
 I figured others would prefer a simple library to do this with no dependencies.
 
 _Follows modern javascript best practices_
 
 This of course means different things to different people but I have found great benefit from making sure
-my javascript passes jslint/jshint and leveraging the module pattern.  I also have a great affinity to
-AMD modules but I understand that not everyone wants to use them.  So for this library I am shooting for
-simply making sure the code uses the module pattern and passes jshint.
+my javascript passes [jshint](http://www.jshint.com/) and leveraging the
+[module pattern](http://www.adequatelygood.com/JavaScript-Module-Pattern-In-Depth.html).  I also have a great affinity to
+[AMD modules](http://requirejs.org/docs/whyamd.html) but I understand that not everyone wants to use them.
+So for this library I am shooting for simply making sure the code uses the module pattern and passes jshint.
 
 _Has documentation and examples on how to use it_
 
