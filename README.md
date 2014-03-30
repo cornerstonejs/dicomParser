@@ -5,9 +5,31 @@ Javascript parser for DICOM Part 10 byte streams.  Target environment is the bro
 
 [Click here for an live example of the library in action!](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
 
-Features
-========
-* Alpha - not released
+[Click here for an list of live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
+
+
+Project Status
+==============
+* Alpha but stable
+
+Why another Javascript DICOM parsing library?
+==========================
+
+While building the WADO Image Loader for [cornerstone](https://github.com/chafey/cornerstone), I couldn't find a Javascript DICOM parser that exactly met
+my needs.  DICOM really isn't that hard to parse so I figured I would just make my own.  Here are some of the key things that I
+really wanted out of a DICOM library that I am hoping to deliver:
+
+* Only deals with parsing DICOM - no code to actually display the images
+* Designed to work well in a browser
+* Follows modern javascript best practices
+* Has documentation and examples on how to use it
+* Does not hide the underlying data stream from you
+* Decodes individual elements "on demand" - this goes with not needing a data dictionary
+* Code guards against corrupt or invalid data streams by sanity checking lenghts and offsets
+* Code is easy to understand
+* Does not require a data dictionary
+* Does not depend on any external dependencies - just drop it in and go
+* Has unit tests
 
 Backlog
 ========
@@ -18,7 +40,7 @@ Backlog
 * Figure out how to automatically generate documentation from the source (jsdoc)
 * Create bower package
 * Add support for AMD loaders
-* Create more examples
+* Create an example that leverages a data dictionary
 
 Build System
 ============
