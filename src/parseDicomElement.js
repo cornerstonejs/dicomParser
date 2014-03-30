@@ -49,7 +49,30 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
-        byteStream.seek(element.length);
+        if(element.length === -1)
+        {
+            element.tags =[];
+            // TODO: handle undefined length item.
+            // right now we hack around this by scanning until we find the sequence delimiter token
+            while(byteStream.position < byteStream.byteArray.length)
+            {
+                var tag = readTag(byteStream);
+                if(tag === 'xfffee0dd' || tag === 'xfffee00d')
+                {
+                    byteStream.readUint32(); // the length
+                    element.length = byteStream.position - element.dataOffset;
+                    return element;
+                }
+            }
+            // eof??
+            element.length = byteStream.position - element.dataOffset;
+            return element;
+        }
+        else
+        {
+            byteStream.seek(element.length);
+        }
+
         return element;
     };
 
