@@ -1,7 +1,7 @@
 dicomParser
 ===========
 
-Javascript parser for DICOM Part 10 byte streams.  Target environment is the browser.
+Javascript parser for DICOM Part 10 byte streams.
 
 [Click here for an live example of the library in action!](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
 
