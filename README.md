@@ -9,11 +9,11 @@ Javascript parser for DICOM Part 10 byte streams.  Target environment is the bro
 
 
 Project Status
-==============
+------------
 * Alpha but stable
 
 Why another Javascript DICOM parsing library?
-==========================
+------------
 
 While building the WADO Image Loader for [cornerstone](https://github.com/chafey/cornerstone), I couldn't find a Javascript DICOM parser that exactly met
 my needs.  DICOM really isn't that hard to parse so I figured I would just make my own.  Here are some of the key things that I
@@ -32,7 +32,7 @@ really wanted out of a DICOM library that I am hoping to deliver:
 * Has unit tests
 
 Backlog
-========
+------------
 
 * Finish support for sequences (mostly working for explicit at least, not yet for implicit)
 * Add support for elements with undefined lengths
@@ -72,5 +72,5 @@ Automatically running the build and unit tests after each source change:
 
 
 Copyright
-------------
+============
 Copyright 2014 Chris Hafey
