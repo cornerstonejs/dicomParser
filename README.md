@@ -32,7 +32,7 @@ really wanted out of a DICOM library that I am hoping to deliver:
 * Has unit tests
 * Code is easy to understand
 
-Curious why these are important to me?  Read about my opinions in the Soapbox section at the bottom of this page.
+Curious why these are important to me?  Read more about this in the Soapbox section at the bottom of this page.
 
 Backlog
 ------------
@@ -76,8 +76,7 @@ Automatically running the build and unit tests after each source change:
 Soapbox
 ============
 
-Interested in knowing why the above goals are important to me?  Most of it is based on my personal opinion and
-needs and neither of those are correct for everyone.  Here you go:
+Interested in knowing why the above goals are important to me?  Here you go:
 
 _License is extremely liberal so it could be used in any type of project_
 
@@ -114,15 +113,15 @@ _Does not hide the underlying data stream from you_
 I have used many DICOM parsing libraries over the years and most of them either hide the underlying byte stream
 from you or make it really difficult to access.  There are times when you need to access the bytes  - and there
 is no reason to make it hard to do.  A few examples of the need for this include when you are dealing with UN VR's,
-private data and implicit little endian transfer syntaxes (which unfortunately are widely being used)
+private data and implicit little endian transfer syntaxes (which unfortunately are still widely being used)
 and you don't have a complete data dictionary.  This library addresses this issue by not even trying to parse
 the data and doing it on demand.  So what you get from a parse is basically a set of pointers to where the data
 for each element is in the byte stream and then you call the function you want to extract the type you want.  An
-awesome side effect of this is that you don't need a data dictionary to parse a file.  Usually you know which
-elements you want to access and know what type they are so data dictionary based parsers create more problems
-than they actually solve.  Additionally, it really isn't the clients job to know what data dictionary a given
-data set may need - in this day and age the Image Archive should manage that and hide such complexity from the
-clients.
+awesome side effect of this is that you don't need a data dictionary to parse a file even if it uses implicit
+little endian.  Usually you know which elements you want to access and know what type they are so designing your
+parser around a data dictionary is just adding unnecessary complexity.  Additionally, it really isn't the clients
+job to know what data dictionary a given data set may need - in this day and age the Image Archive should manage this
+complexity by managing the data dictionary and providing data in explicit transfer syntaxes.
 
 _Does not require a data dictionary_
 
@@ -141,15 +140,18 @@ can _usually_ figure out which one it is without the VR anyway)
 _Code guards against corrupt or invalid data streams by sanity checking lengths and offsets_
 
 Even though you would expect an Image Archive to _never_ send you data that isn't 100% DICOM compliant,
-that is not a bet I would make.  In general it is good practice to never trust data from another system -
-even one that you are in full control of.
+that is not a bet I would make.  As I like to say - there is no "DICOM police" to penalized vendors
+who ship software that creates bytes streams that violate the DICOM standard.  In general it is good
+practice to never trust data from another system - even one that you are in full control of.
 
 _Does not depend on any external dependencies - just drop it in and go_
 
-Sort of addressed above as maximizing adoption requires that users experience the minimum hassel and
-requiring external dependencies does that.  I prefer to keep things small and simple - some good
-references on this include the [microjs site](http://microjs.com/#)
-and the [cujo.js manifseto](http://cujojs.com/manifesto.html)
+Sort of addressed above as maximizing adoption requires that the library minimize the burden on its users.  I did
+find a few interesting libraries that were targeted at making it easier and safer to parse byte streams but
+they just seemed like overkill so I decided to do it all in one to keep it as simple as it could be.  In general
+I am a big fan of building complex systems from lots of smaller simpler pieces.  Some good
+references on this include the [microjs site](http://microjs.com/#) and the
+[cujo.js manifseto](http://cujojs.com/manifesto.html)
 
 _Has unit tests_
 
@@ -158,7 +160,7 @@ is perhaps one of the best examples of when you should write unit tests.  I did 
 covering ~ 80% of the code paths passing before I even tried to load my first DICOM byte array.  Before I wrote
 this library, I did a quick prototype without unit tests that actually took me much less time
 (writing tests takes time....).   So in the end I don't think it saved me much time getting to a first release,
-but I am certain it will pay for itself in the long run (especially if this library receives wide adoption).
+but I am hoping it will pay for itself in the long run (especially if this library receives wide adoption).
 I also know that some people out there won't even look at it unless it has good test coverage.
 
 _Code is easy to understand_
@@ -166,7 +168,7 @@ _Code is easy to understand_
 In my experience, writing code that is easy to understand is *far more important* than writing documentation or unit
 tests for that code.  The reason is that when a developer needs to fix or enhance a piece of code, they _almost never_
 start with the unit tests or documentation - they jump straight into the code and start thrashing about in the debugger.
-If the developer is looking at your code, you probably made a mistake - either a simple typo or a design issue if you
+If some other developer is looking at your code, you probably made a mistake - either a simple typo or a design issue if you
 really blew it.  In either case, you should have mercy on them in advance and make their unenviable task of fixing
 or extending your code the best it can be.  You can find out more about this by googling for "self documenting code"
 
