@@ -32,6 +32,8 @@ really wanted out of a DICOM library that I am hoping to deliver:
 * Has unit tests
 * Code is easy to understand
 
+Curious why these are important to me?  Read about my opinions in the Soapbox section at the bottom of this page.
+
 Backlog
 ------------
 
@@ -70,6 +72,103 @@ Running the build:
 Automatically running the build and unit tests after each source change:
 > grunt watch
 
+
+Soapbox
+============
+
+Interested in knowing why the above goals are important to me?  Most of it is based on my personal opinion and
+needs and neither of those are correct for everyone.  Here you go:
+
+_License is extremely liberal so it could be used in any type of project_
+
+DICOM is an open standard and parsing it is easy enough that it should be freely available for
+all types of products - personal, open source and commercial.  I am hoping that the MIT license
+help it see wide adoption to help the most people (and in the end, patients).  I will dual license
+it under GPL if someone asks.
+
+_Only deals with parsing DICOM - no code to actually display the images_
+
+I am a big believer in small reusable pieces of software and loose coupling.  There is no reason to
+tightly couple the parser with image display.  I hope that keeping this library small and simple will
+help it reach the widest adoption.
+
+_Designed to work well in a browser_
+
+There are some good javascript DICOM parsing libraries available for the server side via node.js but they
+won't automatically work in a browser.  I needed a library that let me easily parse WADO responses and
+I figured others would prefer a simple library to do this with no dependencies.
+
+_Follows modern javascript best practices_
+
+This of course means different things to different people but I have found great benefit from making sure
+my javascript passes jslint/jshint and leveraging the module pattern.  I also have a great affinity to
+AMD modules but I understand that not everyone wants to use them.  So for this library I am shooting for
+simply making sure the code uses the module pattern and passes jshint.
+
+_Has documentation and examples on how to use it_
+
+Do I really need to convince you that this is needed?
+
+_Does not hide the underlying data stream from you_
+
+I have used many DICOM parsing libraries over the years and most of them either hide the underlying byte stream
+from you or make it really difficult to access.  There are times when you need to access the bytes  - and there
+is no reason to make it hard to do.  A few examples of the need for this include when you are dealing with UN VR's,
+private data and implicit little endian transfer syntaxes (which unfortunately are widely being used)
+and you don't have a complete data dictionary.  This library addresses this issue by not even trying to parse
+the data and doing it on demand.  So what you get from a parse is basically a set of pointers to where the data
+for each element is in the byte stream and then you call the function you want to extract the type you want.  An
+awesome side effect of this is that you don't need a data dictionary to parse a file.  Usually you know which
+elements you want to access and know what type they are so data dictionary based parsers create more problems
+than they actually solve.  Additionally, it really isn't the clients job to know what data dictionary a given
+data set may need - in this day and age the Image Archive should manage that and hide such complexity from the
+clients.
+
+_Does not require a data dictionary_
+
+See above, data dictionaries are not required for most use cases so why would a library author burden its users
+with it at all?  For those use cases that do require it, you can layer it on top of this library.  If you do want
+to know the VR, request the instance in an explicit transfer syntax and you can have it.  If your Image Archive
+can't do this for you, get a new one.
+
+_Decodes individual elements "on demand" - this goes with not needing a data dictionary_
+
+See above, this is related to not requiring a data dictionary.  Usually you know exactly what elements you need
+and what their types are.  The only time this is not the case is when you are building a DICOM Dump utility or
+you can't get an explicit transfer syntax and have one of those weird elements that can be either OB or OW (and you
+can _usually_ figure out which one it is without the VR anyway)
+
+_Code guards against corrupt or invalid data streams by sanity checking lengths and offsets_
+
+Even though you would expect an Image Archive to _never_ send you data that isn't 100% DICOM compliant,
+that is not a bet I would make.  In general it is good practice to never trust data from another system -
+even one that you are in full control of.
+
+_Does not depend on any external dependencies - just drop it in and go_
+
+Sort of addressed above as maximizing adoption requires that users experience the minimum hassel and
+requiring external dependencies does that.  I prefer to keep things small and simple - some good
+references on this include the [microjs site](http://microjs.com/#)
+and the [cujo.js manifseto](http://cujojs.com/manifesto.html)
+
+_Has unit tests_
+
+I generally feel that units tests are _mostly_ a waste of time for front end development, but a DICOM parser
+is perhaps one of the best examples of when you should write unit tests.  I did use TDD on this project and had unit tests
+covering ~ 80% of the code paths passing before I even tried to load my first DICOM byte array.  Before I wrote
+this library, I did a quick prototype without unit tests that actually took me much less time
+(writing tests takes time....).   So in the end I don't think it saved me much time getting to a first release,
+but I am certain it will pay for itself in the long run (especially if this library receives wide adoption).
+I also know that some people out there won't even look at it unless it has good test coverage.
+
+_Code is easy to understand_
+
+In my experience, writing code that is easy to understand is *far more important* than writing documentation or unit
+tests for that code.  The reason is that when a developer needs to fix or enhance a piece of code, they _almost never_
+start with the unit tests or documentation - they jump straight into the code and start thrashing about in the debugger.
+If the developer is looking at your code, you probably made a mistake - either a simple typo or a design issue if you
+really blew it.  In either case, you should have mercy on them in advance and make their unenviable task of fixing
+or extending your code the best it can be.  You can find out more about this by googling for "self documenting code"
 
 Copyright
 ============
