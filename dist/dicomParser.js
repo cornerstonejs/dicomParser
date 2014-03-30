@@ -476,7 +476,7 @@ var dicomParser = (function (dicomParser)
             var prefix = byteStream.readFixedString(4);
             if(prefix !== "DICM")
             {
-                throw "DICM prefix not found at location 132 in this byteStream";
+                throw "DICM prefix not found at location 132";
             }
         }
 
