@@ -19,17 +19,18 @@ While building the WADO Image Loader for [cornerstone](https://github.com/chafey
 my needs.  DICOM really isn't that hard to parse so I figured I would just make my own.  Here are some of the key things that I
 really wanted out of a DICOM library that I am hoping to deliver:
 
+* License was extremely liberal so it could be used in any type of project
 * Only deals with parsing DICOM - no code to actually display the images
 * Designed to work well in a browser
 * Follows modern javascript best practices
 * Has documentation and examples on how to use it
 * Does not hide the underlying data stream from you
-* Decodes individual elements "on demand" - this goes with not needing a data dictionary
-* Code guards against corrupt or invalid data streams by sanity checking lenghts and offsets
-* Code is easy to understand
 * Does not require a data dictionary
+* Decodes individual elements "on demand" - this goes with not needing a data dictionary
+* Code guards against corrupt or invalid data streams by sanity checking lengths and offsets
 * Does not depend on any external dependencies - just drop it in and go
 * Has unit tests
+* Code is easy to understand
 
 Backlog
 ------------
@@ -73,4 +74,4 @@ Automatically running the build and unit tests after each source change:
 
 Copyright
 ============
-Copyright 2014 Chris Hafey
+Copyright 2014 Chris Hafey [chafey@gmail.com](mailto:chafey@gmail.com)
