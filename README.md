@@ -19,7 +19,7 @@ While building the WADO Image Loader for [cornerstone](https://github.com/chafey
 my needs.  DICOM really isn't that hard to parse so I figured I would just make my own.  Here are some of the key things that I
 really wanted out of a DICOM library that I am hoping to deliver:
 
-* License was extremely liberal so it could be used in any type of project
+* License is extremely liberal so it could be used in any type of project
 * Only deals with parsing DICOM - no code to actually display the images
 * Designed to work well in a browser
 * Follows modern javascript best practices
