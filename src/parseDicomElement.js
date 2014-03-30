@@ -86,6 +86,10 @@ var dicomParser = (function (dicomParser)
             dicomParser.parseSequenceItemsExplicit(byteStream, element);
         }
         else {
+
+            if(element.length === -1){
+                throw 'element with undefined length detected';
+            }
             // TODO: Handle undefined length for OB,OW and UN
             byteStream.seek(element.length);
         }

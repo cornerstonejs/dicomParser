@@ -39,10 +39,10 @@ var dicomParser = (function (dicomParser)
     function readSequenceItem(byteStream)
     {
         var item = dicomParser.parseDicomElementImplicit(byteStream);
+        byteStream.seek(-item.length);
 
         if(item.length === -1)
         {
-            byteStream.seek(1);
             item.dataSet = parseDicomDataSetExplicitUndefinedLength(byteStream);
             item.length = byteStream.position - item.dataOffset;
         }
@@ -76,18 +76,14 @@ var dicomParser = (function (dicomParser)
         element.length = byteStream.position - element.dataOffset;
     }
 
-    function parseSQElementKnownLengthExplicit(data, element, explicit)
+    function parseSQElementKnownLengthExplicit(byteStream, element)
     {
-        /*
         element.items = [];
-        var offset = element.dataOffset;
-        while(offset < element.dataOffset + element.length)
+        while(byteStream.position < element.dataOffset + element.length)
         {
-            var item = readSequenceItem(data, offset, explicit);
-            offset += item.length + 8;
+            var item = readSequenceItem(byteStream);
             element.items.push(item);
         }
-        */
     }
 
     dicomParser.parseSequenceItemsExplicit = function(byteStream, element)
@@ -98,8 +94,7 @@ var dicomParser = (function (dicomParser)
         }
         else
         {
-            throw 'not implemented';
-            //parseSQElementKnownLengthExplicit(byteStream, element);
+            parseSQElementKnownLengthExplicit(byteStream, element);
         }
     };
 
