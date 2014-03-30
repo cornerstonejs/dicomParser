@@ -3,9 +3,9 @@ dicomParser
 
 Javascript parser for DICOM Part 10 byte streams.
 
-[Click here for an live example of the library in action!](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
+[Click here for a live example of using the library to display specific fields from a DICOM files](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
 
-[Click here for an list of live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
+[Click here for a live example of using the library to do a DICOM dump of a DICOM file](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
 
 
 Project Status
@@ -43,6 +43,9 @@ Backlog
 * Create bower package
 * Add support for AMD loaders
 * Create an example that leverages a data dictionary
+* Have examples detect older browsers and tell the user to upgrade
+* Figure out why drag and drop doesn't work for IE11
+* Add unit tests for sequence parsing functionality
 
 Build System
 ============
@@ -93,9 +96,10 @@ help it reach the widest adoption.
 
 _Designed to work well in a browser_
 
-There are some good javascript DICOM parsing libraries available for the server development on node.js but they
+There are some good javascript DICOM parsing libraries available for server development on node.js but they
 won't automatically work in a browser.  I needed a library that let me easily parse WADO responses and
-I figured others would prefer a simple library to do this with no dependencies.
+I figured others would also prefer a simple library to do this with no dependencies.  I don't have any plans
+to make this library work in node.js but would welcome contributions from anyone that wants to do the work.
 
 _Follows modern javascript best practices_
 
@@ -141,7 +145,7 @@ can _usually_ figure out which one it is without the VR anyway)
 _Code guards against corrupt or invalid data streams by sanity checking lengths and offsets_
 
 Even though you would expect an Image Archive to _never_ send you data that isn't 100% DICOM compliant,
-that is not a bet I would make.  As I like to say - there is no "DICOM police" to penalized vendors
+that is not a bet I would make.  As I like to say - there is no "DICOM police" to penalize vendors
 who ship software that creates bytes streams that violate the DICOM standard.  In general it is good
 practice to never trust data from another system - even one that you are in full control of.
 
@@ -157,8 +161,9 @@ references on this include the [microjs site](http://microjs.com/#) and the
 _Has unit tests_
 
 I generally feel that units tests are _mostly_ a waste of time for front end development, but a DICOM parser
-is perhaps one of the best examples of when you should write unit tests.  I did use TDD on this project and had unit tests
-covering ~ 80% of the code paths passing before I even tried to load my first DICOM byte array.  Before I wrote
+is perhaps one of the best examples of when you should write unit tests.  I did use
+[TDD](http://en.wikipedia.org/wiki/Test-driven_development) on this project and had unit tests
+covering ~ 80% of the code paths passing before I even tried to load my first real DICOM file.  Before I wrote
 this library, I did a quick prototype without unit tests that actually took me much less time
 (writing tests takes time....).   So in the end I don't think it saved me much time getting to a first release,
 but I am hoping it will pay for itself in the long run (especially if this library receives wide adoption).
