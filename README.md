@@ -4,7 +4,7 @@ dicomParser
 Javascript parser for DICOM Part 10 byte streams like you might get from WADO.  Target environment
 is the browser, not Node.js
 
-[Click here for an live example of the library in action!](https://rawgithub.com/chafey/dicomParser/master/example/dragAndDropParse/index.html)
+[Click here for an live example of the library in action!](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
 
 
 Features
