@@ -1,0 +1,125 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by cornerstone -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        #dropZone {
+            height: 500px;
+            width: 100%;
+            display:inline-block;
+            background-color: lightgray;
+            overflow: auto
+        }
+
+
+    </style>
+
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>Drag and Drop DICOM Parse</h1>
+        <p class="lead">
+            Drag and drop a DICOM Part 10 file into the light gray region below to see its elements.
+        </p>
+        <strong>WARNING - Does not support all forms of encoding yet, will probably fail if
+            the file has any elements with undefined length </strong>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="dropZone">
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+<!-- include the cornerstone library -->
+<script src="../../dist/dicomParser.js"></script>
+
+<script>
+
+    function isASCII(str) {
+        return /^[\x00-\x7F]*$/.test(str);
+    }
+
+
+    function handleFileSelect(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        var files = evt.dataTransfer.files; // FileList object.
+
+        // files is a FileList of File objects. List some properties.
+        var output = [];
+        for (var i = 0, f; f = files[i]; i++) {
+
+            var reader = new FileReader();
+
+            reader.onload = function(file) {
+                var arrayBuffer = reader.result;
+                var byteArray = new Uint8Array(arrayBuffer);
+                var dataSet = dicomParser.parseDicom(byteArray);
+                for(var propertyName in dataSet.elements) {
+                    var element = dataSet.elements[propertyName];
+                    var text = element.tag;
+                    text += " length=" + element.length + "; ";
+                    if(element.vr) {
+                        text += " VR=" + element.vr +"; ";
+                    }
+                    if(element.length < 128) {
+                        var str = dataSet.string(propertyName);
+                        if(isASCII(str))
+                        {
+                            text += str;
+                        }
+                        else
+                        {
+                            if(element.length == 2)
+                            {
+                                text += dataSet.uint16(propertyName);
+                            }
+                            else if(element.length == 4)
+                            {
+                                text += dataSet.uint32(propertyName);
+                            }
+                            else{
+                                text += "<i>binary data</i>";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        text += "<i>data too long to show</i>";
+                    }
+                    output.push('<li>'+ text + '</li>');
+                }
+                document.getElementById('dropZone').innerHTML = '<ul>' + output.join('') + '</ul>';
+            };
+
+            reader.readAsArrayBuffer(f);
+
+        }
+    }
+
+    function handleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+    }
+
+    // Setup the dnd listeners.
+    var dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', handleDragOver, false);
+    dropZone.addEventListener('drop', handleFileSelect, false);
+
+
+</script>
+</html>

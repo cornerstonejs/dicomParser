@@ -1,0 +1,22 @@
+{
+    "name": "DICOM Parser",
+    "description": "Javascript parser for DICOM Part 10 data",
+    "version": "0.0.1",
+    "license": "MIT",
+    "authors" : ["Chris Hafey"],
+    "homepage": "https://github.com/chafey/dicomParser",
+    "keywords": ["DICOM", "medical", "imaging"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/chafey/dicomParser.git"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "test"
+    ],
+    "devDependencies": {
+        "qunit": "~1.14.0"
+    }
+}
