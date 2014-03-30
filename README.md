@@ -35,8 +35,7 @@ really wanted out of a DICOM library that I am hoping to deliver:
 Backlog
 ------------
 
-* Finish support for sequences (mostly working for explicit at least, not yet for implicit)
-* Add support for elements with undefined lengths
+* Testing / Bug fixing (may be lurking bugs in sequences and undefined lengths)
 * Add conversion functions for the VR's that don't have them yet
 * Figure out how to automatically generate documentation from the source (jsdoc)
 * Create bower package

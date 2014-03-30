@@ -572,7 +572,7 @@ var dicomParser = (function (dicomParser)
             throw "missing required parameter 'byteStream'";
         }
 
-        maxPosition = maxPosition ||byteStream.byteArray.length;
+        maxPosition = maxPosition ||byteStream.byteArray.length - 6;
 
         var elements = {};
 
@@ -645,6 +645,8 @@ var dicomParser = (function (dicomParser)
         return tag;
     }
 
+
+
     dicomParser.parseDicomElementImplicit = function(byteStream)
     {
         if(!byteStream)
@@ -654,32 +656,48 @@ var dicomParser = (function (dicomParser)
 
         var element = {
             tag : readTag(byteStream),
-            length : byteStream.readUint32(),
+            parsedLength : byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
-
-        if(element.length === -1)
+        element.length = element.parsedLength;
+        if(element.parsedLength === -1)
         {
-            element.tags =[];
-            // TODO: handle undefined length item.
-            // right now we hack around this by scanning until we find the sequence delimiter token
-            while(byteStream.position < byteStream.byteArray.length)
+            // read tag following this element to figure out if this is a sequence
+            if(element.tag === 'xfffee000')
             {
-                var tag = readTag(byteStream);
-                if(tag === 'xfffee0dd' || tag === 'xfffee00d')
-                {
-                    byteStream.readUint32(); // the length
-                    element.length = byteStream.position - element.dataOffset;
-                    return element;
-                }
+                // parse the sequence
+                //byteStream.seek(-4);
+                dicomParser.parseSequenceItemsImplicit(byteStream, element);
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                return element;
             }
-            // eof??
-            element.length = byteStream.position - element.dataOffset;
-            return element;
+            else
+            {
+                // not a sequence, scan until we find delimeter
+                element.tags =[];
+                // TODO: handle undefined length item.
+                var maxPosition = byteStream.byteArray.length - 4;
+                // right now we hack around this by scanning until we find the sequence delimiter token
+                while(byteStream.position <= maxPosition)
+                {
+                    var tag = readTag(byteStream);
+                    element.tags.push(tag);
+                    if(tag === 'xfffee0dd' || tag === 'xfffee00d')
+                    {
+                        byteStream.readUint32(); // the length
+                        element.length = byteStream.position - element.dataOffset;
+                        return element;
+                    }
+                }
+                // eof??
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                return element;
+            }
         }
         else
         {
-            byteStream.seek(element.length);
+            element.length = element.parsedLength;
+            byteStream.seek(element.parsedLength);
         }
 
         return element;
@@ -702,15 +720,19 @@ var dicomParser = (function (dicomParser)
         var dataLengthSizeBytes = getDataLengthSizeInBytesForVR(element.vr);
         if(dataLengthSizeBytes === 2)
         {
-            element.length = byteStream.readUint16();
+            element.parsedLength = byteStream.readUint16();
             element.dataOffset = byteStream.position;
+            element.length = element.parsedLength;
         }
         else
         {
             byteStream.seek(2);
-            element.length = byteStream.readUint32();
+            element.parsedLength = byteStream.readUint32();
             element.dataOffset = byteStream.position;
+            element.length = element.parsedLength;
         }
+
+        // TODO: Handle undefined lengths
 
         // if VR is SQ, parse the sequence items
         if(element.vr === 'SQ')
@@ -720,7 +742,26 @@ var dicomParser = (function (dicomParser)
         else {
 
             if(element.length === -1){
-                throw 'element with undefined length detected';
+                //throw 'element with undefined length detected';
+                // not a sequence, scan until we find delimeter
+                element.tags =[];
+                // TODO: handle undefined length item.
+                var maxPosition = byteStream.byteArray.length - 4;
+                // right now we hack around this by scanning until we find the sequence delimiter token
+                while(byteStream.position <= maxPosition)
+                {
+                    var tag = readTag(byteStream);
+                    element.tags.push(tag);
+                    if(tag === 'xfffee0dd' || tag === 'xfffee00d')
+                    {
+                        byteStream.readUint32(); // the length (should be 0)
+                        element.length = byteStream.position - element.dataOffset;
+                        return element;
+                    }
+                }
+                // eof??
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                return element;
             }
             // TODO: Handle undefined length for OB,OW and UN
             byteStream.seek(element.length);
@@ -770,10 +811,35 @@ var dicomParser = (function (dicomParser)
         return new dicomParser.DataSet(byteStream.byteArray, elements);
     }
 
-    function readSequenceItem(byteStream)
+    // share this with parseDicomElement.js
+    function readTag(byteStream)
     {
-        var item = dicomParser.parseDicomElementImplicit(byteStream);
-        byteStream.seek(-item.length);
+        var groupNumber =  byteStream.readUint16() * 256 * 256;
+        var elementNumber = byteStream.readUint16();
+        var tag = "x" + ('00000000' + (groupNumber + elementNumber).toString(16)).substr(-8);
+        return tag;
+    }
+
+    function parseSequenceItem(byteStream)
+    {
+        if(!byteStream)
+        {
+            throw "missing required parameter 'byteStream'";
+        }
+
+        var element = {
+            tag : readTag(byteStream),
+            parsedLength : byteStream.readUint32(),
+            dataOffset :  byteStream.position
+        };
+        element.length = element.parsedLength;
+
+        return element;
+    }
+
+    function readSequenceItemExplicit(byteStream)
+    {
+        var item = parseSequenceItem(byteStream);
 
         if(item.length === -1)
         {
@@ -792,7 +858,7 @@ var dicomParser = (function (dicomParser)
         element.items = [];
         while(byteStream.position < byteStream.byteArray.length)
         {
-            var item = readSequenceItem(byteStream);
+            var item = readSequenceItemExplicit(byteStream);
             element.items.push(item);
 
             // If this is the sequence delimitiation item, return the offset of the next element
@@ -815,10 +881,101 @@ var dicomParser = (function (dicomParser)
         element.items = [];
         while(byteStream.position < element.dataOffset + element.length)
         {
-            var item = readSequenceItem(byteStream);
+            var item = readSequenceItemExplicit(byteStream);
             element.items.push(item);
         }
     }
+
+    ///////// implicit sequence decoding
+
+    function parseSQElementUndefinedLengthImplicit(byteStream, element)
+    {
+        element.items = [];
+        while(byteStream.position < byteStream.byteArray.length)
+        {
+            var item = readSequenceItemImplicit(byteStream);
+            element.items.push(item);
+
+            // If this is the sequence delimitiation item, return the offset of the next element
+            if(item.tag === 'xfffee0dd')
+            {
+                // sequence delimitation item, update attr data length and return
+                element.length = byteStream.position - element.dataOffset;
+                return;
+            }
+        }
+
+        // Buffer overread!  Set the length of the element to reflect the end of buffer so
+        // the caller has access to what we were able to parse.
+        // TODO: Figure out how to communicate parse errors like this to the caller
+        element.length = byteStream.position - element.dataOffset;
+    }
+
+
+    function parseDicomDataSetImplicitUndefinedLength(byteStream)
+    {
+        if(!byteStream)
+        {
+            throw "missing required parameter 'byteStream'";
+        }
+
+        var elements = {};
+
+        while(byteStream.position < byteStream.byteArray.length)
+        {
+            var element = dicomParser.parseDicomElementImplicit(byteStream);
+            elements[element.tag] = element;
+
+            // we hit an item delimeter tag, return the current offset to mark
+            // the end of this sequence item
+            if(element.tag === 'xfffee00d')
+            {
+                return new dicomParser.DataSet(byteStream.byteArray, elements);
+            }
+        }
+        return new dicomParser.DataSet(byteStream.byteArray, elements);
+    }
+
+    function readSequenceItemImplicit(byteStream)
+    {
+        var item = parseSequenceItem(byteStream);
+
+        if(item.length === -1)
+        {
+            item.dataSet = parseDicomDataSetImplicitUndefinedLength(byteStream);
+            item.length = byteStream.position - item.dataOffset;
+        }
+        else
+        {
+            item.dataSet = dicomParser.parseDicomDataSetImplicit(byteStream, byteStream.position + item.length);
+        }
+        return item;
+    }
+
+    function parseSQElementKnownLengthImplicit(byteStream, element)
+    {
+        element.items = [];
+        while(byteStream.position < element.dataOffset + element.length)
+        {
+            var item = readSequenceItemImplicit(byteStream);
+            element.items.push(item);
+        }
+    }
+
+    dicomParser.parseSequenceItemsImplicit = function(byteStream, element)
+    {
+        if(element.length === -1)
+        {
+            parseSQElementUndefinedLengthImplicit(byteStream, element);
+        }
+        else
+        {
+            parseSQElementKnownLengthImplicit(byteStream, element);
+        }
+
+    };
+
+    ///////// implicit sequence decoding
 
     dicomParser.parseSequenceItemsExplicit = function(byteStream, element)
     {

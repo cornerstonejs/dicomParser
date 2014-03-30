@@ -17,7 +17,7 @@ var dicomParser = (function (dicomParser)
             throw "missing required parameter 'byteStream'";
         }
 
-        maxPosition = maxPosition ||byteStream.byteArray.length;
+        maxPosition = maxPosition ||byteStream.byteArray.length - 6;
 
         var elements = {};
 

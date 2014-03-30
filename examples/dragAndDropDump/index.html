@@ -69,7 +69,13 @@
             // The output string begins with the element tag, length and VR (if present).  VR is undefined for
             // implicit transfer syntaxes
             var text = element.tag;
-            text += " length=" + element.length + "; ";
+            text += " length=" + element.parsedLength;
+
+            if(element.parsedLength != element.length) {
+                text += " (<strong>" + element.length + "</strong>)";
+            }
+            text += "; ";
+
             if(element.vr) {
                 text += " VR=" + element.vr +"; ";
             }

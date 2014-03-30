@@ -36,6 +36,8 @@ var dicomParser = (function (dicomParser)
         return tag;
     }
 
+
+
     dicomParser.parseDicomElementImplicit = function(byteStream)
     {
         if(!byteStream)
@@ -45,32 +47,48 @@ var dicomParser = (function (dicomParser)
 
         var element = {
             tag : readTag(byteStream),
-            length : byteStream.readUint32(),
+            parsedLength : byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
-
-        if(element.length === -1)
+        element.length = element.parsedLength;
+        if(element.parsedLength === -1)
         {
-            element.tags =[];
-            // TODO: handle undefined length item.
-            // right now we hack around this by scanning until we find the sequence delimiter token
-            while(byteStream.position < byteStream.byteArray.length)
+            // read tag following this element to figure out if this is a sequence
+            if(element.tag === 'xfffee000')
             {
-                var tag = readTag(byteStream);
-                if(tag === 'xfffee0dd' || tag === 'xfffee00d')
-                {
-                    byteStream.readUint32(); // the length
-                    element.length = byteStream.position - element.dataOffset;
-                    return element;
-                }
+                // parse the sequence
+                //byteStream.seek(-4);
+                dicomParser.parseSequenceItemsImplicit(byteStream, element);
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                return element;
             }
-            // eof??
-            element.length = byteStream.position - element.dataOffset;
-            return element;
+            else
+            {
+                // not a sequence, scan until we find delimeter
+                element.tags =[];
+                // TODO: handle undefined length item.
+                var maxPosition = byteStream.byteArray.length - 4;
+                // right now we hack around this by scanning until we find the sequence delimiter token
+                while(byteStream.position <= maxPosition)
+                {
+                    var tag = readTag(byteStream);
+                    element.tags.push(tag);
+                    if(tag === 'xfffee0dd' || tag === 'xfffee00d')
+                    {
+                        byteStream.readUint32(); // the length
+                        element.length = byteStream.position - element.dataOffset;
+                        return element;
+                    }
+                }
+                // eof??
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                return element;
+            }
         }
         else
         {
-            byteStream.seek(element.length);
+            element.length = element.parsedLength;
+            byteStream.seek(element.parsedLength);
         }
 
         return element;
@@ -93,15 +111,19 @@ var dicomParser = (function (dicomParser)
         var dataLengthSizeBytes = getDataLengthSizeInBytesForVR(element.vr);
         if(dataLengthSizeBytes === 2)
         {
-            element.length = byteStream.readUint16();
+            element.parsedLength = byteStream.readUint16();
             element.dataOffset = byteStream.position;
+            element.length = element.parsedLength;
         }
         else
         {
             byteStream.seek(2);
-            element.length = byteStream.readUint32();
+            element.parsedLength = byteStream.readUint32();
             element.dataOffset = byteStream.position;
+            element.length = element.parsedLength;
         }
+
+        // TODO: Handle undefined lengths
 
         // if VR is SQ, parse the sequence items
         if(element.vr === 'SQ')
@@ -111,7 +133,26 @@ var dicomParser = (function (dicomParser)
         else {
 
             if(element.length === -1){
-                throw 'element with undefined length detected';
+                //throw 'element with undefined length detected';
+                // not a sequence, scan until we find delimeter
+                element.tags =[];
+                // TODO: handle undefined length item.
+                var maxPosition = byteStream.byteArray.length - 4;
+                // right now we hack around this by scanning until we find the sequence delimiter token
+                while(byteStream.position <= maxPosition)
+                {
+                    var tag = readTag(byteStream);
+                    element.tags.push(tag);
+                    if(tag === 'xfffee0dd' || tag === 'xfffee00d')
+                    {
+                        byteStream.readUint32(); // the length (should be 0)
+                        element.length = byteStream.position - element.dataOffset;
+                        return element;
+                    }
+                }
+                // eof??
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                return element;
             }
             // TODO: Handle undefined length for OB,OW and UN
             byteStream.seek(element.length);
