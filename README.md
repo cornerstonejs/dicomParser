@@ -39,7 +39,6 @@ Backlog
 
 Needed for 1.0 beta:
 
-* Create bower package
 * Add support for AMD loaders
 
 Needed for 1.0 release

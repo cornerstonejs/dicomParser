@@ -1,4 +1,4 @@
-/*! dicomParser - v0.0.1 - 2014-03-31 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.1.2 - 2014-03-31 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 var dicomParser = (function (dicomParser)
 {
     "use strict";
