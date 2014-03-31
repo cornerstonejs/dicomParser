@@ -7,10 +7,11 @@ Javascript parser for DICOM Part 10 byte streams.  Requires IE10+ or any other m
 
 [Click here for a live example of using the library to display a dump of the fields in a DICOM file](https://rawgithub.com/chafey/dicomParser/master/examples/dumpWithDataDictionary/index.html)
 
+[Click here for a list of all live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
 
 Project Status
 ------------
-* Alpha but stable
+* Beta
 
 Why another Javascript DICOM parsing library?
 ------------
@@ -36,10 +37,6 @@ Curious why these are important to me?  Read more about this in the Soapbox sect
 
 Backlog
 ------------
-
-Needed for 1.0 beta:
-
-* Add support for AMD loaders
 
 Needed for 1.0 release
 * More examples and documentation on how to get started using the library

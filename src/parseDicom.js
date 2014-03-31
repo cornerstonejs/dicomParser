@@ -1,16 +1,25 @@
 /**
  * This module contains the entry point for parsing a DICOM P10 byte stream
  *
+ * This module exports itself as both an AMD module for use with AMD loaders as well
+ * as a global browser variable when AMD modules are not being used.  See the following:
+ *
+ * https://github.com/umdjs/umd/blob/master/amdWeb.js
+ *
  */
 
-var dicomParser = (function (dicomParser)
-{
-    "use strict";
-
-    if(dicomParser === undefined)
-    {
-        dicomParser = {};
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else {
+        // Browser globals
+        if(dicomParser === undefined) {
+            dicomParser = {};
+        }
+        dicomParser = factory();
     }
+}(this, function () {
 
     /**
      * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements
@@ -18,7 +27,7 @@ var dicomParser = (function (dicomParser)
      * @returns {DataSet}
      * @throws error if unable to parse the file
      */
-    dicomParser.parseDicom = function(byteArray) {
+     function parseDicom(byteArray) {
 
         if(byteArray === undefined)
         {
@@ -108,7 +117,17 @@ var dicomParser = (function (dicomParser)
 
         // This is where we actually start parsing
         return parseTheByteStream();
-    };
+    }
 
-    return dicomParser;
-}(dicomParser));
+    if(dicomParser === undefined) {
+        // this happens in the AMD case
+        return {
+            parseDicom: parseDicom
+        };
+    }
+    else {
+        // this is the browser global var case
+        dicomParser.parseDicom = parseDicom;
+        return dicomParser;
+    }
+}));

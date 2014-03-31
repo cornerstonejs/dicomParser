@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by cornerstone -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        #dropZone {
+            border-style: solid;
+            border-width: 1px;
+            border-color: lightgray;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container">
+
+<div class="page-header">
+    <h1>AMD Loader</h1>
+    <p class="lead">
+        Drag and drop a DICOM Part 10 file into the region below for a summary of the key elements.
+    </p>
+    <p>
+        This example illustrates how to use dicomParser as an AMD module using <a href="http://requirejs.org/">Require.js</a>
+    </p>
+    <strong>Use of this example require IE10+ or any other modern browser.</strong>
+
+</div>
+
+<div id="dropZone" class="container-fluid">
+
+<br>
+
+<div class="panel panel-default ">
+    <div class="panel-heading">
+        <h3 class="panel-title">Patient Information</h3>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12">
+                SOP Instance UID: <span id='sopInstanceUid'></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+</div>
+</body>
+
+<!-- require.js - our AMD loader.  It will automatically load main.js so look there for where the logic begins -->
+<script data-main='main.js' src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.11/require.min.js"></script>
+
+</html>

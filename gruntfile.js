@@ -56,6 +56,19 @@ module.exports = function(grunt) {
                 }
             }
         },
+        bump: {
+            scripts: {
+                files: ["package.json"],
+                commit: true,
+                commitMessage: 'Release v%VERSION%',
+                createTag: true,
+                tagName: '%VERSION',
+                tagMessage: 'Release v%VERSION%',
+                updateConfigs: ["pkg"],
+                commitFiles: ["-a"],
+                push: false // git push origin master --tags
+            }
+        },
         watch: {
             scripts: {
                 files: ['src/*.js', 'test/*.js'],
