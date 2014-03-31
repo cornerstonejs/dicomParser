@@ -121,13 +121,14 @@ Do I really need to convince you that this is needed?
 _Does not hide the underlying data stream from you_
 
 I have used many DICOM parsing libraries over the years and most of them either hide the underlying byte stream
-from you or make it really difficult to access.  There are times when you need to access the bytes  - and there
-is no reason to make it hard to do.  A few examples of the need for this include when you are dealing with UN VR's,
-private data and implicit little endian transfer syntaxes (which unfortunately are still widely being used)
-and you don't have a complete data dictionary.  This library addresses this issue by not even trying to parse
-the data and doing it on demand.  So what you get from a parse is basically a set of pointers to where the data
-for each element is in the byte stream and then you call the function you want to extract the type you want.  An
-awesome side effect of this is that you don't need a data dictionary to parse a file even if it uses implicit
+from you or make it really difficult to access.  There are times when you need to access the bytes  - and it can
+be quite frustrating when the library works against you on this.  A few examples of the need for this include when
+you are dealing with UN VR's, private data, encapsulated pixel data and implicit little endian transfer
+syntaxes (which unfortunately are still widely being used) and you don't have a complete data dictionary.
+This library addresses this issue by not even trying to parse the data and doing it on demand.
+So what you get from a parse is basically a set of pointers to where the data for each element is in the
+byte stream and then you call the function you want to extract the type you want.  An awesome side
+effect of this is that you don't need a data dictionary to parse a file even if it uses implicit
 little endian.  Usually you know which elements you want to access and know what type they are so designing your
 parser around a data dictionary is just adding unnecessary complexity.  Additionally, it really isn't the clients
 job to know what data dictionary a given data set may need - in this day and age the Image Archive should manage this
@@ -144,7 +145,7 @@ _Decodes individual elements "on demand" - this goes with not needing a data dic
 
 See above, this is related to not requiring a data dictionary.  Usually you know exactly what elements you need
 and what their types are.  The only time this is not the case is when you are building a DICOM Dump utility or
-you can't get an explicit transfer syntax and have one of those weird elements that can be either OB or OW (and you
+you can't get an explicit transfer syntax and have one of those problematic elements that can be either OB or OW (and you
 can _usually_ figure out which one it is without the VR anyway)
 
 _Code guards against corrupt or invalid data streams by sanity checking lengths and offsets_
@@ -165,8 +166,8 @@ references on this include the [microjs site](http://microjs.com/#) and the
 
 _Has unit tests_
 
-I generally feel that units tests are _mostly_ a waste of time for front end development, but a DICOM parser
-is perhaps one of the best examples of when you should write unit tests.  I did use
+I generally feel that units tests are _often_ a waste of time for front end development.  Where unit tests do make sense
+is code that is decoupled from the user interface - like a DICOM parsing module.  I did use
 [TDD](http://en.wikipedia.org/wiki/Test-driven_development) on this project and had unit tests
 covering ~ 80% of the code paths passing before I even tried to load my first real DICOM file.  Before I wrote
 this library, I did a quick prototype without unit tests that actually took me much less time
