@@ -17,13 +17,13 @@ var dicomParser = (function (dicomParser)
             throw "missing required parameter 'byteStream'";
         }
 
-        maxPosition = maxPosition ||byteStream.byteArray.length - 6;
-
         var elements = {};
+
+        maxPosition = maxPosition ||byteStream.byteArray.length - 6;
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.parseDicomElementExplicit(byteStream);
+            var element = dicomParser.readDicomElementExplicit(byteStream);
             elements[element.tag] = element;
         }
         return new dicomParser.DataSet(byteStream.byteArray, elements);
@@ -41,7 +41,7 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.parseDicomElementImplicit(byteStream);
+            var element = dicomParser.readDicomElementImplicit(byteStream);
             elements[element.tag] = element;
         }
         return new dicomParser.DataSet(byteStream.byteArray, elements);

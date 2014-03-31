@@ -1,6 +1,6 @@
 
 (function(dicomParser) {
-    module("dicomParser.parseDicomElementExplicit");
+    module("dicomParser.readDicomElementExplicit");
 
     test("returns element", function() {
         // Arrange
@@ -8,7 +8,7 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var element = dicomParser.parseDicomElementExplicit(byteStream);
+        var element = dicomParser.readDicomElementExplicit(byteStream);
 
         // Assert
         ok(element, "no element returned");
@@ -24,7 +24,7 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var element = dicomParser.parseDicomElementExplicit(byteStream);
+        var element = dicomParser.readDicomElementExplicit(byteStream);
 
         // Assert
         equal(element.tag, "x22114433",  "tag not correct");
@@ -42,7 +42,7 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var element = dicomParser.parseDicomElementExplicit(byteStream);
+        var element = dicomParser.readDicomElementExplicit(byteStream);
 
         // Assert
         equal(element.vr, "ST",  "tag not correct");
@@ -62,7 +62,7 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var element = dicomParser.parseDicomElementExplicit(byteStream);
+        var element = dicomParser.readDicomElementExplicit(byteStream);
 
         // Assert
         equal(element.length, 513,  "length is not correct");
@@ -86,7 +86,7 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var element = dicomParser.parseDicomElementExplicit(byteStream);
+        var element = dicomParser.readDicomElementExplicit(byteStream);
 
         // Assert
         equal(element.length, 16909060,  "length is not correct");
@@ -110,7 +110,7 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var element = dicomParser.parseDicomElementExplicit(byteStream);
+        var element = dicomParser.readDicomElementExplicit(byteStream);
 
         // Assert
         equal(element.dataOffset, 12,  "dataOffset is not correct");

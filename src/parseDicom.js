@@ -43,7 +43,7 @@ var dicomParser = (function (dicomParser)
 
             // Read the group length element so we know how many bytes needed
             // to read the entire meta header
-            var groupLengthElement = dicomParser.parseDicomElementExplicit(byteStream);
+            var groupLengthElement = dicomParser.readDicomElementExplicit(byteStream);
             var metaHeaderLength = dicomParser.readUint32(byteStream.byteArray, groupLengthElement.dataOffset);
             var positionAfterMetaHeader = byteStream.position + metaHeaderLength;
 
