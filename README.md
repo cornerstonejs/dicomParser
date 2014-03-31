@@ -37,13 +37,17 @@ Curious why these are important to me?  Read more about this in the Soapbox sect
 Backlog
 ------------
 
-* Add conversion functions for the VR's that don't have them yet
-* Figure out how to automatically generate documentation from the source (jsdoc)
+needed for 1.0 release:
+
 * Create bower package
 * Add support for AMD loaders
-* Create an example that leverages a data dictionary
+
+nice to haves some day:
+
+* Add conversion functions for the VR's that don't have them yet
 * Add unit tests for sequence parsing functionality
 * Add a function to parse encapsulated pixel data
+* Figure out how to automatically generate documentation from the source (jsdoc)
 
 Build System
 ============

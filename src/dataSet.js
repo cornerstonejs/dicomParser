@@ -177,13 +177,13 @@ var dicomParser = (function (dicomParser)
             var hh = parseInt(value.substring(0, 2), 10);
             var mm = value.length >= 4 ? parseInt(value.substring(2, 4), 10) : 0;
             var ss = value.length >= 6 ? parseInt(value.substring(4, 6), 10) : 0;
-            var fff = value.length >= 7 ? parseInt(value.substring(7, 13), 10) : 0; /// note - javascript date object is only precise to milliseconds
+            var ffffff = value.length >= 8 ? parseInt(value.substring(7, 13), 10) : 0;
 
             return {
                 hours: hh,
                 minutes: mm,
                 seconds: ss,
-                fractionalSeconds: fff
+                fractionalSeconds: ffffff
             };
         }
         return undefined;
