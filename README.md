@@ -5,7 +5,7 @@ Javascript parser for DICOM Part 10 byte streams.  Requires IE10+ or any other m
 
 [Click here for a live example of using the library to display a summary of the fields in a DICOM file](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
 
-[Click here for a live example of using the library to display a dump of the fields in a DICOM file](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropDump/index.html)
+[Click here for a live example of using the library to display a dump of the fields in a DICOM file](https://rawgithub.com/chafey/dicomParser/master/examples/dumpWithDataDictionary/index.html)
 
 
 Project Status

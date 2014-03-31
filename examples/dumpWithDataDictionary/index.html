@@ -99,6 +99,8 @@ function dumpDataSet(dataSet, output)
 
         var text = "";
 
+        var color = 'black';
+
         var tag = getTag(element.tag);
         // The output string begins with the element name (or tag if not in data dictionary), length and VR (if present).  VR is undefined for
         // implicit transfer syntaxes
@@ -106,29 +108,39 @@ function dumpDataSet(dataSet, output)
         {
             text += element.tag;
             text += "; length=" + element.length;
+
+            if(element.hadUndefinedLength) {
+                text += " <strong>(-1)</strong>";
+            }
+
             if(element.vr) {
                 text += " VR=" + element.vr +"; ";
             }
+
+            // make text lighter since this is an unknown attribute
+            color = '#C8C8C8';
         }
         else
         {
             text += tag.name;
+            text += " : "
+            /* hide length and vr since they just get in the way
             text += "; length=" + element.length;
+
+            if(element.hadUndefinedLength) {
+                text += " <strong>(-1)</strong>";
+            }
+
             if(element.vr) {
                 text += " VR=" + element.vr +"; ";
             }
             else {
                 text += " VR=" + tag.vr +"; ";
             }
+            */
         }
 
-        if(element.hadUndefinedLength) {
-            text += " <strong>(-1)</strong>";
-        }
-        text += "; ";
 
-
-        var color = 'black';
 
         // Here we check for Sequence items and iterate over them if present.  items will not be set in the
         // element object for elements that don't have SQ VR type.  Note that implicit little endian
@@ -162,37 +174,115 @@ function dumpDataSet(dataSet, output)
                 // First we check to see if the element's length is appropriate for a UI or US VR.
                 // US is an important type because it is used for the
                 // image Rows and Columns so that is why those are assumed over other VR types.
-                if(element.length === 2)
-                {
-                    text += " (" + dataSet.uint16(propertyName) + ")";
-                }
-                else if(element.length === 4)
-                {
-                    text += " (" + dataSet.uint32(propertyName) + ")";
-                }
+                if(element.vr === undefined && tag === undefined) {
+                    if(element.length === 2)
+                    {
+                        text += " (" + dataSet.uint16(propertyName) + ")";
+                    }
+                    else if(element.length === 4)
+                    {
+                        text += " (" + dataSet.uint32(propertyName) + ")";
+                    }
 
-                // Next we ask the dataset to give us the element's data in string form.  Most elements are
-                // strings but some aren't so we do a quick check to make sure it actually has all ascii
-                // characters so we know it is reasonable to display it.
-                var str = dataSet.string(propertyName);
-                var stringIsAscii = isASCII(str);
 
-                if(stringIsAscii)
-                {
-                    // the string will be undefined if the element is present but has no data
-                    // (i.e. attribute is of type 2 or 3 ) so we only display the string if it has
-                    // data.  Note that the length of the element will be 0 to indicate "no data"
-                    // so we don't put anything here for the value in that case.
-                    if(str !== undefined) {
-                        text += '"' + str + '"';
+                    // Next we ask the dataset to give us the element's data in string form.  Most elements are
+                    // strings but some aren't so we do a quick check to make sure it actually has all ascii
+                    // characters so we know it is reasonable to display it.
+                    var str = dataSet.string(propertyName);
+                    var stringIsAscii = isASCII(str);
+
+                    if(stringIsAscii)
+                    {
+                        // the string will be undefined if the element is present but has no data
+                        // (i.e. attribute is of type 2 or 3 ) so we only display the string if it has
+                        // data.  Note that the length of the element will be 0 to indicate "no data"
+                        // so we don't put anything here for the value in that case.
+                        if(str !== undefined) {
+                            text += '"' + str + '"';
+                        }
+                    }
+                    else
+                    {
+                        if(element.length !== 2 && element.length !== 4)
+                        {
+                            color = '#C8C8C8';
+                            // If it is some other length and we have no string
+                            text += "<i>binary data</i>";
+                        }
                     }
                 }
                 else
                 {
-                    color = '#C8C8C8';
-                    // If it is some other length and we have no string
-                    text += "<i>binary data</i>";
+                    function isStringVr(vr)
+                    {
+                        if(vr === 'AT'
+                                || vr === 'FL'
+                                || vr === 'FD'
+                                || vr === 'OB'
+                                || vr === 'OF'
+                                || vr === 'OW'
+                                || vr === 'SI'
+                                || vr === 'SQ'
+                                || vr === 'SS'
+                                || vr === 'UL'
+                                || vr === 'US'
+                                )
+                        {
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    // use VR to display the right value
+                    var vr = element.vr || tag.vr;
+                    if(isStringVr(vr))
+                    {
+                        // Next we ask the dataset to give us the element's data in string form.  Most elements are
+                        // strings but some aren't so we do a quick check to make sure it actually has all ascii
+                        // characters so we know it is reasonable to display it.
+                        var str = dataSet.string(propertyName);
+                        var stringIsAscii = isASCII(str);
+
+                        if(stringIsAscii)
+                        {
+                            // the string will be undefined if the element is present but has no data
+                            // (i.e. attribute is of type 2 or 3 ) so we only display the string if it has
+                            // data.  Note that the length of the element will be 0 to indicate "no data"
+                            // so we don't put anything here for the value in that case.
+                            if(str !== undefined) {
+                                text += '"' + str + '"';
+                            }
+                        }
+                        else
+                        {
+                            if(element.length !== 2 && element.length !== 4)
+                            {
+                                color = '#C8C8C8';
+                                // If it is some other length and we have no string
+                                text += "<i>binary data</i>";
+                            }
+                        }
+                    }
+                    else if (vr == 'UI')
+                    {
+                        text += dataSet.uint32(propertyName);
+                    }
+                    else if(vr === 'US')
+                    {
+                        text += dataSet.uint16(propertyName);
+                    }
+                    else if(vr === 'OB' || vr === 'OW' || vr === 'UN' || vr === 'OF' || vr ==='UT')
+                    {
+                        color = '#C8C8C8';
+                        // If it is some other length and we have no string
+                        text += "<i>binary data</i>";
+                    }
+                    else {
+                        // If it is some other length and we have no string
+                        text += "<i>no display code for VR=" + vr + "</i>";
+                    }
                 }
+
 
                 if(element.length ===0) {
                     color = '#C8C8C8';

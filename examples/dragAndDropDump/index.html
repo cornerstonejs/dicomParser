@@ -158,9 +158,12 @@
                     }
                     else
                     {
-                        color = '#C8C8C8';
-                        // If it is some other length and we have no string
-                        text += "<i>binary data</i>";
+                        if(element.length !== 2 && element.length !== 4)
+                        {
+                            color = '#C8C8C8';
+                            // If it is some other length and we have no string
+                            text += "<i>binary data</i>";
+                        }
                     }
 
                     if(element.length ===0) {
