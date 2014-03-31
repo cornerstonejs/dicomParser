@@ -163,6 +163,9 @@ function dumpDataSet(dataSet, output)
             output.push('</ul>');
         }
         else {
+            // use VR to display the right value
+            var vr = element.vr || tag.vr;
+
             // if the length of the element is less than 128 we try to show it.  We put this check in
             // to avoid displaying large strings which makes it harder to use.
             if(element.length < 128) {
@@ -233,8 +236,6 @@ function dumpDataSet(dataSet, output)
                         return true;
                     }
 
-                    // use VR to display the right value
-                    var vr = element.vr || tag.vr;
                     if(isStringVr(vr))
                     {
                         // Next we ask the dataset to give us the element's data in string form.  Most elements are
@@ -275,25 +276,23 @@ function dumpDataSet(dataSet, output)
                     {
                         color = '#C8C8C8';
                         // If it is some other length and we have no string
-                        text += "<i>binary data</i>";
+                        text += "<i>binary data of length " + element.length + " and VR " + vr + "</i>";
                     }
                     else {
                         // If it is some other length and we have no string
-                        text += "<i>no display code for VR=" + vr + "</i>";
+                        text += "<i>no display code for VR " + vr + " yet, sorry!</i>";
                     }
                 }
-
 
                 if(element.length ===0) {
                     color = '#C8C8C8';
                 }
-
             }
             else {
                 color = '#C8C8C8';
 
                 // Add text saying the data is too long to show...
-                text += "<i>data too long to show</i>";
+                text += "<i>data of length " + element.length + " for VR + " + vr + " too long to show</i>";
             }
         }
         // finally we add the string to our output array surrounded by li elements so it shows up in the
