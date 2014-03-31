@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by cornerstone -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        #dropZone {
+            height: 500px;
+            width: 100%;
+            background-color: #F0F0F0;
+            overflow: auto;
+        }
+
+
+    </style>
+
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>Getting Started</h1>
+        <p class="lead">
+            This is a quick overview of how to get started using the dicomParser library.
+        </p>
+        <p>
+            This example shows how to use dicomParser to load a DICOM File and acces its contents.
+        </p>
+        <strong>Use of this example require IE10+ or any other modern browser.</strong>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="dropZone">
+
+                <div class="text-center" style="margin-top:225px;"><h3>Drag DICOM P10 file here to dump its elements</h3></div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+
+<!-- jquery - included to make things easier to demo, not needed by dicomParser -->
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+
+<!-- include the cornerstone library -->
+<script src="../../dist/dicomParser.js"></script>
+
+<script>
+
+    // Load
+    var url = "http://www.dicomserver.co.uk/wado/GetImages.asp?StudyUID=1.2.826.4308531.6.0.122377148345.1255965476&SeriesUID=1.2.826.4308531.6.0.122377148345.1255965477";
+
+    var oReq = new XMLHttpRequest();
+    oReq.open("get", url, true);
+    oReq.responseType = "arraybuffer";
+    oReq.onreadystatechange = function(oEvent) {
+        if(oReq.readyState == 4 && oReq.status == 200) {
+            var byteArray = new Uint8Array(oReq.response);
+            var dataSet = dicomParser.parseDicom(byteArray);
+        }
+        // TODO: Check for errors and reject the deferred if they happened
+        else {
+            // request failed, reject the deferred
+            //deferred.reject();
+        }
+    };
+    oReq.send();
+
+</script>
+</html>

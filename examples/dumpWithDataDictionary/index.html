@@ -123,21 +123,7 @@ function dumpDataSet(dataSet, output)
         else
         {
             text += tag.name;
-            text += " : "
-            /* hide length and vr since they just get in the way
-            text += "; length=" + element.length;
-
-            if(element.hadUndefinedLength) {
-                text += " <strong>(-1)</strong>";
-            }
-
-            if(element.vr) {
-                text += " VR=" + element.vr +"; ";
-            }
-            else {
-                text += " VR=" + tag.vr +"; ";
-            }
-            */
+            text += "(" + element.tag + ") :";
         }
 
 

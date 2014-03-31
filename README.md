@@ -11,7 +11,7 @@ Javascript parser for DICOM Part 10 byte streams.  Requires IE10+ or any other m
 
 Project Status
 ------------
-* Beta
+* Beta (release candidate)
 
 Why another Javascript DICOM parsing library?
 ------------
@@ -37,9 +37,6 @@ Curious why these are important to me?  Read more about this in the Soapbox sect
 
 Backlog
 ------------
-
-Needed for 1.0 release
-* More examples and documentation on how to get started using the library
 
 Future:
 
