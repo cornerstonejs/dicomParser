@@ -42,8 +42,9 @@ Backlog
 * Create bower package
 * Add support for AMD loaders
 * Create an example that leverages a data dictionary
-* Figure out why drag and drop doesn't work for IE11
 * Add unit tests for sequence parsing functionality
+* Add a function to parse encapsulated pixel data
+* Fix bug with implicit sequences that have lengths
 
 Build System
 ============

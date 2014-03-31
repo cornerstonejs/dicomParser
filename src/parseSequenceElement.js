@@ -54,10 +54,9 @@ var dicomParser = (function (dicomParser)
 
         var element = {
             tag : readTag(byteStream),
-            parsedLength : byteStream.readUint32(),
+            length : byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
-        element.length = element.parsedLength;
 
         return element;
     }
@@ -68,6 +67,7 @@ var dicomParser = (function (dicomParser)
 
         if(item.length === -1)
         {
+            item.hadUndefinedLength = true;
             item.dataSet = parseDicomDataSetExplicitUndefinedLength(byteStream);
             item.length = byteStream.position - item.dataOffset;
         }
