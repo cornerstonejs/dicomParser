@@ -30,9 +30,9 @@ var dicomParser = (function (dicomParser)
 
     dicomParser.readDicomElementExplicit = function(byteStream)
     {
-        if(!byteStream)
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
         var element = {
@@ -64,35 +64,15 @@ var dicomParser = (function (dicomParser)
         if(element.vr === 'SQ')
         {
             dicomParser.readSequenceItemsExplicit(byteStream, element);
+            return element;
         }
-        else
+        if(element.length === -1)
         {
-            if(element.length === -1){
-                // not a sequence, scan until we find delimeter
-                // TODO: Handle undefined length for OB,OW and UN
-                // TODO: handle undefined length item.
-                element.tags =[];
-                var maxPosition = byteStream.byteArray.length - 4;
-                // right now we hack around this by scanning until we find the sequence delimiter token
-                while(byteStream.position <= maxPosition)
-                {
-                    var tag = dicomParser.readTag(byteStream);
-                    element.tags.push(tag);
-                    if(tag === 'xfffee0dd' || tag === 'xfffee00d')
-                    {
-                        byteStream.readUint32(); // the length (should be 0)
-                        element.length = byteStream.position - element.dataOffset;
-                        return element;
-                    }
-                }
-                // eof??
-                element.length = byteStream.byteArray.length - element.dataOffset;
-                return element;
-            }
-            byteStream.seek(element.length);
+            dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
+            return element;
         }
 
-
+        byteStream.seek(element.length);
         return element;
     };
 

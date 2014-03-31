@@ -11,11 +11,17 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
+    /**
+     * Reads a tag (group number and element number) from a byteStream
+     * @param byteStream the byte stream to read from
+     * @returns {string} the tag in format xggggeeee where gggg is the lowercase hex value of the group number
+     * and eeee is the lower case hex value of the element number
+     */
     dicomParser.readTag = function(byteStream)
     {
-        if(!byteStream)
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.readTag: missing required parameter 'byteStream'";
         }
 
         var groupNumber =  byteStream.readUint16() * 256 * 256;

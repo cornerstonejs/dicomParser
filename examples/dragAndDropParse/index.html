@@ -39,7 +39,14 @@
 
         <br>
 
-        <div id="status" class="alert alert-success"></span>Status: Ready (no file loaded)</div>
+        <div id="status" class="alert alert-success">
+            <div id="statusText">
+                Status: Ready (no file loaded)
+            </div>
+            <ul id="warnings">
+
+            </ul>
+        </div>
 
         <div class="panel panel-default ">
             <div class="panel-heading">
@@ -376,8 +383,8 @@
     function dumpFile(file)
     {
         $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
-
-        document.getElementById('status').innerHTML = 'Status: Loading file, please wait..';
+        $('#warnings').empty();
+        document.getElementById('statusText').innerHTML = 'Status: Loading file, please wait..';
 
         var reader = new FileReader();
         reader.onload = function(file) {
@@ -390,7 +397,7 @@
             var kb = byteArray.length / 1024;
             var mb = kb / 1024;
             var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
-            document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-cog"></span>Status: Parsing ' + byteStr + ' bytes, please wait..';
+            document.getElementById('statusText').innerHTML = '<span class="glyphicon glyphicon-cog"></span>Status: Parsing ' + byteStr + ' bytes, please wait..';
 
             // set a short timeout to do the parse so the DOM has time to update itself with the above message
             setTimeout(function() {
@@ -406,22 +413,33 @@
 
                     var end = new Date().getTime();
                     var time = end - start;
-                    var pixelData = dataSet.elements.x7fe00010;
-                    if(pixelData) {
-                        $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        document.getElementById('status').innerHTML = 'Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)';
+                    if(dataSet.warnings.length > 0)
+                    {
+                        $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
+                        $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+
+                        dataSet.warnings.forEach(function(warning) {
+                            $("#warnings").append('<li>' + warning +'</li>');
+                        });
                     }
                     else
                     {
-                        $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        document.getElementById('status').innerHTML = 'Status: Warning - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)';
+                        var pixelData = dataSet.elements.x7fe00010;
+                        if(pixelData) {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                        }
+                        else
+                        {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
+                        }
                     }
-
                 }
                 catch(err)
                 {
                     $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
-                    document.getElementById('status').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
+                    document.getElementById('statusText').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
                 }
 
             }, 30);

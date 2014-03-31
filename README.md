@@ -125,11 +125,17 @@ from you or make it really difficult to access.  There are times when you need t
 be quite frustrating when the library works against you on this.  A few examples of the need for this include when
 you are dealing with UN VR's, private data, encapsulated pixel data and implicit little endian transfer
 syntaxes (which unfortunately are still widely being used) and you don't have a complete data dictionary.
-This library addresses this issue by not even trying to parse the data and doing it on demand.
+This library addresses this issue by not even trying to parse elements and doing it on demand.
+The exception here is for sequence elements which require parsing due to the way undefined lengths work.
 So what you get from a parse is basically a set of pointers to where the data for each element is in the
 byte stream and then you call the function you want to extract the type you want.  An awesome side
 effect of this is that you don't need a data dictionary to parse a file even if it uses implicit
-little endian.  Usually you know which elements you want to access and know what type they are so designing your
+little endian.  Note that you cannot 100% reliably parse sequence elements in an implicit little endian
+transfer syntax without a data dictionary.  I therefore *strongly* recommend that you only work with
+explicit transfer syntaxes.  Fortunately WADO requires support for returning explicit big endian so this shouldn't
+be a problem "in the real world".  Implicit transfer syntax parsing was implemented mainly for convenience
+(and the fact that many of my test data sets are in little endian transfer syntax _sigh_).
+Usually you know which elements you want to access and know what type they are so designing your
 parser around a data dictionary is just adding unnecessary complexity.  Additionally, it really isn't the clients
 job to know what data dictionary a given data set may need - in this day and age the Image Archive should manage this
 complexity by managing the data dictionary and providing data in explicit transfer syntaxes.

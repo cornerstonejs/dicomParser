@@ -13,11 +13,6 @@ var dicomParser = (function (dicomParser)
 
     function readDicomDataSetExplicitUndefinedLength(byteStream)
     {
-        if(!byteStream)
-        {
-            throw "missing required parameter 'byteStream'";
-        }
-
         var elements = {};
 
         while(byteStream.position < byteStream.byteArray.length)
@@ -33,6 +28,9 @@ var dicomParser = (function (dicomParser)
             }
 
         }
+
+        // eof encountered - log a warning and return what we have for the element
+        byteStream.warnings.push('eof encountered before finding sequence delimitation item while reading sequence item of undefined length');
         return new dicomParser.DataSet(byteStream.byteArray, elements);
     }
 
@@ -55,13 +53,12 @@ var dicomParser = (function (dicomParser)
 
     function readSQElementUndefinedLengthExplicit(byteStream, element)
     {
-        element.items = [];
         while(byteStream.position < byteStream.byteArray.length)
         {
             var item = readSequenceItemExplicit(byteStream);
             element.items.push(item);
 
-            // If this is the sequence delimitiation item, return the offset of the next element
+            // If this is the sequence delimitation item, return the offset of the next element
             if(item.tag === 'xfffee0dd')
             {
                 // sequence delimitation item, update attr data length and return
@@ -70,16 +67,15 @@ var dicomParser = (function (dicomParser)
             }
         }
 
-        // Buffer overread!  Set the length of the element to reflect the end of buffer so
-        // the caller has access to what we were able to parse.
-        // TODO: Figure out how to communicate parse errors like this to the caller
-        element.length = byteStream.position - element.dataOffset;
+        // eof encountered - log a warning and set the length of the element based on the buffer size
+        byteStream.warnings.push('eof encountered before finding sequence delimitation item in sequence element of undefined length with tag ' + element.tag);
+        element.length = byteStream.byteArray.length - element.dataOffset;
     }
 
     function readSQElementKnownLengthExplicit(byteStream, element)
     {
-        element.items = [];
-        while(byteStream.position < element.dataOffset + element.length)
+        var maxPosition = element.dataOffset + element.length;
+        while(byteStream.position < maxPosition)
         {
             var item = readSequenceItemExplicit(byteStream);
             element.items.push(item);
@@ -88,6 +84,17 @@ var dicomParser = (function (dicomParser)
 
     dicomParser.readSequenceItemsExplicit = function(byteStream, element)
     {
+        if(byteStream === undefined)
+        {
+            throw "dicomParser.readSequenceItemsExplicit: missing required parameter 'byteStream'";
+        }
+        if(element === undefined)
+        {
+            throw "dicomParser.readSequenceItemsExplicit: missing required parameter 'element'";
+        }
+
+        element.items = [];
+
         if(element.length === -1)
         {
             readSQElementUndefinedLengthExplicit(byteStream, element);

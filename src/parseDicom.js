@@ -20,12 +20,12 @@ var dicomParser = (function (dicomParser)
      */
     dicomParser.parseDicom = function(byteArray) {
 
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-
-        if(!byteArray)
+        if(byteArray === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.parseDicom: missing required parameter 'byteArray'";
         }
+
+        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         function readPrefix()
         {
@@ -33,7 +33,7 @@ var dicomParser = (function (dicomParser)
             var prefix = byteStream.readFixedString(4);
             if(prefix !== "DICM")
             {
-                throw "DICM prefix not found at location 132";
+                throw "dicomParser.parseDicom: DICM prefix not found at location 132";
             }
         }
 
@@ -54,7 +54,7 @@ var dicomParser = (function (dicomParser)
 
         function isExplicit(metaHeaderDataSet) {
             if(metaHeaderDataSet.elements.x00020010 === undefined) {
-                throw 'missing required meta header attribute 0002,0010';
+                throw 'dicomParser.parseDicom: missing required meta header attribute 0002,0010';
             }
             var transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
             var transferSyntax = dicomParser.readFixedString(byteStream.byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
@@ -64,7 +64,7 @@ var dicomParser = (function (dicomParser)
             }
             else if(transferSyntax === '1.2.840.10008.1.2.2')
             {
-                throw 'explicit big endian transfer syntax not supported';
+                throw 'dicomParser.parseDicom: explicit big endian transfer syntax not supported';
             }
             // all other transfer syntaxes should be explicit
             return true;
@@ -101,6 +101,7 @@ var dicomParser = (function (dicomParser)
 
             var dataSet = readDataSet(metaHeaderDataSet);
 
+            dataSet.warnings = byteStream.warnings;
             return mergeDataSets(metaHeaderDataSet, dataSet);
         }
 

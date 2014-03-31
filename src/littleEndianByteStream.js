@@ -25,24 +25,25 @@ var dicomParser = (function (dicomParser)
      * @throws will throw an error the position parameter is not inside the byteArray
      */
     dicomParser.LittleEndianByteStream = function(byteArray, position) {
-        this.byteArray = byteArray;
-        this.position = position ? position : 0;
-
-        if(!byteArray)
+        if(byteArray === undefined)
         {
-            throw "missing required parameter 'byteArray'";
+            throw "dicomParser.LittleEndianByteStream: missing required parameter 'byteArray'";
         }
         if((byteArray instanceof Uint8Array) === false) {
-            throw 'parameter byteArray is not of type Uint8Array';
+            throw 'dicomParser.LittleEndianByteStream: parameter byteArray is not of type Uint8Array';
         }
-        if(this.position < 0)
+        if(position < 0)
         {
-            throw "parameter 'position' cannot be less than 0";
+            throw "dicomParser.LittleEndianByteStream: parameter 'position' cannot be less than 0";
         }
-        if(this.position >= byteArray.length)
+        if(position >= byteArray.length)
         {
-            throw "parameter 'position' cannot be larger than 'byteArray' length";
+            throw "dicomParser.LittleEndianByteStream: parameter 'position' cannot be greater than or equal to 'byteArray' length";
+
         }
+        this.byteArray = byteArray;
+        this.position = position ? position : 0;
+        this.warnings = []; // array of string warnings encountered while parsing
     };
 
     /**
@@ -59,7 +60,6 @@ var dicomParser = (function (dicomParser)
         }
         this.position += offset;
     };
-
 
     /**
      * Returns a new LittleEndianByteStream object from the current position and of the requested number of bytes

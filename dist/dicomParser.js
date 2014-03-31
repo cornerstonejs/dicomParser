@@ -25,10 +25,10 @@ var dicomParser = (function (dicomParser)
     dicomParser.readUint16 = function(byteArray, position)
     {
         if(position < 0) {
-            throw 'uint16 - position cannot be less than 0';
+            throw 'dicomParser.readUint16: position cannot be less than 0';
         }
         if(position + 2 > byteArray.length) {
-            throw 'uint16 - buffer overread';
+            throw 'dicomParser.readUint16: attempt to read past end of buffer';
         }
         return byteArray[position] + (byteArray[position + 1] << 8);
     };
@@ -46,11 +46,11 @@ var dicomParser = (function (dicomParser)
     dicomParser.readUint32 = function(byteArray, position)    {
         if(position < 0)
         {
-            throw 'readFixedString - length cannot be less than 0';
+            throw 'dicomParser.readUint32: position cannot be less than 0';
         }
 
         if(position + 4 > byteArray.length) {
-            throw 'uint32 - buffer overread';
+            throw 'dicomParser.readUint32: attempt to read past end of buffer';
         }
 
         return (byteArray[position] +
@@ -78,7 +78,7 @@ var dicomParser = (function (dicomParser)
         }
 
         if(position + length > byteArray.length) {
-            throw 'readFixedString - buffer overread';
+            throw 'dicomParser.readFixedString: attempt to read past end of buffer';
         }
 
         var result = "";
@@ -316,6 +316,59 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
+ * Internal helper functions for for parsing DICOM elements
+ */
+
+var dicomParser = (function (dicomParser)
+{
+    "use strict";
+
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
+    }
+
+    /**
+     * reads from the byte stream until it finds the magic numbers for the item delimitation item
+     * and then sets the length of the element
+     * @param byteStream
+     * @param element
+     */
+    dicomParser.findItemDelimitationItemAndSetElementLength = function(byteStream, element)
+    {
+        if(byteStream === undefined)
+        {
+            throw "dicomParser.readDicomElementImplicit: missing required parameter 'byteStream'";
+        }
+
+        var itemDelimitationItemLength = 8; // group, element, length
+        var maxPosition = byteStream.byteArray.length - itemDelimitationItemLength;
+        while(byteStream.position <= maxPosition)
+        {
+            var groupNumber = byteStream.readUint16();
+            var elementNumber = byteStream.readUint16();
+            if(groupNumber === 0xfffe && elementNumber === 0xe00d)
+            {
+                // NOTE: It would be better to also check for the length to be 0 as part of the check above
+                // but we will just log a warning for now
+                var itemDelimiterLength = byteStream.readUint32(); // the length
+                if(itemDelimiterLength !== 0) {
+                    byteStream.warnings('encountered non zero length following item delimeter at position' + byteStream.position - 4 + " while reading element of undefined length with tag ' + element.tag");
+                }
+                element.length = byteStream.position - element.dataOffset;
+                return;
+            }
+        }
+        // eof encountered - log a warning and return what we have for the element
+        // NOTE: This seems to show up quite a bit so may actually be expected - need to confirm with standard
+        byteStream.warnings.push('eof encountered before finding item delimitation item while reading element of undefined length with tag ' + element.tag);
+        element.length = byteStream.byteArray.length - element.dataOffset;
+    };
+
+
+    return dicomParser;
+}(dicomParser));
+/**
  *
  * Interal helper class to assist with parsing class supports reading from a little endian byte
  * stream contained in an Uint18Array.  Example usage:
@@ -342,24 +395,25 @@ var dicomParser = (function (dicomParser)
      * @throws will throw an error the position parameter is not inside the byteArray
      */
     dicomParser.LittleEndianByteStream = function(byteArray, position) {
-        this.byteArray = byteArray;
-        this.position = position ? position : 0;
-
-        if(!byteArray)
+        if(byteArray === undefined)
         {
-            throw "missing required parameter 'byteArray'";
+            throw "dicomParser.LittleEndianByteStream: missing required parameter 'byteArray'";
         }
         if((byteArray instanceof Uint8Array) === false) {
-            throw 'parameter byteArray is not of type Uint8Array';
+            throw 'dicomParser.LittleEndianByteStream: parameter byteArray is not of type Uint8Array';
         }
-        if(this.position < 0)
+        if(position < 0)
         {
-            throw "parameter 'position' cannot be less than 0";
+            throw "dicomParser.LittleEndianByteStream: parameter 'position' cannot be less than 0";
         }
-        if(this.position >= byteArray.length)
+        if(position >= byteArray.length)
         {
-            throw "parameter 'position' cannot be larger than 'byteArray' length";
+            throw "dicomParser.LittleEndianByteStream: parameter 'position' cannot be greater than or equal to 'byteArray' length";
+
         }
+        this.byteArray = byteArray;
+        this.position = position ? position : 0;
+        this.warnings = []; // array of string warnings encountered while parsing
     };
 
     /**
@@ -376,7 +430,6 @@ var dicomParser = (function (dicomParser)
         }
         this.position += offset;
     };
-
 
     /**
      * Returns a new LittleEndianByteStream object from the current position and of the requested number of bytes
@@ -463,12 +516,12 @@ var dicomParser = (function (dicomParser)
      */
     dicomParser.parseDicom = function(byteArray) {
 
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-
-        if(!byteArray)
+        if(byteArray === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.parseDicom: missing required parameter 'byteArray'";
         }
+
+        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         function readPrefix()
         {
@@ -476,7 +529,7 @@ var dicomParser = (function (dicomParser)
             var prefix = byteStream.readFixedString(4);
             if(prefix !== "DICM")
             {
-                throw "DICM prefix not found at location 132";
+                throw "dicomParser.parseDicom: DICM prefix not found at location 132";
             }
         }
 
@@ -497,7 +550,7 @@ var dicomParser = (function (dicomParser)
 
         function isExplicit(metaHeaderDataSet) {
             if(metaHeaderDataSet.elements.x00020010 === undefined) {
-                throw 'missing required meta header attribute 0002,0010';
+                throw 'dicomParser.parseDicom: missing required meta header attribute 0002,0010';
             }
             var transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
             var transferSyntax = dicomParser.readFixedString(byteStream.byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
@@ -507,7 +560,7 @@ var dicomParser = (function (dicomParser)
             }
             else if(transferSyntax === '1.2.840.10008.1.2.2')
             {
-                throw 'explicit big endian transfer syntax not supported';
+                throw 'dicomParser.parseDicom: explicit big endian transfer syntax not supported';
             }
             // all other transfer syntaxes should be explicit
             return true;
@@ -544,6 +597,7 @@ var dicomParser = (function (dicomParser)
 
             var dataSet = readDataSet(metaHeaderDataSet);
 
+            dataSet.warnings = byteStream.warnings;
             return mergeDataSets(metaHeaderDataSet, dataSet);
         }
 
@@ -566,12 +620,21 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
-    function parseDicomDataSetExplicit(byteStream, maxPosition) {
-        if(!byteStream)
+    /**
+     * reads an explicit data set
+     * @param byteStream the byte stream to read from
+     * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
+     * @returns {dicomParser.DataSet}
+     */
+    dicomParser.parseDicomDataSetExplicit = function (byteStream, maxPosition) {
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.parseDicomDataSetExplicit: missing required parameter 'byteStream'";
         }
-
+        if(maxPosition < byteStream.position || maxPosition > byteStream.byteArray.length)
+        {
+            throw "dicomParser.parseDicomDataSetExplicit: invalid value for parameter 'maxPosition'";
+        }
         var elements = {};
 
         maxPosition = maxPosition ||byteStream.byteArray.length - 6;
@@ -582,12 +645,23 @@ var dicomParser = (function (dicomParser)
             elements[element.tag] = element;
         }
         return new dicomParser.DataSet(byteStream.byteArray, elements);
-    }
+    };
 
-    function parseDicomDataSetImplicit(byteStream, maxPosition) {
-        if(!byteStream)
+    /**
+     * reads an implicit data set
+     * @param byteStream the byte stream to read from
+     * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
+     * @returns {dicomParser.DataSet}
+     */
+    dicomParser.parseDicomDataSetImplicit = function(byteStream, maxPosition) {
+
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.parseDicomDataSetImplicit: missing required parameter 'byteStream'";
+        }
+        if(maxPosition < byteStream.position || maxPosition > byteStream.byteArray.length)
+        {
+            throw "dicomParser.parseDicomDataSetImplicit: invalid value for parameter 'maxPosition'";
         }
 
         var elements = {};
@@ -600,10 +674,7 @@ var dicomParser = (function (dicomParser)
             elements[element.tag] = element;
         }
         return new dicomParser.DataSet(byteStream.byteArray, elements);
-    }
-
-    dicomParser.parseDicomDataSetExplicit = parseDicomDataSetExplicit;
-    dicomParser.parseDicomDataSetImplicit = parseDicomDataSetImplicit;
+    };
 
     return dicomParser;
 }(dicomParser));
@@ -639,9 +710,9 @@ var dicomParser = (function (dicomParser)
 
     dicomParser.readDicomElementExplicit = function(byteStream)
     {
-        if(!byteStream)
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
         var element = {
@@ -673,35 +744,15 @@ var dicomParser = (function (dicomParser)
         if(element.vr === 'SQ')
         {
             dicomParser.readSequenceItemsExplicit(byteStream, element);
+            return element;
         }
-        else
+        if(element.length === -1)
         {
-            if(element.length === -1){
-                // not a sequence, scan until we find delimeter
-                // TODO: Handle undefined length for OB,OW and UN
-                // TODO: handle undefined length item.
-                element.tags =[];
-                var maxPosition = byteStream.byteArray.length - 4;
-                // right now we hack around this by scanning until we find the sequence delimiter token
-                while(byteStream.position <= maxPosition)
-                {
-                    var tag = dicomParser.readTag(byteStream);
-                    element.tags.push(tag);
-                    if(tag === 'xfffee0dd' || tag === 'xfffee00d')
-                    {
-                        byteStream.readUint32(); // the length (should be 0)
-                        element.length = byteStream.position - element.dataOffset;
-                        return element;
-                    }
-                }
-                // eof??
-                element.length = byteStream.byteArray.length - element.dataOffset;
-                return element;
-            }
-            byteStream.seek(element.length);
+            dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
+            return element;
         }
 
-
+        byteStream.seek(element.length);
         return element;
     };
 
@@ -722,9 +773,9 @@ var dicomParser = (function (dicomParser)
 
     dicomParser.readDicomElementImplicit = function(byteStream)
     {
-        if(!byteStream)
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.readDicomElementImplicit: missing required parameter 'byteStream'";
         }
 
         var element = {
@@ -738,7 +789,9 @@ var dicomParser = (function (dicomParser)
             element.hadUndefinedLength = true;
         }
 
-        // skip ahead to next tag to see if this is a SQ element
+        // peek ahead at the next tag to see if it looks like a sequence.  This is not 100%
+        // safe because a non sequence item could have data that has these bytes, but this
+        // is how to do it without a data dictionary
         var nextTag = dicomParser.readTag(byteStream);
         byteStream.seek(-4);
 
@@ -749,49 +802,17 @@ var dicomParser = (function (dicomParser)
             element.length = byteStream.byteArray.length - element.dataOffset;
             return element;
         }
-        else
+
+        // if element is not a sequence and has undefined length, we have to
+        // scan the data for a magic number to figure out when it ends.
+        if(element.length === -1)
         {
-            if(element.length === -1)
-            {
-                // read the next tag to determine if this is a sequence or not
-                if(nextTag === 'xfffee000')
-                {
-                    // parse the sequence
-                    dicomParser.readSequenceItemsImplicit(byteStream, element);
-                    element.length = byteStream.byteArray.length - element.dataOffset;
-                    return element;
-                }
-                else
-                {
-                    // not a sequence, scan until we find delimeter
-                    element.tags =[];
-                    // TODO: handle undefined length item.
-                    var maxPosition = byteStream.byteArray.length - 4;
-                    // right now we hack around this by scanning until we find the sequence delimiter token
-                    while(byteStream.position <= maxPosition)
-                    {
-                        var tag = dicomParser.readTag(byteStream);
-                        element.tags.push(tag);
-                        if(tag === 'xfffee0dd' || tag === 'xfffee00d')
-                        {
-                            byteStream.readUint32(); // the length
-                            element.length = byteStream.position - element.dataOffset;
-                            return element;
-                        }
-                    }
-                    // eof??
-                    element.length = byteStream.byteArray.length - element.dataOffset;
-                    return element;
-                }
-            }
-            else
-            {
-                byteStream.seek(element.length);
-            }
+            dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
+            return element;
         }
 
-
-
+        // non sequence element with known length, skip over the data part
+        byteStream.seek(element.length);
         return element;
     };
 
@@ -813,11 +834,6 @@ var dicomParser = (function (dicomParser)
 
     function readDicomDataSetExplicitUndefinedLength(byteStream)
     {
-        if(!byteStream)
-        {
-            throw "missing required parameter 'byteStream'";
-        }
-
         var elements = {};
 
         while(byteStream.position < byteStream.byteArray.length)
@@ -833,6 +849,9 @@ var dicomParser = (function (dicomParser)
             }
 
         }
+
+        // eof encountered - log a warning and return what we have for the element
+        byteStream.warnings.push('eof encountered before finding sequence delimitation item while reading sequence item of undefined length');
         return new dicomParser.DataSet(byteStream.byteArray, elements);
     }
 
@@ -855,13 +874,12 @@ var dicomParser = (function (dicomParser)
 
     function readSQElementUndefinedLengthExplicit(byteStream, element)
     {
-        element.items = [];
         while(byteStream.position < byteStream.byteArray.length)
         {
             var item = readSequenceItemExplicit(byteStream);
             element.items.push(item);
 
-            // If this is the sequence delimitiation item, return the offset of the next element
+            // If this is the sequence delimitation item, return the offset of the next element
             if(item.tag === 'xfffee0dd')
             {
                 // sequence delimitation item, update attr data length and return
@@ -870,16 +888,15 @@ var dicomParser = (function (dicomParser)
             }
         }
 
-        // Buffer overread!  Set the length of the element to reflect the end of buffer so
-        // the caller has access to what we were able to parse.
-        // TODO: Figure out how to communicate parse errors like this to the caller
-        element.length = byteStream.position - element.dataOffset;
+        // eof encountered - log a warning and set the length of the element based on the buffer size
+        byteStream.warnings.push('eof encountered before finding sequence delimitation item in sequence element of undefined length with tag ' + element.tag);
+        element.length = byteStream.byteArray.length - element.dataOffset;
     }
 
     function readSQElementKnownLengthExplicit(byteStream, element)
     {
-        element.items = [];
-        while(byteStream.position < element.dataOffset + element.length)
+        var maxPosition = element.dataOffset + element.length;
+        while(byteStream.position < maxPosition)
         {
             var item = readSequenceItemExplicit(byteStream);
             element.items.push(item);
@@ -888,6 +905,17 @@ var dicomParser = (function (dicomParser)
 
     dicomParser.readSequenceItemsExplicit = function(byteStream, element)
     {
+        if(byteStream === undefined)
+        {
+            throw "dicomParser.readSequenceItemsExplicit: missing required parameter 'byteStream'";
+        }
+        if(element === undefined)
+        {
+            throw "dicomParser.readSequenceItemsExplicit: missing required parameter 'element'";
+        }
+
+        element.items = [];
+
         if(element.length === -1)
         {
             readSQElementUndefinedLengthExplicit(byteStream, element);
@@ -914,53 +942,8 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
-    function readSequenceItemImplicit(byteStream)
-    {
-        var item = dicomParser.readSequenceItem(byteStream);
-
-        if(item.length === -1)
-        {
-            item.dataSet = readDicomDataSetImplicitUndefinedLength(byteStream);
-            item.length = byteStream.position - item.dataOffset;
-        }
-        else
-        {
-            item.dataSet = dicomParser.parseDicomDataSetImplicit(byteStream, byteStream.position + item.length);
-        }
-        return item;
-    }
-
-    function readSQElementUndefinedLengthImplicit(byteStream, element)
-    {
-        element.items = [];
-        while(byteStream.position < byteStream.byteArray.length)
-        {
-            var item = readSequenceItemImplicit(byteStream);
-            element.items.push(item);
-
-            // If this is the sequence delimitiation item, return the offset of the next element
-            if(item.tag === 'xfffee0dd')
-            {
-                // sequence delimitation item, update attr data length and return
-                element.length = byteStream.position - element.dataOffset;
-                return;
-            }
-        }
-
-        // Buffer overread!  Set the length of the element to reflect the end of buffer so
-        // the caller has access to what we were able to parse.
-        // TODO: Figure out how to communicate parse errors like this to the caller
-        element.length = byteStream.position - element.dataOffset;
-    }
-
-
     function readDicomDataSetImplicitUndefinedLength(byteStream)
     {
-        if(!byteStream)
-        {
-            throw "missing required parameter 'byteStream'";
-        }
-
         var elements = {};
 
         while(byteStream.position < byteStream.byteArray.length)
@@ -975,21 +958,77 @@ var dicomParser = (function (dicomParser)
                 return new dicomParser.DataSet(byteStream.byteArray, elements);
             }
         }
+        // eof encountered - log a warning and return what we have for the element
+        byteStream.warnings.push('eof encountered before finding sequence item delimeter in sequence item of undefined length');
         return new dicomParser.DataSet(byteStream.byteArray, elements);
+    }
+
+    function readSequenceItemImplicit(byteStream)
+    {
+        var item = dicomParser.readSequenceItem(byteStream);
+
+        if(item.length === -1)
+        {
+            item.hadUndefinedLength = true;
+            item.dataSet = readDicomDataSetImplicitUndefinedLength(byteStream);
+            item.length = byteStream.position - item.dataOffset;
+        }
+        else
+        {
+            item.dataSet = dicomParser.parseDicomDataSetImplicit(byteStream, byteStream.position + item.length);
+        }
+        return item;
+    }
+
+    function readSQElementUndefinedLengthImplicit(byteStream, element)
+    {
+        while(byteStream.position < byteStream.byteArray.length)
+        {
+            var item = readSequenceItemImplicit(byteStream);
+            element.items.push(item);
+
+            // If this is the sequence delimitation item, return the offset of the next element
+            if(item.tag === 'xfffee0dd')
+            {
+                // sequence delimitation item, update attr data length and return
+                element.length = byteStream.position - element.dataOffset;
+                return;
+            }
+        }
+
+        // eof encountered - log a warning and set the length of the element based on the buffer size
+        byteStream.warnings.push('eof encountered before finding sequence delimitation item in sequence of undefined length');
+        element.length = byteStream.byteArray.length - element.dataOffset;
     }
 
     function readSQElementKnownLengthImplicit(byteStream, element)
     {
-        element.items = [];
-        while(byteStream.position < element.dataOffset + element.length)
+        var maxPosition = element.dataOffset + element.length;
+        while(byteStream.position < maxPosition)
         {
             var item = readSequenceItemImplicit(byteStream);
             element.items.push(item);
         }
     }
 
+    /**
+     * Reads sequence items for an element in an implicit little endian byte stream
+     * @param byteStream the implicit little endian byte stream
+     * @param element the element to read the sequence items for
+     */
     dicomParser.readSequenceItemsImplicit = function(byteStream, element)
     {
+        if(byteStream === undefined)
+        {
+            throw "dicomParser.readSequenceItemsImplicit: missing required parameter 'byteStream'";
+        }
+        if(element === undefined)
+        {
+            throw "dicomParser.readSequenceItemsImplicit: missing required parameter 'element'";
+        }
+
+        element.items = [];
+
         if(element.length === -1)
         {
             readSQElementUndefinedLengthImplicit(byteStream, element);
@@ -998,7 +1037,6 @@ var dicomParser = (function (dicomParser)
         {
             readSQElementKnownLengthImplicit(byteStream, element);
         }
-
     };
 
     return dicomParser;
@@ -1016,11 +1054,19 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
+    /**
+     * Reads the tag and length of a sequence item and returns them as an object with the following properties
+     *  tag : string for the tag of this element in the format xggggeeee
+     *  length: the number of bytes in this item or -1 if undefined
+     *  dataOffset: the offset into the byteStream of the data for this item
+     * @param byteStream the byte
+     * @returns {{tag: string, length: integer, dataOffset: integer}}
+     */
     dicomParser.readSequenceItem = function(byteStream)
     {
-        if(!byteStream)
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.readSequenceItem: missing required parameter 'byteStream'";
         }
 
         var element = {
@@ -1048,11 +1094,17 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
+    /**
+     * Reads a tag (group number and element number) from a byteStream
+     * @param byteStream the byte stream to read from
+     * @returns {string} the tag in format xggggeeee where gggg is the lowercase hex value of the group number
+     * and eeee is the lower case hex value of the element number
+     */
     dicomParser.readTag = function(byteStream)
     {
-        if(!byteStream)
+        if(byteStream === undefined)
         {
-            throw "missing required parameter 'byteStream'";
+            throw "dicomParser.readTag: missing required parameter 'byteStream'";
         }
 
         var groupNumber =  byteStream.readUint16() * 256 * 256;

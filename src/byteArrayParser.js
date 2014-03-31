@@ -25,10 +25,10 @@ var dicomParser = (function (dicomParser)
     dicomParser.readUint16 = function(byteArray, position)
     {
         if(position < 0) {
-            throw 'uint16 - position cannot be less than 0';
+            throw 'dicomParser.readUint16: position cannot be less than 0';
         }
         if(position + 2 > byteArray.length) {
-            throw 'uint16 - buffer overread';
+            throw 'dicomParser.readUint16: attempt to read past end of buffer';
         }
         return byteArray[position] + (byteArray[position + 1] << 8);
     };
@@ -46,11 +46,11 @@ var dicomParser = (function (dicomParser)
     dicomParser.readUint32 = function(byteArray, position)    {
         if(position < 0)
         {
-            throw 'readFixedString - length cannot be less than 0';
+            throw 'dicomParser.readUint32: position cannot be less than 0';
         }
 
         if(position + 4 > byteArray.length) {
-            throw 'uint32 - buffer overread';
+            throw 'dicomParser.readUint32: attempt to read past end of buffer';
         }
 
         return (byteArray[position] +
@@ -78,7 +78,7 @@ var dicomParser = (function (dicomParser)
         }
 
         if(position + length > byteArray.length) {
-            throw 'readFixedString - buffer overread';
+            throw 'dicomParser.readFixedString: attempt to read past end of buffer';
         }
 
         var result = "";
