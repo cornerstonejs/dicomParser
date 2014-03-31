@@ -13,10 +13,10 @@ var dicomParser = (function (dicomParser)
     }
 
     /**
-     * Parses a DICOM P10 byte array and returns a DataSet object
-     * @type {Function}
+     * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements
      * @param byteArray the byte array
      * @returns {DataSet}
+     * @throws error if unable to parse the file
      */
     dicomParser.parseDicom = function(byteArray) {
 
@@ -102,6 +102,7 @@ var dicomParser = (function (dicomParser)
             var dataSet = readDataSet(metaHeaderDataSet);
 
             dataSet.warnings = byteStream.warnings;
+
             return mergeDataSets(metaHeaderDataSet, dataSet);
         }
 

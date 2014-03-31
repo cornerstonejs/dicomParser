@@ -37,16 +37,29 @@ Curious why these are important to me?  Read more about this in the Soapbox sect
 Backlog
 ------------
 
-needed for 1.0 release:
+Needed for 1.0 beta:
 
 * Create bower package
 * Add support for AMD loaders
 
-nice to haves some day:
+Needed for 1.0 release
+* More examples and documentation on how to get started using the library
+
+Future:
 
 * Add unit tests for sequence parsing functionality
 * Add a function to parse encapsulated pixel data
 * Figure out how to automatically generate documentation from the source (jsdoc)
+* Optimize findItemDelimitationItemAndSetElementLength() for speed
+* Optimize functions in byteArrayParser.js for speed
+* Add support for accessing multi valued attributes other than string (e.g. IS, SS, UL, SL, FD, FL)
+* Add characteristics feature that will report on which aspects of the encoding this byte stream uses
+  (e.g. items with undefined length, sequences, sequences with undefined lengths, sequences with items
+  with undefined lengths)
+* Add example that allows you to compare two sop instances against each othe
+* Add example to enter a WADO URL and dump its contents
+
+
 
 Build System
 ============

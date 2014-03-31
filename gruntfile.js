@@ -7,14 +7,37 @@ module.exports = function(grunt) {
             default: {
                 src: [
                     'dist',
-                    'docs'
+                    'docs',
+                    'build'
                 ]
             }
         },
         concat: {
+            build: {
+                src : ['src/parseDicom.js', 'src/*.js'],
+                dest: 'build/built.js'
+            },
             dist: {
-                src : ['src/*.js'],
+                options: {
+                    stripBanners: true,
+                    banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
+                        '<%= grunt.template.today("yyyy-mm-dd") %> ' +
+                        '| (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */\n'
+                },
+                src : ['build/built.js'],
                 dest: 'dist/dicomParser.js'
+            }
+        },
+        uglify: {
+            dist: {
+                files: {
+                    'dist/dicomParser.min.js': ['dist/dicomParser.js']
+                }
+            },
+            options: {
+                banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
+                    '<%= grunt.template.today("yyyy-mm-dd") %> ' +
+                    '| (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */\n'
             }
         },
         jshint: {
@@ -36,13 +59,13 @@ module.exports = function(grunt) {
         watch: {
             scripts: {
                 files: ['src/*.js', 'test/*.js'],
-                tasks: ['concat', 'jshint', 'qunit']
+                tasks: ['concat:build', 'concat:dist', 'jshint', 'qunit']
             }
         }
     });
 
     require('load-grunt-tasks')(grunt);
 
-    grunt.registerTask('buildAll', ['clean','concat', 'jshint', 'qunit']);
+    grunt.registerTask('buildAll', ['clean','concat:build', 'concat:dist', 'uglify', 'jshint', 'qunit']);
     grunt.registerTask('default', ['buildAll']);
 };
