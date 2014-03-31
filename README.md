@@ -44,7 +44,6 @@ Backlog
 * Create an example that leverages a data dictionary
 * Add unit tests for sequence parsing functionality
 * Add a function to parse encapsulated pixel data
-* Fix bug with implicit sequences that have lengths
 
 Build System
 ============
