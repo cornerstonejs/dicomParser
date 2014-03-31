@@ -9,9 +9,10 @@
     <style>
 
         #dropZone {
-            min-height: 500px;
+            height: 500px;
             width: 100%;
             background-color: #F0F0F0;
+            overflow: auto;
         }
 
 
@@ -31,14 +32,18 @@
             into a tree like structure.  Note that DICOM files dropped here are not uploaded anywhere, all processing
             is done inside your web browser in Javascript.
         </p>
+        <strong>Use of this example require IE10+ or any other modern browser.</strong>
     </div>
 
 
-    <div id="status" class="alert alert-success"><span class="glyphicon glyphicon-thumbs-up"></span>Status: Ready (no file loaded)</div>
+    <div id="status" class="alert alert-success">Status: Ready (no file loaded)</div>
 
     <div class="row">
         <div class="col-md-12">
             <div id="dropZone">
+
+                <div class="text-center" style="margin-top:225px;"><h3>Drag file here to dump its contents</h3></div>
+
             </div>
         </div>
     </div>
@@ -176,7 +181,7 @@
         document.getElementById('dropZone').innerHTML = '';
         $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
 
-        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-time"></span>Status: Loading file, please wait..';
+        document.getElementById('status').innerHTML = 'Status: Loading file, please wait..';
 
         var reader = new FileReader();
         reader.onload = function(file) {
@@ -187,7 +192,7 @@
             var kb = byteArray.length / 1024;
             var mb = kb / 1024;
             var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
-            document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-cog"></span>Status: Parsing ' + byteStr + ' bytes, please wait..';
+            document.getElementById('status').innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
             // set a short timeout to do the parse so the DOM has time to update itself with the above message
             setTimeout(function() {
 
@@ -209,18 +214,18 @@
                     var pixelData = dataSet.elements.x7fe00010;
                     if(pixelData) {
                         $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-thumbs-up"></span>Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)';
+                        document.getElementById('status').innerHTML = 'Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)';
                     }
                     else
                     {
                         $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
-                        document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-exclamation"></span>Status: Warning - pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)';
+                        document.getElementById('status').innerHTML = 'Status: Warning - pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)';
                     }
                 }
                 catch(err)
                 {
                     $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
-                    document.getElementById('status').innerHTML = '<span class="glyphicon glyphicon-thumbs-down"></span>Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
+                    document.getElementById('status').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
                 }
             },10);
         };

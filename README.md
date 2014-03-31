@@ -1,7 +1,7 @@
 dicomParser
 ===========
 
-Javascript parser for DICOM Part 10 byte streams.
+Javascript parser for DICOM Part 10 byte streams.  Requires IE10+ or any other modern browser
 
 [Click here for a live example of using the library to display specific fields from a DICOM files](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
 
@@ -21,7 +21,7 @@ really wanted out of a DICOM library that I am hoping to deliver:
 
 * License is extremely liberal so it could be used in any type of project
 * Only deals with parsing DICOM - no code to actually display the images
-* Designed to work well in a browser
+* Designed to work well in a browser (modern ones at least)
 * Follows modern javascript best practices
 * Has documentation and examples on how to use it
 * Does not hide the underlying data stream from you
@@ -37,13 +37,11 @@ Curious why these are important to me?  Read more about this in the Soapbox sect
 Backlog
 ------------
 
-* Testing / Bug fixing (may be lurking bugs in sequences and undefined lengths)
 * Add conversion functions for the VR's that don't have them yet
 * Figure out how to automatically generate documentation from the source (jsdoc)
 * Create bower package
 * Add support for AMD loaders
 * Create an example that leverages a data dictionary
-* Have examples detect older browsers and tell the user to upgrade
 * Figure out why drag and drop doesn't work for IE11
 * Add unit tests for sequence parsing functionality
 
@@ -94,12 +92,15 @@ I am a big believer in small reusable pieces of software and loose coupling.  Th
 tightly couple the parser with image display.  I hope that keeping this library small and simple will
 help it reach the widest adoption.
 
-_Designed to work well in a browser_
+_Designed to work well in a browser (modern ones at least)_
 
 There are some good javascript DICOM parsing libraries available for server development on node.js but they
 won't automatically work in a browser.  I needed a library that let me easily parse WADO responses and
 I figured others would also prefer a simple library to do this with no dependencies.  I don't have any plans
 to make this library work in node.js but would welcome contributions from anyone that wants to do the work.
+The library does make use of the [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBuffer)
+object which is widely supported except for IE (it is available on IE10+).  I have no plans to add support
+for older versions of IE.
 
 _Follows modern javascript best practices_
 
