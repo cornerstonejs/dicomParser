@@ -44,10 +44,7 @@ var dicomParser = (function (dicomParser)
         {
             if(element.length === -1)
             {
-                element.hadUndefinedLength = true;
                 // read the next tag to determine if this is a sequence or not
-                var nextTag = dicomParser.readTag(byteStream);
-                byteStream.seek(-4);
                 if(nextTag === 'xfffee000')
                 {
                     // parse the sequence
