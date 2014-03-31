@@ -218,8 +218,8 @@
                     }
                     else
                     {
-                        $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
-                        document.getElementById('status').innerHTML = 'Status: Warning - pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)';
+                        $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                        document.getElementById('status').innerHTML = 'Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)';
                     }
                 }
                 catch(err)
