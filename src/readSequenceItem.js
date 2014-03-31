@@ -14,7 +14,7 @@ var dicomParser = (function (dicomParser)
     /**
      * Reads the tag and length of a sequence item and returns them as an object with the following properties
      *  tag : string for the tag of this element in the format xggggeeee
-     *  length: the number of bytes in this item or -1 if undefined
+     *  length: the number of bytes in this item or 4294967295 if undefined
      *  dataOffset: the offset into the byteStream of the data for this item
      * @param byteStream the byte
      * @returns {{tag: string, length: integer, dataOffset: integer}}

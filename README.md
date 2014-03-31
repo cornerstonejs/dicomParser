@@ -44,7 +44,6 @@ needed for 1.0 release:
 
 nice to haves some day:
 
-* Add conversion functions for the VR's that don't have them yet
 * Add unit tests for sequence parsing functionality
 * Add a function to parse encapsulated pixel data
 * Figure out how to automatically generate documentation from the source (jsdoc)

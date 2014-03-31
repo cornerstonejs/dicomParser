@@ -24,7 +24,7 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             element.hadUndefinedLength = true;
         }
@@ -45,7 +45,7 @@ var dicomParser = (function (dicomParser)
 
         // if element is not a sequence and has undefined length, we have to
         // scan the data for a magic number to figure out when it ends.
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
             return element;

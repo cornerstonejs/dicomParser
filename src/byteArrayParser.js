@@ -30,8 +30,37 @@ var dicomParser = (function (dicomParser)
         if(position + 2 > byteArray.length) {
             throw 'dicomParser.readUint16: attempt to read past end of buffer';
         }
-        return byteArray[position] + (byteArray[position + 1] << 8);
+        return byteArray[position] + (byteArray[position + 1] * 256);
     };
+
+    /**
+     *
+     * Parses an signed int 16 from a little endian byte stream and advances
+     * the position by 2 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parsed signed int 16
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readInt16 = function(byteArray, position)
+    {
+        if(position < 0) {
+            throw 'dicomParser.readInt16: position cannot be less than 0';
+        }
+        if(position + 2 > byteArray.length) {
+            throw 'dicomParser.readInt16: attempt to read past end of buffer';
+        }
+        var int16 = byteArray[position] + (byteArray[position + 1] << 8);
+        // fix sign
+        if(int16 & 0x8000)
+        {
+            int16 = int16 - 0xFFFF - 1;
+        }
+        return int16;
+    };
+
 
     /**
      * Parses an unsigned int 32 from a little endian byte stream and advances
@@ -53,10 +82,105 @@ var dicomParser = (function (dicomParser)
             throw 'dicomParser.readUint32: attempt to read past end of buffer';
         }
 
-        return (byteArray[position] +
-            (byteArray[position + 1] << 8) +
-            (byteArray[position + 2] << 16) +
-            (byteArray[position + 3] << 24));
+        var uint32 =(byteArray[position] +
+                    (byteArray[position + 1] * 256) +
+                    (byteArray[position + 2] * 256 * 256) +
+                    (byteArray[position + 3] * 256 * 256 * 256 ));
+
+        return uint32;
+    };
+
+    /**
+     * Parses an signed int 32 from a little endian byte stream and advances
+     * the position by 2 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parse unsigned int 32
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readInt32 = function(byteArray, position)    {
+        if(position < 0)
+        {
+            throw 'dicomParser.readInt32: position cannot be less than 0';
+        }
+
+        if(position + 4 > byteArray.length) {
+            throw 'dicomParser.readInt32: attempt to read past end of buffer';
+        }
+
+        var int32 = (byteArray[position] +
+                    (byteArray[position + 1] << 8) +
+                    (byteArray[position + 2] << 16) +
+                    (byteArray[position + 3] << 24));
+
+        return int32;
+
+    };
+
+    /**
+     * Parses 32 bit float from a little endian byte stream and advances
+     * the position by 4 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parse 32 bit float
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readFloat = function(byteArray, position)    {
+        if(position < 0)
+        {
+            throw 'dicomParser.readFloat: position cannot be less than 0';
+        }
+
+        if(position + 4 > byteArray.length) {
+            throw 'dicomParser.readFloat: attempt to read past end of buffer';
+        }
+
+        // I am sure there is a better way than this but this should be safe
+        var byteArrayForParsingFloat= new Uint8Array(4);
+        byteArrayForParsingFloat[0] = byteArray[0];
+        byteArrayForParsingFloat[1] = byteArray[1];
+        byteArrayForParsingFloat[2] = byteArray[2];
+        byteArrayForParsingFloat[3] = byteArray[3];
+        var floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
+        return floatArray[0];
+    };
+
+    /**
+     * Parses 64 bit float from a little endian byte stream and advances
+     * the position by 4 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parse 32 bit float
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readDouble = function(byteArray, position)    {
+        if(position < 0)
+        {
+            throw 'dicomParser.readDouble: position cannot be less than 0';
+        }
+
+        if(position + 8 > byteArray.length) {
+            throw 'dicomParser.readDouble: attempt to read past end of buffer';
+        }
+
+        // I am sure there is a better way than this but this should be safe
+        var byteArrayForParsingFloat= new Uint8Array(8);
+        byteArrayForParsingFloat[0] = byteArray[0];
+        byteArrayForParsingFloat[1] = byteArray[1];
+        byteArrayForParsingFloat[2] = byteArray[2];
+        byteArrayForParsingFloat[3] = byteArray[3];
+        byteArrayForParsingFloat[4] = byteArray[4];
+        byteArrayForParsingFloat[5] = byteArray[5];
+        byteArrayForParsingFloat[6] = byteArray[6];
+        byteArrayForParsingFloat[7] = byteArray[7];
+        var floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
+        return floatArray[0];
     };
 
     /**

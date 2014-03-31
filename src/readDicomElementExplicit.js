@@ -55,7 +55,7 @@ var dicomParser = (function (dicomParser)
             element.dataOffset = byteStream.position;
         }
 
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             element.hadUndefinedLength = true;
         }
@@ -66,7 +66,7 @@ var dicomParser = (function (dicomParser)
             dicomParser.readSequenceItemsExplicit(byteStream, element);
             return element;
         }
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
             return element;

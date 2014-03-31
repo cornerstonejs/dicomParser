@@ -18,6 +18,9 @@ var dicomParser = (function (dicomParser)
      * @returns {dicomParser.DataSet}
      */
     dicomParser.parseDicomDataSetExplicit = function (byteStream, maxPosition) {
+
+        maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition ;
+
         if(byteStream === undefined)
         {
             throw "dicomParser.parseDicomDataSetExplicit: missing required parameter 'byteStream'";
@@ -28,7 +31,6 @@ var dicomParser = (function (dicomParser)
         }
         var elements = {};
 
-        maxPosition = maxPosition ||byteStream.byteArray.length - 6;
 
         while(byteStream.position < maxPosition)
         {
@@ -44,7 +46,9 @@ var dicomParser = (function (dicomParser)
      * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
      * @returns {dicomParser.DataSet}
      */
-    dicomParser.parseDicomDataSetImplicit = function(byteStream, maxPosition) {
+    dicomParser.parseDicomDataSetImplicit = function(byteStream, maxPosition)
+    {
+        maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition ;
 
         if(byteStream === undefined)
         {
@@ -57,7 +61,6 @@ var dicomParser = (function (dicomParser)
 
         var elements = {};
 
-        maxPosition = maxPosition ? maxPosition : byteStream.byteArray.length;
 
         while(byteStream.position < maxPosition)
         {

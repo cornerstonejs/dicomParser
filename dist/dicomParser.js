@@ -30,8 +30,37 @@ var dicomParser = (function (dicomParser)
         if(position + 2 > byteArray.length) {
             throw 'dicomParser.readUint16: attempt to read past end of buffer';
         }
-        return byteArray[position] + (byteArray[position + 1] << 8);
+        return byteArray[position] + (byteArray[position + 1] * 256);
     };
+
+    /**
+     *
+     * Parses an signed int 16 from a little endian byte stream and advances
+     * the position by 2 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parsed signed int 16
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readInt16 = function(byteArray, position)
+    {
+        if(position < 0) {
+            throw 'dicomParser.readInt16: position cannot be less than 0';
+        }
+        if(position + 2 > byteArray.length) {
+            throw 'dicomParser.readInt16: attempt to read past end of buffer';
+        }
+        var int16 = byteArray[position] + (byteArray[position + 1] << 8);
+        // fix sign
+        if(int16 & 0x8000)
+        {
+            int16 = int16 - 0xFFFF - 1;
+        }
+        return int16;
+    };
+
 
     /**
      * Parses an unsigned int 32 from a little endian byte stream and advances
@@ -53,10 +82,105 @@ var dicomParser = (function (dicomParser)
             throw 'dicomParser.readUint32: attempt to read past end of buffer';
         }
 
-        return (byteArray[position] +
-            (byteArray[position + 1] << 8) +
-            (byteArray[position + 2] << 16) +
-            (byteArray[position + 3] << 24));
+        var uint32 =(byteArray[position] +
+                    (byteArray[position + 1] * 256) +
+                    (byteArray[position + 2] * 256 * 256) +
+                    (byteArray[position + 3] * 256 * 256 * 256 ));
+
+        return uint32;
+    };
+
+    /**
+     * Parses an signed int 32 from a little endian byte stream and advances
+     * the position by 2 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parse unsigned int 32
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readInt32 = function(byteArray, position)    {
+        if(position < 0)
+        {
+            throw 'dicomParser.readInt32: position cannot be less than 0';
+        }
+
+        if(position + 4 > byteArray.length) {
+            throw 'dicomParser.readInt32: attempt to read past end of buffer';
+        }
+
+        var int32 = (byteArray[position] +
+                    (byteArray[position + 1] << 8) +
+                    (byteArray[position + 2] << 16) +
+                    (byteArray[position + 3] << 24));
+
+        return int32;
+
+    };
+
+    /**
+     * Parses 32 bit float from a little endian byte stream and advances
+     * the position by 4 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parse 32 bit float
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readFloat = function(byteArray, position)    {
+        if(position < 0)
+        {
+            throw 'dicomParser.readFloat: position cannot be less than 0';
+        }
+
+        if(position + 4 > byteArray.length) {
+            throw 'dicomParser.readFloat: attempt to read past end of buffer';
+        }
+
+        // I am sure there is a better way than this but this should be safe
+        var byteArrayForParsingFloat= new Uint8Array(4);
+        byteArrayForParsingFloat[0] = byteArray[0];
+        byteArrayForParsingFloat[1] = byteArray[1];
+        byteArrayForParsingFloat[2] = byteArray[2];
+        byteArrayForParsingFloat[3] = byteArray[3];
+        var floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
+        return floatArray[0];
+    };
+
+    /**
+     * Parses 64 bit float from a little endian byte stream and advances
+     * the position by 4 bytes
+     *
+     * @param byteArray the byteArray to read from
+     * @param position the position in the byte array to read from
+     * @returns {*} the parse 32 bit float
+     * @throws error if buffer overread would occur
+     * @access private
+     */
+    dicomParser.readDouble = function(byteArray, position)    {
+        if(position < 0)
+        {
+            throw 'dicomParser.readDouble: position cannot be less than 0';
+        }
+
+        if(position + 8 > byteArray.length) {
+            throw 'dicomParser.readDouble: attempt to read past end of buffer';
+        }
+
+        // I am sure there is a better way than this but this should be safe
+        var byteArrayForParsingFloat= new Uint8Array(8);
+        byteArrayForParsingFloat[0] = byteArray[0];
+        byteArrayForParsingFloat[1] = byteArray[1];
+        byteArrayForParsingFloat[2] = byteArray[2];
+        byteArrayForParsingFloat[3] = byteArray[3];
+        byteArrayForParsingFloat[4] = byteArray[4];
+        byteArrayForParsingFloat[5] = byteArray[5];
+        byteArrayForParsingFloat[6] = byteArray[6];
+        byteArrayForParsingFloat[7] = byteArray[7];
+        var floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
+        return floatArray[0];
     };
 
     /**
@@ -140,6 +264,21 @@ var dicomParser = (function (dicomParser)
     };
 
     /**
+     * Finds the element for tag and returns an signed int 16 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} signed int 16 or undefined if the attribute is not present or doesn't have data of length 2
+     */
+    dicomParser.DataSet.prototype.int16 = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 2)
+        {
+            return dicomParser.readInt16(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
      * Finds the element for tag and returns an unsigned int 32 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @returns {*} unsigned int 32 or undefined if the attribute is not present or doesn't have data of length 4
@@ -150,6 +289,51 @@ var dicomParser = (function (dicomParser)
         if(element && element.length === 4)
         {
             return dicomParser.readUint32(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns an signed int 32 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} signed int 32 or undefined if the attribute is not present or doesn't have data of length 4
+     */
+    dicomParser.DataSet.prototype.int32 = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 4)
+        {
+            return dicomParser.readInt32(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns a 32 bit floating point number (VR=FL) if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} float or undefined if the attribute is not present or doesn't have data of length 4
+     */
+    dicomParser.DataSet.prototype.float = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 4)
+        {
+            return dicomParser.readFloat(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns a 64 bit floating point number (VR=FD) if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} float or undefined if the attribute is not present or doesn't have data of length 4
+     */
+    dicomParser.DataSet.prototype.double = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 8)
+        {
+            return dicomParser.readDouble(this.byteArray, element.dataOffset);
         }
         return undefined;
     };
@@ -346,23 +530,27 @@ var dicomParser = (function (dicomParser)
         while(byteStream.position <= maxPosition)
         {
             var groupNumber = byteStream.readUint16();
-            var elementNumber = byteStream.readUint16();
-            if(groupNumber === 0xfffe && elementNumber === 0xe00d)
+            if(groupNumber === 0xfffe)
             {
-                // NOTE: It would be better to also check for the length to be 0 as part of the check above
-                // but we will just log a warning for now
-                var itemDelimiterLength = byteStream.readUint32(); // the length
-                if(itemDelimiterLength !== 0) {
-                    byteStream.warnings('encountered non zero length following item delimeter at position' + byteStream.position - 4 + " while reading element of undefined length with tag ' + element.tag");
+                var elementNumber = byteStream.readUint16();
+                if(elementNumber === 0xe00d)
+                {
+                    // NOTE: It would be better to also check for the length to be 0 as part of the check above
+                    // but we will just log a warning for now
+                    var itemDelimiterLength = byteStream.readUint32(); // the length
+                    if(itemDelimiterLength !== 0) {
+                        byteStream.warnings('encountered non zero length following item delimeter at position' + byteStream.position - 4 + " while reading element of undefined length with tag ' + element.tag");
+                    }
+                    element.length = byteStream.position - element.dataOffset;
+                    return;
+
                 }
-                element.length = byteStream.position - element.dataOffset;
-                return;
             }
         }
-        // eof encountered - log a warning and return what we have for the element
-        // NOTE: This seems to show up quite a bit so may actually be expected - need to confirm with standard
-        byteStream.warnings.push('eof encountered before finding item delimitation item while reading element of undefined length with tag ' + element.tag);
+
+        // No item delimitation item - silently set the length to the end of the buffer and set the position past the end of the buffer
         element.length = byteStream.byteArray.length - element.dataOffset;
+        byteStream.seek(byteStream.byteArray.length - byteStream.position);
     };
 
 
@@ -627,6 +815,9 @@ var dicomParser = (function (dicomParser)
      * @returns {dicomParser.DataSet}
      */
     dicomParser.parseDicomDataSetExplicit = function (byteStream, maxPosition) {
+
+        maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition ;
+
         if(byteStream === undefined)
         {
             throw "dicomParser.parseDicomDataSetExplicit: missing required parameter 'byteStream'";
@@ -637,7 +828,6 @@ var dicomParser = (function (dicomParser)
         }
         var elements = {};
 
-        maxPosition = maxPosition ||byteStream.byteArray.length - 6;
 
         while(byteStream.position < maxPosition)
         {
@@ -653,7 +843,9 @@ var dicomParser = (function (dicomParser)
      * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
      * @returns {dicomParser.DataSet}
      */
-    dicomParser.parseDicomDataSetImplicit = function(byteStream, maxPosition) {
+    dicomParser.parseDicomDataSetImplicit = function(byteStream, maxPosition)
+    {
+        maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition ;
 
         if(byteStream === undefined)
         {
@@ -666,7 +858,6 @@ var dicomParser = (function (dicomParser)
 
         var elements = {};
 
-        maxPosition = maxPosition ? maxPosition : byteStream.byteArray.length;
 
         while(byteStream.position < maxPosition)
         {
@@ -735,7 +926,7 @@ var dicomParser = (function (dicomParser)
             element.dataOffset = byteStream.position;
         }
 
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             element.hadUndefinedLength = true;
         }
@@ -746,7 +937,7 @@ var dicomParser = (function (dicomParser)
             dicomParser.readSequenceItemsExplicit(byteStream, element);
             return element;
         }
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
             return element;
@@ -784,7 +975,7 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             element.hadUndefinedLength = true;
         }
@@ -805,7 +996,7 @@ var dicomParser = (function (dicomParser)
 
         // if element is not a sequence and has undefined length, we have to
         // scan the data for a magic number to figure out when it ends.
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
             return element;
@@ -859,7 +1050,7 @@ var dicomParser = (function (dicomParser)
     {
         var item = dicomParser.readSequenceItem(byteStream);
 
-        if(item.length === -1)
+        if(item.length === 4294967295)
         {
             item.hadUndefinedLength = true;
             item.dataSet = readDicomDataSetExplicitUndefinedLength(byteStream);
@@ -916,7 +1107,7 @@ var dicomParser = (function (dicomParser)
 
         element.items = [];
 
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             readSQElementUndefinedLengthExplicit(byteStream, element);
         }
@@ -967,7 +1158,7 @@ var dicomParser = (function (dicomParser)
     {
         var item = dicomParser.readSequenceItem(byteStream);
 
-        if(item.length === -1)
+        if(item.length === 4294967295)
         {
             item.hadUndefinedLength = true;
             item.dataSet = readDicomDataSetImplicitUndefinedLength(byteStream);
@@ -1029,7 +1220,7 @@ var dicomParser = (function (dicomParser)
 
         element.items = [];
 
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             readSQElementUndefinedLengthImplicit(byteStream, element);
         }
@@ -1057,7 +1248,7 @@ var dicomParser = (function (dicomParser)
     /**
      * Reads the tag and length of a sequence item and returns them as an object with the following properties
      *  tag : string for the tag of this element in the format xggggeeee
-     *  length: the number of bytes in this item or -1 if undefined
+     *  length: the number of bytes in this item or 4294967295 if undefined
      *  dataOffset: the offset into the byteStream of the data for this item
      * @param byteStream the byte
      * @returns {{tag: string, length: integer, dataOffset: integer}}

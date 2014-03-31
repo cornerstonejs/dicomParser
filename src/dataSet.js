@@ -41,6 +41,21 @@ var dicomParser = (function (dicomParser)
     };
 
     /**
+     * Finds the element for tag and returns an signed int 16 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} signed int 16 or undefined if the attribute is not present or doesn't have data of length 2
+     */
+    dicomParser.DataSet.prototype.int16 = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 2)
+        {
+            return dicomParser.readInt16(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
      * Finds the element for tag and returns an unsigned int 32 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @returns {*} unsigned int 32 or undefined if the attribute is not present or doesn't have data of length 4
@@ -51,6 +66,51 @@ var dicomParser = (function (dicomParser)
         if(element && element.length === 4)
         {
             return dicomParser.readUint32(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns an signed int 32 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} signed int 32 or undefined if the attribute is not present or doesn't have data of length 4
+     */
+    dicomParser.DataSet.prototype.int32 = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 4)
+        {
+            return dicomParser.readInt32(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns a 32 bit floating point number (VR=FL) if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} float or undefined if the attribute is not present or doesn't have data of length 4
+     */
+    dicomParser.DataSet.prototype.float = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 4)
+        {
+            return dicomParser.readFloat(this.byteArray, element.dataOffset);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns a 64 bit floating point number (VR=FD) if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @returns {*} float or undefined if the attribute is not present or doesn't have data of length 4
+     */
+    dicomParser.DataSet.prototype.double = function(tag)
+    {
+        var element = this.elements[tag];
+        if(element && element.length === 8)
+        {
+            return dicomParser.readDouble(this.byteArray, element.dataOffset);
         }
         return undefined;
     };

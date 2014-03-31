@@ -164,7 +164,17 @@ function dumpDataSet(dataSet, output)
         }
         else {
             // use VR to display the right value
-            var vr = element.vr || tag.vr;
+            var vr;
+            if(element.vr !== undefined)
+            {
+                vr = element.vr;
+            }
+            else {
+                if(tag !== undefined)
+                {
+                    vr = tag.vr;
+                }
+            }
 
             // if the length of the element is less than 128 we try to show it.  We put this check in
             // to avoid displaying large strings which makes it harder to use.
@@ -264,13 +274,29 @@ function dumpDataSet(dataSet, output)
                             }
                         }
                     }
-                    else if (vr == 'UI')
+                    else if (vr == 'US')
+                    {
+                        text += dataSet.uint16(propertyName);
+                    }
+                    else if(vr === 'SS')
+                    {
+                        text += dataSet.int16(propertyName);
+                    }
+                    else if (vr == 'UL')
                     {
                         text += dataSet.uint32(propertyName);
                     }
-                    else if(vr === 'US')
+                    else if(vr === 'SL')
                     {
-                        text += dataSet.uint16(propertyName);
+                        text += dataSet.int32(propertyName);
+                    }
+                    else if(vr == 'FD')
+                    {
+                        text += dataSet.double(propertyName);
+                    }
+                    else if(vr == 'FL')
+                    {
+                        text += dataSet.float(propertyName);
                     }
                     else if(vr === 'OB' || vr === 'OW' || vr === 'UN' || vr === 'OF' || vr ==='UT')
                     {
@@ -325,7 +351,7 @@ function dumpFile(file)
 
             // Invoke the paresDicom function and get back a DataSet object with the contents
             var dataSet;
-            try {
+            //try {
                 var start = new Date().getTime();
                 dataSet = dicomParser.parseDicom(byteArray);
                 // Here we call dumpDataSet to recursively iterate through the DataSet and create an array
@@ -360,14 +386,14 @@ function dumpFile(file)
                         $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
                     }
                 }
-
-
+            /*
             }
             catch(err)
             {
                 $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
                 document.getElementById('statusText').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
             }
+               */
         },10);
     };
 

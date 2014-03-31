@@ -38,7 +38,7 @@ var dicomParser = (function (dicomParser)
     {
         var item = dicomParser.readSequenceItem(byteStream);
 
-        if(item.length === -1)
+        if(item.length === 4294967295)
         {
             item.hadUndefinedLength = true;
             item.dataSet = readDicomDataSetExplicitUndefinedLength(byteStream);
@@ -95,7 +95,7 @@ var dicomParser = (function (dicomParser)
 
         element.items = [];
 
-        if(element.length === -1)
+        if(element.length === 4294967295)
         {
             readSQElementUndefinedLengthExplicit(byteStream, element);
         }
