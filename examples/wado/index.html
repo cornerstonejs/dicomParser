@@ -32,7 +32,11 @@
             is done inside your web browser in Javascript.
         </p>
         <strong>If you get an HTTP error and your URL is correct, it is probably due to the server not configured to
-            allow <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">Cross Origin Requests</a>.</strong>
+            allow <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">Cross Origin Requests</a>.
+            Most browsers will allow you to enable cross domain requests via settings or command line switches,
+            you can start chrome with the command line switch <code>--disable-web-security</code> to allow cross origin requests.
+            See the  <a href="http://enable-cors.org/">Enable CORS site</a> for information about CORS.
+        </strong>
 
 
     </div>
@@ -66,7 +70,6 @@
     </div>
 
 </div>
-</body>
 
 <!-- include the dicomParser library -->
 <script src="../../dist/dicomParser.js"></script>
@@ -415,4 +418,7 @@ $('#downloadAndDump').click(function(e) {
 
 
 </script>
+
+</body>
+
 </html>
