@@ -1,7 +1,7 @@
 dicomParser
 ===========
 
-dicomParser is a lightweight library for parsing DICOM P10 byte streams in a modern web browser (IE10+).
+dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+).
 dicomParser is fast, easy to use and has no external dependencies.
 
 Live Examples
@@ -16,8 +16,8 @@ Install
 
 Get a packaged source file:
 
-* [dicomParser.js](dist/dicomParser.js)
-* [dicomParser.min.js](dist/dicomParser.min.js)
+* [dicomParser.js](https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.js)
+* [dicomParser.min.js](https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.min.js)
 
 Or install via [Bower](http://bower.io/):
 
@@ -58,46 +58,9 @@ Key Features
 * Provides functions to convert from all VR types to native Javascript types
 * Does not require a data dictionary
 * Designed for use in the browser
-
-Why another Javascript DICOM parsing library?
-------------
-
-While building the WADO Image Loader for [cornerstone](https://github.com/chafey/cornerstone), I couldn't find a Javascript DICOM parser that exactly met
-my needs.  DICOM really isn't that hard to parse so I figured I would just make my own.  Here are some of the key things that I
-really wanted out of a DICOM library that I am hoping to deliver:
-
-* License is extremely liberal so it could be used in any type of project
-* Only deals with parsing DICOM - no code to actually display the images
-* Designed to work well in a browser (modern ones at least)
-* Follows modern javascript best practices
-* Has documentation and examples on how to use it
-* Does not hide the underlying data stream from you
-* Does not require a data dictionary
-* Decodes individual elements "on demand" - this goes with not needing a data dictionary
-* Code guards against corrupt or invalid data streams by sanity checking lengths and offsets
-* Does not depend on any external dependencies - just drop it in and go
-* Has unit tests
-* Code is easy to understand
-
-Curious why these are important to me?  Read more about this in the Soapbox section at the bottom of this page.
-
-Backlog
-------------
-
-Future:
-
-* Add unit tests for sequence parsing functionality
-* Add a function to parse encapsulated pixel data
-* Figure out how to automatically generate documentation from the source (jsdoc)
-* Optimize findItemDelimitationItemAndSetElementLength() for speed
-* Optimize functions in byteArrayParser.js for speed
-* Add support for accessing multi valued attributes other than string (e.g. IS, SS, UL, SL, FD, FL)
-* Add characteristics feature that will report on which aspects of the encoding this byte stream uses
-  (e.g. items with undefined length, sequences, sequences with undefined lengths, sequences with items
-  with undefined lengths)
-* Add example that allows you to compare two sop instances against each other
-* Figure out how to not have a global dicomParser object when used with an AMD loader
-
+* Each element exposes the offset and length of its data in the underlying byte stream
+* Packaged using the module pattern and as an AMD module
+* No external dependencies
 
 Build System
 ============
@@ -131,9 +94,43 @@ Running the build:
 Automatically running the build and unit tests after each source change:
 > grunt watch
 
+Backlog
+------------
 
-Soapbox
-============
+Future:
+
+* Add unit tests for sequence parsing functionality
+* Add a function to parse encapsulated pixel data
+* Figure out how to automatically generate documentation from the source (jsdoc)
+* Optimize findItemDelimitationItemAndSetElementLength() for speed
+* Optimize functions in byteArrayParser.js for speed
+* Add support for accessing multi valued attributes other than string (e.g. IS, SS, UL, SL, FD, FL)
+* Add characteristics feature that will report on which aspects of the encoding this byte stream uses
+  (e.g. items with undefined length, sequences, sequences with undefined lengths, sequences with items
+  with undefined lengths)
+* Add example that allows you to compare two sop instances against each other
+* Figure out how to not have a global dicomParser object when used with an AMD loader
+
+
+Why another Javascript DICOM parsing library?
+============================================
+
+While building the WADO Image Loader for [cornerstone](https://github.com/chafey/cornerstone), I couldn't find a Javascript DICOM parser that exactly met
+my needs.  DICOM really isn't that hard to parse so I figured I would just make my own.  Here are some of the key things that I
+really wanted out of a DICOM library that I am hoping to deliver:
+
+* License is extremely liberal so it could be used in any type of project
+* Only deals with parsing DICOM - no code to actually display the images
+* Designed to work well in a browser (modern ones at least)
+* Follows modern javascript best practices
+* Has documentation and examples on how to use it
+* Does not hide the underlying data stream from you
+* Does not require a data dictionary
+* Decodes individual elements "on demand" - this goes with not needing a data dictionary
+* Code guards against corrupt or invalid data streams by sanity checking lengths and offsets
+* Does not depend on any external dependencies - just drop it in and go
+* Has unit tests
+* Code is easy to understand
 
 Interested in knowing why the above goals are important to me?  Here you go:
 
