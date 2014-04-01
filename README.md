@@ -49,8 +49,8 @@ Future:
 * Add characteristics feature that will report on which aspects of the encoding this byte stream uses
   (e.g. items with undefined length, sequences, sequences with undefined lengths, sequences with items
   with undefined lengths)
-* Add example that allows you to compare two sop instances against each othe
-
+* Add example that allows you to compare two sop instances against each other
+* Figure out how to not have a global dicomParser object when used with an AMD loader
 
 
 Build System
