@@ -1,4 +1,4 @@
-/*! dicomParser - v0.1.11 - 2014-03-31 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.1.12 - 2014-04-01 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
@@ -146,7 +146,7 @@ var dicomParser = (function (dicomParser)
      * @throws error if buffer overread would occur
      * @access private
      */
-    dicomParser.readUint16 = function(byteArray, position, index)
+    dicomParser.readUint16 = function(byteArray, position)
     {
         if(position < 0) {
             throw 'dicomParser.readUint16: position cannot be less than 0';
