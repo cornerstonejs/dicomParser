@@ -153,10 +153,10 @@ _Designed to work well in a browser (modern ones at least)_
 There are some good javascript DICOM parsing libraries available for server development on node.js but they
 won't automatically work in a browser.  I needed a library that let me easily parse WADO responses and
 I figured others would also prefer a simple library to do this with no dependencies.  I don't have any plans
-to make this library work in node.js but would welcome contributions from anyone that wants to do the work.
+to make this library work in node.js but would be open to contributions from anyone that wants to do the work.
 The library does make use of the [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBuffer)
-object which is widely supported except for IE (it is available on IE10+).  I have no plans to add support
-for older versions of IE.
+object which is widely supported except for IE (it is available on IE10+).  I have no current plans to add support
+for older versions of IE but would be open to contributions if someone wants to do the work.
 
 _Follows modern javascript best practices_
 
@@ -173,28 +173,34 @@ Do I really need to convince you that this is needed?
 _Does not hide the underlying data stream from you_
 
 I have used many DICOM parsing libraries over the years and most of them either hide the underlying byte stream
-from you or make it really difficult to access.  There are times when you need to access the bytes  - and it can
-be quite frustrating when the library works against you on this.  A few examples of the need for this include when
+from you or make it really difficult to access it.  There are times when you need to access the underlyin bytes  - and it can
+be quite frustrating when the library works against you when you need to.  A few examples of the need for this include when
 you are dealing with UN VR's, private data, encapsulated pixel data and implicit little endian transfer
 syntaxes (which unfortunately are still widely being used) and you don't have a complete data dictionary.
-This library addresses this issue by not even trying to parse elements and doing it on demand.
 The exception here is for sequence elements which require parsing due to the way undefined lengths work.
-So what you get from a parse is basically a set of pointers to where the data for each element is in the
+This library addresses this issue by not even exposing the offset and length of the data portion of each
+ element.  It also defers parsing (and type converting) the data until it is actually asked to do so.
+ So what you get from a parse is basically a set of pointers to where the data for each element is in the
 byte stream and then you call the function you want to extract the type you want.  An awesome side
 effect of this is that you don't need a data dictionary to parse a file even if it uses implicit
-little endian.  Note that you cannot 100% reliably parse sequence elements in an implicit little endian
+little endian.  It also turns out that parsing this way as it avoids doing unneeded type conversions.
+
+Note that you cannot 100% reliably parse sequence elements in an implicit little endian
 transfer syntax without a data dictionary.  I therefore *strongly* recommend that you only work with
-explicit transfer syntaxes.  Fortunately WADO requires support for returning explicit big endian so this shouldn't
+explicit transfer syntaxes.  Fortunately most Image Archives should be able to give you an explicit
+transfer syntax encoding of your sop instance even if it was received in implicit little endian.
+Note that WADO's default transfer syntax is explicit little endian so this shouldn't
 be a problem "in the real world".  Implicit transfer syntax parsing was implemented mainly for convenience
-(and the fact that many of my test data sets are in little endian transfer syntax _sigh_).
-Usually you know which elements you want to access and know what type they are so designing your
-parser around a data dictionary is just adding unnecessary complexity.  Additionally, it really isn't the clients
-job to know what data dictionary a given data set may need - in this day and age the Image Archive should manage this
-complexity by managing the data dictionary and providing data in explicit transfer syntaxes.
+(and the fact that many of my test data sets are in little endian transfer syntax).
 
 _Does not require a data dictionary_
 
-See above, data dictionaries are not required for most use cases so why would a library author burden its users
+Usually you know which elements you want to access and know what type they are so designing your
+parser around a data dictionary is just adding unnecessary complexity.  Additionally, it really isn't the clients
+job to know what data dictionary a given data set may need - in this day and age the Image Archive should manage this
+complexity by managing the data dictionary and providing data in explicit transfer syntaxes (see above).
+
+Data dictionaries are not required for most use cases so why would a library author burden its users
 with it at all?  For those use cases that do require it, you can layer it on top of this library.  If you do want
 to know the VR, request the instance in an explicit transfer syntax and you can have it.  If your Image Archive
 can't do this for you, get a new one.
@@ -210,7 +216,7 @@ _Code guards against corrupt or invalid data streams by sanity checking lengths 
 
 Even though you would expect an Image Archive to _never_ send you data that isn't 100% DICOM compliant,
 that is not a bet I would make.  As I like to say - there is no "DICOM police" to penalize vendors
-who ship software that creates bytes streams that violate the DICOM standard.  In general it is good
+who ship software that creates bytes streams that violate the DICOM standard.  Regardless, it is good
 practice to never trust data from another system - even one that you are in full control of.
 
 _Does not depend on any external dependencies - just drop it in and go_
@@ -233,6 +239,12 @@ this library, I did a quick prototype without unit tests that actually took me m
 but I am hoping it will pay for itself in the long run (especially if this library receives wide adoption).
 I also know that some people out there won't even look at it unless it has good test coverage.
 
+Interesting note here - I did not write unit tests for sequence parsing and undefined lengths mainly because I found
+the standard difficult to understand in these areas and didn't want to waste my time building tests that were not
+correct.  I ended up making these work by throwing a variety of data sets at it and fixing the issues that I found.
+Getting this working took about 3x longer than everything else combined so perhaps it would have been faster if I had
+used TDD on this part.
+
 _Code is easy to understand_
 
 In my experience, writing code that is easy to understand is *far more important* than writing documentation or unit
@@ -240,7 +252,15 @@ tests for that code.  The reason is that when a developer needs to fix or enhanc
 start with the unit tests or documentation - they jump straight into the code and start thrashing about in the debugger.
 If some other developer is looking at your code, you probably made a mistake - either a simple typo or a design issue if you
 really blew it.  In either case, you should have mercy on them in advance and make their unenviable task of fixing
-or extending your code the best it can be.  You can find out more about this by googling for "self documenting code"
+or extending your code the best it can be.  Some principles I try to follow include:
+
+* Clear names for source files, functions and variables.  These names can get very long but I find that doing so is
+better than writing comments in the source file
+* Small source files.  Generally I try to keep each source file to under 300 lines or so.  The longer it gets, the
+harder it is to remember what you are looking at
+* Small functions.  The longer the function is, the harder it is to understand
+
+You can find out more about this by googling for "self documenting code"
 
 Copyright
 ============
