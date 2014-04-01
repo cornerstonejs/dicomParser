@@ -1,6 +1,6 @@
 {
     "name": "dicomParser",
-    "version": "0.1.12",
+    "version": "0.1.13",
     "description": "Javascript parser for DICOM Part 10 data",
     "main" : "dist/dicomParser.js",
     "ignore": [
