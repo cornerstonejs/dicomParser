@@ -55,6 +55,7 @@ Key Features
 * Parses DICOM Part 10 byte arrays in both implicit little endian and explicit little endian transfer syntaxes
 * Supports all VR's including sequences
 * Supports elements with undefined length
+* Supports sequence items with undefined length
 * Provides functions to convert from all VR types to native Javascript types
 * Does not require a data dictionary
 * Designed for use in the browser
