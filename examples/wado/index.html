@@ -31,41 +31,45 @@
             Note that the WADO DICOM objects are not uploaded anywhere, all processing
             is done inside your web browser in Javascript.
         </p>
-        <strong>If you get an HTTP error and your URL is correct, it is probably due to the server not configured to
+        <strong>If you get an HTTP error and your URL is correct, it is probably because the server is not configured to
             allow <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">Cross Origin Requests</a>.
             Most browsers will allow you to enable cross domain requests via settings or command line switches,
             you can start chrome with the command line switch <code>--disable-web-security</code> to allow cross origin requests.
             See the  <a href="http://enable-cors.org/">Enable CORS site</a> for information about CORS.
         </strong>
+        <br>
+        <br>
+        <strong>Use of this example require IE10+ or any other modern browser.</strong>
 
-
-    </div>
-
-    <form role="form-horizontal" role="form">
-        <div class="form-group">
-            <label for="wadoURL">URL to DICOM Object</label>
-            <div>
-                <input type="text" class="form-control" id="wadoURL" placeholder="Enter WADO URL" value="http://x.babymri.org/?53320924&.dcm">
-            </div>
-            <div>
-                <button type="button" id="downloadAndDump" class="btn btn-default">Download and Dump</button>
-            </div>
-        </div>
-    </form>
-
-    <div id="status" class="alert alert-success">
-        <div id="statusText">
-            Status: Ready (no file loaded)
-        </div>
-        <ul id="warnings">
-
-        </ul>
     </div>
 
     <div class="row">
-        <div class="col-md-12">
-            <div id="dropZone">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-sm-1" for="wadoURL">URL</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="text" id="wadoURL" placeholder="Enter WADO URL" value="http://x.babymri.org/?53320924&.dcm">
+                </div>
+                <div class="col-sm-3">
+                    <button class="form-control" type="button" id="downloadAndDump" class="btn btn-primary">Download and Dump</button>
+                </div>
             </div>
+        </form>
+    </div>
+
+    <div class="row">
+        <div id="status" class="alert alert-success">
+            <div id="statusText">
+                Status: Ready (no file loaded)
+            </div>
+            <ul id="warnings">
+
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div id="dropZone">
         </div>
     </div>
 
