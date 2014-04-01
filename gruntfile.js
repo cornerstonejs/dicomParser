@@ -56,19 +56,6 @@ module.exports = function(grunt) {
                 }
             }
         },
-        bump: {
-            scripts: {
-                files: ["package.json", "bower.json"],
-                commit: true,
-                commitMessage: 'Release v%VERSION%',
-                createTag: true,
-                tagName: '%VERSION',
-                tagMessage: 'Release v%VERSION%',
-                updateConfigs: ["pkg"],
-                commitFiles: ["-a"],
-                push: false
-            }
-        },
         watch: {
             scripts: {
                 files: ['src/*.js', 'test/*.js'],
@@ -82,4 +69,13 @@ module.exports = function(grunt) {
     grunt.registerTask('buildAll', ['clean','concat:build', 'concat:dist', 'uglify', 'jshint', 'qunit']);
     grunt.registerTask('default', ['buildAll']);
 };
-// git push origin master --tags
+
+// Release process:
+//  1) Update version numbers
+//  2) do a build (needed to update dist versions with correct build number)
+//  3) commit changes
+//      git commit -am "Changes...."
+//  4) tag the commit
+//      git tag -a 0.1.0 -m "Version 0.1.0"
+//  5) push to github
+//      git push origin master --tags

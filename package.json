@@ -1,6 +1,6 @@
 {
   "name": "dicomParser",
-  "version": "0.1.13",
+  "version": "0.2.0",
   "description": "Javascript parser for DICOM Part 10 data",
   "keywords": [
     "DICOM",
@@ -25,8 +25,6 @@
     "grunt-contrib-clean": "^0.5.0",
     "grunt-contrib-jshint": "^0.8.0",
     "grunt-contrib-uglify": "^0.4.0",
-    "load-grunt-tasks": "^0.2.1",
-    "grunt-jsdoc": "^0.5.4",
-    "grunt-bump": "0.0.13"
+    "load-grunt-tasks": "^0.2.1"
   }
 }
