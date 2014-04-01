@@ -173,37 +173,42 @@ Do I really need to convince you that this is needed?
 _Does not hide the underlying data stream from you_
 
 I have used many DICOM parsing libraries over the years and most of them either hide the underlying byte stream
-from you or make it really difficult to access it.  There are times when you need to access the underlyin bytes  - and it can
-be quite frustrating when the library works against you when you need to.  A few examples of the need for this include when
-you are dealing with UN VR's, private data, encapsulated pixel data and implicit little endian transfer
-syntaxes (which unfortunately are still widely being used) and you don't have a complete data dictionary.
-The exception here is for sequence elements which require parsing due to the way undefined lengths work.
-This library addresses this issue by not even exposing the offset and length of the data portion of each
+from you or make it difficult to access.  There are times when you need to access the underlying bytes  - and it can
+it is frustrating when the library works against you.  A few examples of the need for this include
+UN VR's, private attributes, encapsulated pixel data and implicit little endian transfer
+syntaxes (which unfortunately are still widely being used) when you don't have a complete data dictionary.
+
+This library addresses this issue by exposing the offset and length of the data portion of each
  element.  It also defers parsing (and type converting) the data until it is actually asked to do so.
  So what you get from a parse is basically a set of pointers to where the data for each element is in the
 byte stream and then you call the function you want to extract the type you want.  An awesome side
 effect of this is that you don't need a data dictionary to parse a file even if it uses implicit
-little endian.  It also turns out that parsing this way as it avoids doing unneeded type conversions.
+little endian.  It also turns out that parsing this way is very fast as it avoids doing unneeded type conversions.
 
 Note that you cannot 100% reliably parse sequence elements in an implicit little endian
-transfer syntax without a data dictionary.  I therefore *strongly* recommend that you only work with
-explicit transfer syntaxes.  Fortunately most Image Archives should be able to give you an explicit
-transfer syntax encoding of your sop instance even if it was received in implicit little endian.
-Note that WADO's default transfer syntax is explicit little endian so this shouldn't
-be a problem "in the real world".  Implicit transfer syntax parsing was implemented mainly for convenience
-(and the fact that many of my test data sets are in little endian transfer syntax).
+transfer syntax without a data dictionary.  I therefore *strongly* recommend that you work with explicit transfer
+syntaxes whenever possible.  Fortunately most Image Archives should be able to give you an explicit
+transfer syntax encoding of your sop instance even if it received it in implicit little endian.
+
+Note that WADO's default transfer syntax is explicit little endian so one would assume that an
+Image Archive supporting WADO would have a good data dictionary management system.
+Initially I wasn't going to support parsing of implicit data at all but decided to mainly for
+convenience (and the fact that many of my test data sets are in little endian transfer syntax and I am too
+lazy to convert them to explicit transfer syntax).
 
 _Does not require a data dictionary_
 
-Usually you know which elements you want to access and know what type they are so designing your
-parser around a data dictionary is just adding unnecessary complexity.  Additionally, it really isn't the clients
-job to know what data dictionary a given data set may need - in this day and age the Image Archive should manage this
-complexity by managing the data dictionary and providing data in explicit transfer syntaxes (see above).
+As a client, you usually you know which elements you want to access and know what type they are so designing a
+client oriented parser around a data dictionary is adding unnecessary complexity, especially if you can stick to
+explicit transfer syntaxes.  I also believe it is the the server's responsibility to provide the client
+ safe and easily digestable data (i.e. explicit transfer syntaxes).  A server typically supports
+many types of clients so it makes sense to centralize data dictionary management in one place rather
+than burden each client with it.
 
-Data dictionaries are not required for most use cases so why would a library author burden its users
-with it at all?  For those use cases that do require it, you can layer it on top of this library.  If you do want
-to know the VR, request the instance in an explicit transfer syntax and you can have it.  If your Image Archive
-can't do this for you, get a new one.
+Data dictionaries are not required for most client use cases anyway I decided not to support it in this library
+at all.  For those use cases that do require a data dictionary, you can layer it on top of this library.  An example
+of doing so is provided in the live examples.  If you do want to know the VR, request the instance in an
+explicit transfer syntax and you can have it.  If your Image Archive can't do this for you, get a new one - seriously.
 
 _Decodes individual elements "on demand" - this goes with not needing a data dictionary_
 
