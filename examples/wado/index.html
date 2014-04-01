@@ -23,22 +23,45 @@
 <div class="container">
 
     <div class="page-header">
-        <h1>Getting Started</h1>
+        <h1>WADO DICOM Dump with Data Dictionary</h1>
         <p class="lead">
-            This is a quick overview of how to get started using the dicomParser library.
+            Enter a URL for a WADO DICOM object below to see its elements
         </p>
         <p>
-            This example shows how to use dicomParser to load a DICOM File and acces its contents.
+            This example illustrates how to fetch a WADO DICOM object and parse it using dicomParser.
+            Note that the WADO DICOM objects are not uploaded anywhere, all processing
+            is done inside your web browser in Javascript.
         </p>
-        <strong>Use of this example require IE10+ or any other modern browser.</strong>
+        <strong>If you get an HTTP error and your URL is correct, it is probably due to the server not configured to
+            allow <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">Cross Origin Requests</a>.</strong>
+
+
+    </div>
+
+    <form role="form-horizontal" role="form">
+        <div class="form-group">
+            <label for="wadoURL">URL to DICOM Object</label>
+            <div>
+                <input type="text" class="form-control" id="wadoURL" placeholder="Enter WADO URL" value="http://x.babymri.org/?53320924&.dcm">
+            </div>
+            <div>
+                <button type="button" id="downloadAndDump" class="btn btn-default">Download and Dump</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="status" class="alert alert-success">
+        <div id="statusText">
+            Status: Ready (no file loaded)
+        </div>
+        <ul id="warnings">
+
+        </ul>
     </div>
 
     <div class="row">
         <div class="col-md-12">
             <div id="dropZone">
-
-                <div class="text-center" style="margin-top:225px;"><h3>Drag DICOM P10 file here to dump its elements</h3></div>
-
             </div>
         </div>
     </div>
@@ -52,26 +75,345 @@
 <!-- include the cornerstone library -->
 <script src="../../dist/dicomParser.js"></script>
 
+<!-- include the data dictionary -->
+<script src="../dumpWithDataDictionary/dataDictionary.js"></script>
+
+
 <script>
 
-    // Load
-    var url = "http://www.dicomserver.co.uk/wado/GetImages.asp?StudyUID=1.2.826.4308531.6.0.122377148345.1255965476&SeriesUID=1.2.826.4308531.6.0.122377148345.1255965477";
+// helper function to see if a string only has ascii characters in it
+function isASCII(str) {
+    return /^[\x00-\x7F]*$/.test(str);
+}
 
+// This function iterates through dataSet recursively and adds new HTML strings
+// to the output array passed into it
+function dumpDataSet(dataSet, output)
+{
+    function getTag(tag)
+    {
+        var group = tag.substring(1,5);
+        var element = tag.substring(5,9);
+        var tagIndex = ("("+group+","+element+")").toUpperCase();
+        var attr = TAG_DICT[tagIndex];
+        return attr;
+    }
+
+
+    // the dataSet.elements object contains properties for each element parsed.  The name of the property
+    // is based on the elements tag and looks like 'xGGGGEEEE' where GGGG is the group number and EEEE is the
+    // element number both with lowercase hexadecimal letters.  For example, the Series Description DICOM element 0008,103E would
+    // be named 'x0008103e'.  Here we iterate over each property (element) so we can build a string describing its
+    // contents to add to the output array
+    for(var propertyName in dataSet.elements) {
+        var element = dataSet.elements[propertyName];
+
+        var text = "";
+
+        var color = 'black';
+
+        var tag = getTag(element.tag);
+        // The output string begins with the element name (or tag if not in data dictionary), length and VR (if present).  VR is undefined for
+        // implicit transfer syntaxes
+        if(tag === undefined)
+        {
+            text += element.tag;
+            text += "; length=" + element.length;
+
+            if(element.hadUndefinedLength) {
+                text += " <strong>(-1)</strong>";
+            }
+
+            if(element.vr) {
+                text += " VR=" + element.vr +"; ";
+            }
+
+            // make text lighter since this is an unknown attribute
+            color = '#C8C8C8';
+        }
+        else
+        {
+            text += tag.name;
+            text += "(" + element.tag + ") :";
+        }
+
+
+
+        // Here we check for Sequence items and iterate over them if present.  items will not be set in the
+        // element object for elements that don't have SQ VR type.  Note that implicit little endian
+        // sequences will are currently not parsed.
+        if(element.items)
+        {
+            output.push('<li>'+ text + '</li>');
+            output.push('<ul>');
+
+            // each item contains its own data set so we iterate over the items
+            // and recursively call this function
+            var itemNumber = 0;
+            element.items.forEach(function(item)
+            {
+                output.push('<li>Item #' + itemNumber++ + '</li>')
+                output.push('<ul>');
+                dumpDataSet(item.dataSet, output);
+                output.push('</ul>');
+            });
+            output.push('</ul>');
+        }
+        else {
+            // use VR to display the right value
+            var vr;
+            if(element.vr !== undefined)
+            {
+                vr = element.vr;
+            }
+            else {
+                if(tag !== undefined)
+                {
+                    vr = tag.vr;
+                }
+            }
+
+            // if the length of the element is less than 128 we try to show it.  We put this check in
+            // to avoid displaying large strings which makes it harder to use.
+            if(element.length < 128) {
+                // Since the dataset might be encoded using implicit transfer syntax and we aren't using
+                // a data dictionary, we need some simple logic to figure out what data types these
+                // elements might be.  Since the dataset might also be explicit we could be switch on the
+                // VR and do a better job on this, perhaps we can do that in another example
+
+                // First we check to see if the element's length is appropriate for a UI or US VR.
+                // US is an important type because it is used for the
+                // image Rows and Columns so that is why those are assumed over other VR types.
+                if(element.vr === undefined && tag === undefined) {
+                    if(element.length === 2)
+                    {
+                        text += " (" + dataSet.uint16(propertyName) + ")";
+                    }
+                    else if(element.length === 4)
+                    {
+                        text += " (" + dataSet.uint32(propertyName) + ")";
+                    }
+
+
+                    // Next we ask the dataset to give us the element's data in string form.  Most elements are
+                    // strings but some aren't so we do a quick check to make sure it actually has all ascii
+                    // characters so we know it is reasonable to display it.
+                    var str = dataSet.string(propertyName);
+                    var stringIsAscii = isASCII(str);
+
+                    if(stringIsAscii)
+                    {
+                        // the string will be undefined if the element is present but has no data
+                        // (i.e. attribute is of type 2 or 3 ) so we only display the string if it has
+                        // data.  Note that the length of the element will be 0 to indicate "no data"
+                        // so we don't put anything here for the value in that case.
+                        if(str !== undefined) {
+                            text += '"' + str + '"';
+                        }
+                    }
+                    else
+                    {
+                        if(element.length !== 2 && element.length !== 4)
+                        {
+                            color = '#C8C8C8';
+                            // If it is some other length and we have no string
+                            text += "<i>binary data</i>";
+                        }
+                    }
+                }
+                else
+                {
+                    function isStringVr(vr)
+                    {
+                        if(vr === 'AT'
+                                || vr === 'FL'
+                                || vr === 'FD'
+                                || vr === 'OB'
+                                || vr === 'OF'
+                                || vr === 'OW'
+                                || vr === 'SI'
+                                || vr === 'SQ'
+                                || vr === 'SS'
+                                || vr === 'UL'
+                                || vr === 'US'
+                                )
+                        {
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    if(isStringVr(vr))
+                    {
+                        // Next we ask the dataset to give us the element's data in string form.  Most elements are
+                        // strings but some aren't so we do a quick check to make sure it actually has all ascii
+                        // characters so we know it is reasonable to display it.
+                        var str = dataSet.string(propertyName);
+                        var stringIsAscii = isASCII(str);
+
+                        if(stringIsAscii)
+                        {
+                            // the string will be undefined if the element is present but has no data
+                            // (i.e. attribute is of type 2 or 3 ) so we only display the string if it has
+                            // data.  Note that the length of the element will be 0 to indicate "no data"
+                            // so we don't put anything here for the value in that case.
+                            if(str !== undefined) {
+                                text += '"' + str + '"';
+                            }
+                        }
+                        else
+                        {
+                            if(element.length !== 2 && element.length !== 4)
+                            {
+                                color = '#C8C8C8';
+                                // If it is some other length and we have no string
+                                text += "<i>binary data</i>";
+                            }
+                        }
+                    }
+                    else if (vr == 'US')
+                    {
+                        text += dataSet.uint16(propertyName);
+                    }
+                    else if(vr === 'SS')
+                    {
+                        text += dataSet.int16(propertyName);
+                    }
+                    else if (vr == 'UL')
+                    {
+                        text += dataSet.uint32(propertyName);
+                    }
+                    else if(vr === 'SL')
+                    {
+                        text += dataSet.int32(propertyName);
+                    }
+                    else if(vr == 'FD')
+                    {
+                        text += dataSet.double(propertyName);
+                    }
+                    else if(vr == 'FL')
+                    {
+                        text += dataSet.float(propertyName);
+                    }
+                    else if(vr === 'OB' || vr === 'OW' || vr === 'UN' || vr === 'OF' || vr ==='UT')
+                    {
+                        color = '#C8C8C8';
+                        // If it is some other length and we have no string
+                        text += "<i>binary data of length " + element.length + " and VR " + vr + "</i>";
+                    }
+                    else {
+                        // If it is some other length and we have no string
+                        text += "<i>no display code for VR " + vr + " yet, sorry!</i>";
+                    }
+                }
+
+                if(element.length ===0) {
+                    color = '#C8C8C8';
+                }
+            }
+            else {
+                color = '#C8C8C8';
+
+                // Add text saying the data is too long to show...
+                text += "<i>data of length " + element.length + " for VR + " + vr + " too long to show</i>";
+            }
+        }
+        // finally we add the string to our output array surrounded by li elements so it shows up in the
+        // DOM as a list
+        output.push('<li style="color:' + color +';">'+ text + '</li>');
+    }
+}
+
+function dumpByteArray(byteArray)
+{
+    // Here we have the file data as an ArrayBuffer.  dicomParser requires as input a
+    // Uint8Array so we create that here
+    var kb = byteArray.length / 1024;
+    var mb = kb / 1024;
+    var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
+    document.getElementById('statusText').innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
+    // set a short timeout to do the parse so the DOM has time to update itself with the above message
+    setTimeout(function() {
+
+        // Invoke the paresDicom function and get back a DataSet object with the contents
+        var dataSet;
+        try {
+            var start = new Date().getTime();
+            dataSet = dicomParser.parseDicom(byteArray);
+            // Here we call dumpDataSet to recursively iterate through the DataSet and create an array
+            // of strings of the contents.
+            var output = [];
+            dumpDataSet(dataSet, output);
+
+            // Combine the array of strings into one string and add it to the DOM
+            document.getElementById('dropZone').innerHTML = '<ul>' + output.join('') + '</ul>';
+
+            var end = new Date().getTime();
+            var time = end - start;
+            if(dataSet.warnings.length > 0)
+            {
+                $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
+                $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+
+                dataSet.warnings.forEach(function(warning) {
+                    $("#warnings").append('<li>' + warning +'</li>');
+                });
+            }
+            else
+            {
+                var pixelData = dataSet.elements.x7fe00010;
+                if(pixelData) {
+                    $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                    $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                }
+                else
+                {
+                    $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                    $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
+                }
+            }
+        }
+        catch(err)
+        {
+            $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+            document.getElementById('statusText').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
+        }
+    },10);
+
+}
+
+$('#downloadAndDump').click(function(e) {
+    // clear any data currently being displayed as we parse this next file
+    document.getElementById('dropZone').innerHTML = '';
+    $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
+    $('#warnings').empty();
+    document.getElementById('statusText').innerHTML = 'Status: Loading file, please wait..';
+
+    // Load the WADO object
+    var url = $('#wadoURL').val();
     var oReq = new XMLHttpRequest();
     oReq.open("get", url, true);
     oReq.responseType = "arraybuffer";
-    oReq.onreadystatechange = function(oEvent) {
-        if(oReq.readyState == 4 && oReq.status == 200) {
-            var byteArray = new Uint8Array(oReq.response);
-            var dataSet = dicomParser.parseDicom(byteArray);
-        }
-        // TODO: Check for errors and reject the deferred if they happened
-        else {
-            // request failed, reject the deferred
-            //deferred.reject();
+    oReq.onreadystatechange = function(oEvent)
+    {
+        if(oReq.readyState == 4)
+        {
+            if(oReq.status == 200)
+            {
+                var byteArray = new Uint8Array(oReq.response);
+                dumpByteArray(byteArray);
+            }
+            else
+            {
+                $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+                document.getElementById('statusText').innerHTML = 'Status: HTTP Error - status code ' + oReq.status + '; error text = ' + oReq.statusText;
+            }
         }
     };
     oReq.send();
+    return false;
+});
+
 
 </script>
 </html>

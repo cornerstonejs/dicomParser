@@ -50,7 +50,6 @@ Future:
   (e.g. items with undefined length, sequences, sequences with undefined lengths, sequences with items
   with undefined lengths)
 * Add example that allows you to compare two sop instances against each othe
-* Add example to enter a WADO URL and dump its contents
 
 
 

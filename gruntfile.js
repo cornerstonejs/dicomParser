@@ -58,7 +58,7 @@ module.exports = function(grunt) {
         },
         bump: {
             scripts: {
-                files: ["package.json"],
+                files: ["package.json", "bower.json"],
                 commit: true,
                 commitMessage: 'Release v%VERSION%',
                 createTag: true,
@@ -66,7 +66,7 @@ module.exports = function(grunt) {
                 tagMessage: 'Release v%VERSION%',
                 updateConfigs: ["pkg"],
                 commitFiles: ["-a"],
-                push: false // git push origin master --tags
+                push: false
             }
         },
         watch: {
@@ -82,3 +82,4 @@ module.exports = function(grunt) {
     grunt.registerTask('buildAll', ['clean','concat:build', 'concat:dist', 'uglify', 'jshint', 'qunit']);
     grunt.registerTask('default', ['buildAll']);
 };
+// git push origin master --tags
