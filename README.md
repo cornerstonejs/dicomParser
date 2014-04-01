@@ -1,17 +1,63 @@
 dicomParser
 ===========
 
-Javascript parser for DICOM Part 10 byte streams.  Requires IE10+ or any other modern browser
+dicomParser is a lightweight library for parsing DICOM P10 byte streams in a modern web browser (IE10+).
+dicomParser is fast, easy to use and has no external dependencies.
 
-[Click here for a live example of using the library to display a summary of the fields in a DICOM file](https://rawgithub.com/chafey/dicomParser/master/examples/dragAndDropParse/index.html)
+Live Examples
+---------------
 
-[Click here for a live example of using the library to display a dump of the fields in a DICOM file](https://rawgithub.com/chafey/dicomParser/master/examples/dumpWithDataDictionary/index.html)
-
+The best way to see the power of this library is to actually see it in use.  A number of live examples are
+included that are not only useful but also show how to use dicomParser.
 [Click here for a list of all live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
 
-Project Status
+Install
+-------
+
+Get a packaged source file:
+
+* [dicomParser.js](dist/dicomParser.js)
+* [dicomParser.min.js](dist/dicomParser.min.js)
+
+Or install via [Bower](http://bower.io/):
+
+> bower install dicomParser
+
+Usage
+-------
+
+```
+// create a Uint8Array with the contents of the DICOM P10 byte stream
+// you want to parse (e.g. XMLHttpRequest to a WADO server)
+var arrayBuffer = new ArrayBuffer(bufferSize);
+var byteArray = new Uint8Array(arrayBuffer);
+
+// Parse the byte array to get a DataSet object that has the parsed contents
+try
+{
+    var dataSet = dicomParser.parseDicom(byteArray);
+
+    // access elements by tag
+    var sopInstanceUid = dataSet.string('x0020000d');
+}
+catch(err)
+{
+   // catch parse errors
+   console.log('Error parsing byte stream' - err);
+}
+```
+
+[See the live examples for more in depth usage of the library](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
+
+Key Features
 ------------
-* Beta (release candidate)
+
+* Parses DICOM Part 10 byte arrays in both implicit little endian and explicit little endian transfer syntaxes
+* Supports all VR's including sequences
+* Supports elements with undefined length
+* Provides functions to convert from all VR types to native Javascript types
+* Does not require a data dictionary
+* Designed for use in the browser
 
 Why another Javascript DICOM parsing library?
 ------------
