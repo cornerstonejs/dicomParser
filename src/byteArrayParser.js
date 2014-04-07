@@ -186,7 +186,8 @@ var dicomParser = (function (dicomParser)
     /**
      * Reads a string of 8 bit characters from an array of bytes and advances
      * the position by length bytes.  A null terminator will end the string
-     * but will not effect advancement of the position.
+     * but will not effect advancement of the position.  Trailing and leading
+     * spaces are preserved (not trimmed)
      * @param byteArray the byteArray to read from
      * @param position the position in the byte array to read from
      * @param length the maximum number of bytes to parse
@@ -215,6 +216,7 @@ var dicomParser = (function (dicomParser)
             }
             result += String.fromCharCode(byte);
         }
+
         return result;
     };
 

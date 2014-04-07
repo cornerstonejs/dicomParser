@@ -105,12 +105,12 @@ Future:
 * Figure out how to automatically generate documentation from the source (jsdoc)
 * Optimize findItemDelimitationItemAndSetElementLength() for speed
 * Optimize functions in byteArrayParser.js for speed
-* Add support for accessing multi valued attributes other than string (e.g. IS, SS, UL, SL, FD, FL)
 * Add characteristics feature that will report on which aspects of the encoding this byte stream uses
   (e.g. items with undefined length, sequences, sequences with undefined lengths, sequences with items
   with undefined lengths)
 * Add example that allows you to compare two sop instances against each other
 * Figure out how to not have a global dicomParser object when used with an AMD loader
+* See what needs to be done to support different character sets (assumes ASCII currently)
 
 
 Why another Javascript DICOM parsing library?
@@ -173,7 +173,7 @@ Do I really need to convince you that this is needed?
 _Does not hide the underlying data stream from you_
 
 I have used many DICOM parsing libraries over the years and most of them either hide the underlying byte stream
-from you or make it difficult to access.  There are times when you need to access the underlying bytes  - and it can
+from you or make it difficult to access.  There are times when you need to access the underlying bytes  - and
 it is frustrating when the library works against you.  A few examples of the need for this include
 UN VR's, private attributes, encapsulated pixel data and implicit little endian transfer
 syntaxes (which unfortunately are still widely being used) when you don't have a complete data dictionary.
@@ -205,7 +205,7 @@ explicit transfer syntaxes.  I also believe it is the the server's responsibilit
 many types of clients so it makes sense to centralize data dictionary management in one place rather
 than burden each client with it.
 
-Data dictionaries are not required for most client use cases anyway I decided not to support it in this library
+Data dictionaries are not required for most client use cases anyway so I decided not to support it in this library
 at all.  For those use cases that do require a data dictionary, you can layer it on top of this library.  An example
 of doing so is provided in the live examples.  If you do want to know the VR, request the instance in an
 explicit transfer syntax and you can have it.  If your Image Archive can't do this for you, get a new one - seriously.
