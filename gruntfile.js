@@ -3,15 +3,11 @@ module.exports = function(grunt) {
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        clean: {
-            default: {
-                src: [
+        clean: [
                     'dist',
                     'docs',
                     'build'
-                ]
-            }
-        },
+                    ],
         concat: {
             build: {
                 src : ['src/parseDicom.js', 'src/*.js'],
