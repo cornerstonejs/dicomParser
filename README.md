@@ -62,6 +62,7 @@ Key Features
 * Each element exposes the offset and length of its data in the underlying byte stream
 * Packaged using the module pattern and as an AMD module
 * No external dependencies
+* Supports extraction of encapsulated pixel data frames
 
 Build System
 ============
@@ -100,14 +101,13 @@ Backlog
 
 Future:
 
-* Add unit tests for sequence parsing functionality
-* Add a function to parse encapsulated pixel data
+* Add unit tests for sequence parsing functionality and encapsulated pixel frames
 * Figure out how to automatically generate documentation from the source (jsdoc)
 * Optimize findItemDelimitationItemAndSetElementLength() for speed
 * Optimize functions in byteArrayParser.js for speed
 * Add characteristics feature that will report on which aspects of the encoding this byte stream uses
   (e.g. items with undefined length, sequences, sequences with undefined lengths, sequences with items
-  with undefined lengths)
+  with undefined lengths, encapsulated pixel data with multiple fragments, etc)
 * Add example that allows you to compare two sop instances against each other
 * Figure out how to not have a global dicomParser object when used with an AMD loader
 * See what needs to be done to support different character sets (assumes ASCII currently)
