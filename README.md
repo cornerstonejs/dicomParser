@@ -39,6 +39,9 @@ try
 
     // access elements by tag
     var sopInstanceUid = dataSet.string('x0020000d');
+    // access pixel data (assumes uncompressed 8 bit pixels grayscale)
+    var pixelData = new UInt8Array(dataSet.elements.x7fe00010.buffer, dataSet.elements.x7fe00010.dataOffset);
+
 }
 catch(err)
 {
@@ -48,6 +51,15 @@ catch(err)
 ```
 
 [See the live examples for more in depth usage of the library](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
+
+Note that actually displaying DICOM images is quite complex due to the variety of pixel formats and compression
+algorithms that DICOM supports.  If you are interested in displaying images, please take a look at the
+[cornerstone library](https://github.com/chafey/cornerstone) and the
+[cornerstoneWADOImageLoader](https://github.com/chafey/cornerstoneWADOImageLoader) which uses this
+library to extract the pixel data from DICOM files and display the images with
+[cornerstone library](https://github.com/chafey/cornerstone).
+You can find the actual code that extracts grayscale pixel data using this library
+[here](https://github.com/chafey/cornerstoneWADOImageLoader/blob/master/src/makeGrayscaleImage.js).
 
 Key Features
 ------------
