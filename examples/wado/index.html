@@ -36,6 +36,7 @@
             Most browsers will allow you to enable cross domain requests via settings or command line switches,
             you can start chrome with the command line switch <code>--disable-web-security</code> to allow cross origin requests.
             See the  <a href="http://enable-cors.org/">Enable CORS site</a> for information about CORS.
+            <p/>
         </strong>
         <br>
         <br>
@@ -417,21 +418,6 @@ function dumpByteArray(byteArray)
 
 }
 
-function createCrossDomainRequest()
-{
-    var request;
-    if ($.browser == "msie")
-    {
-        request = new window.XDomainRequest();
-    }
-    else
-    {
-        request = new XMLHttpRequest();
-    }
-    return request;
-}
-
-
 $('#downloadAndDump').click(function(e) {
     // clear any data currently being displayed as we parse this next file
     document.getElementById('dropZone').innerHTML = '';
@@ -442,8 +428,16 @@ $('#downloadAndDump').click(function(e) {
     // Load the WADO object
     var url = $('#wadoURL').val();
 
-    var oReq = createCrossDomainRequest(url);
-    oReq.open("get", url, true);
+    var oReq = new XMLHttpRequest();
+    try {
+        oReq.open("get", url, true);
+    }
+    catch(err)
+    {
+        $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+        document.getElementById('statusText').innerHTML = 'Status: Error - ' + err + '  If you are using Internet Explorer, try using another browser like Google Chrome';
+        return false;
+    }
     oReq.responseType = "arraybuffer";
     oReq.onreadystatechange = function(oEvent)
     {
