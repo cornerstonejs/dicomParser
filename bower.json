@@ -16,7 +16,8 @@
 
     },
     "devDependencies": {
-        "qunit": "~1.14.0"
+        "qunit": "~1.14.0",
+        "jquery" : "~2.1.1"
     },
     "license": "MIT",
     "authors" : ["Chris Hafey"],

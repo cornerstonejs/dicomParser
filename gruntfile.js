@@ -8,6 +8,17 @@ module.exports = function(grunt) {
                     'docs',
                     'build'
                     ],
+        copy: {
+            bower: {
+                src: [
+                    'bower_components/jquery/dist/jquery.min.js',
+                    'bower_components/jquery/dist/jquery.min.map',
+                ],
+                dest: 'examples',
+                expand: true,
+                flatten: true
+            }
+        },
         concat: {
             build: {
                 src : ['src/parseDicom.js', 'src/*.js'],
