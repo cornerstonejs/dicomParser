@@ -417,6 +417,23 @@ function dumpByteArray(byteArray)
 
 }
 
+var isIE8 = window.XDomainRequest ? true : false;
+
+function createCrossDomainRequest()
+{
+    var request;
+    if (isIE8)
+    {
+        request = new window.XDomainRequest();
+    }
+    else
+    {
+        request = new XMLHttpRequest();
+    }
+    return request;
+}
+
+
 $('#downloadAndDump').click(function(e) {
     // clear any data currently being displayed as we parse this next file
     document.getElementById('dropZone').innerHTML = '';
@@ -426,7 +443,8 @@ $('#downloadAndDump').click(function(e) {
 
     // Load the WADO object
     var url = $('#wadoURL').val();
-    var oReq = new XMLHttpRequest();
+
+    var oReq = createCrossDomainRequest(url);
     oReq.open("get", url, true);
     oReq.responseType = "arraybuffer";
     oReq.onreadystatechange = function(oEvent)
@@ -446,6 +464,7 @@ $('#downloadAndDump').click(function(e) {
         }
     };
     oReq.send();
+
     return false;
 });
 
