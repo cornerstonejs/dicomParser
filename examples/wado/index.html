@@ -417,12 +417,10 @@ function dumpByteArray(byteArray)
 
 }
 
-var isIE8 = window.XDomainRequest ? true : false;
-
 function createCrossDomainRequest()
 {
     var request;
-    if (isIE8)
+    if ($.browser == "msie")
     {
         request = new window.XDomainRequest();
     }
