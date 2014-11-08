@@ -156,13 +156,13 @@
         equal(int32, -1, "readInt32 did not return expected value");
     });
 
-    test("readFloat works", function() {
+    test("readFloat works on first value", function() {
         // Arrange
-        var byteArray = new Uint8Array(5);
+        var byteArray = new Uint8Array(4);
         byteArray[0] = 0x00;
-        byteArray[1] = 0x00
-        byteArray[2] = 0xB4
-        byteArray[3] = 0xC0
+        byteArray[1] = 0x00;
+        byteArray[2] = 0xB4;
+        byteArray[3] = 0xC0;
 
         // Act
         var int32 = dicomParser.readFloat(byteArray, 0);
@@ -171,8 +171,27 @@
         equal(int32, -5.625000, "readFloat did not return expected value");
     });
 
+    test("readFloat works on second value", function() {
+        // Arrange
+        var byteArray = new Uint8Array(8);
+        byteArray[0] = 0x00;
+        byteArray[1] = 0x00;
+        byteArray[2] = 0xB4;
+        byteArray[3] = 0xC0;
+        byteArray[4] = 0x00;
+        byteArray[5] = 0x00;
+        byteArray[6] = 0xB4;
+        byteArray[7] = 0xC1;
+
+        // Act
+        var int32 = dicomParser.readFloat(byteArray, 4);
+
+        // Assert
+        equal(int32, -22.5, "readFloat did not return expected value");
+    });
+
     /* commented out since qunit doesn't seem to have Float64Array type - works ok in chrome though
-    test("readDouble works", function() {
+    test("readDouble works on first value", function() {
         // Arrange
         var byteArray = new Uint8Array(8);
         byteArray[7] = 0x7f;
@@ -189,6 +208,33 @@
 
         // Assert
         equal(doubleValue, 1.7976931348623157e+308, "readDouble did not return expected value");
+    });
+
+    test("readDouble works on second value", function() {
+        // Arrange
+        var byteArray = new Uint8Array(16);
+        byteArray[7] = 0x7f;
+        byteArray[6] = 0xef;
+        byteArray[5] = 0xff;
+        byteArray[4] = 0xff;
+        byteArray[3] = 0xff;
+        byteArray[2] = 0xff;
+        byteArray[1] = 0xff;
+        byteArray[0] = 0xff;
+        byteArray[15] = 0xef;
+        byteArray[14] = 0x7f;
+        byteArray[13] = 0xff;
+        byteArray[12] = 0xff;
+        byteArray[11] = 0xff;
+        byteArray[10] = 0xff;
+        byteArray[9] = 0xff;
+        byteArray[8] = 0xff;
+
+        // Act
+        var doubleValue = dicomParser.readDouble(byteArray, 8);
+
+        // Assert
+        equal(doubleValue, -1.2129047596099287e+229, "readDouble did not return expected value");
     });
     */
 
