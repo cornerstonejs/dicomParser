@@ -268,10 +268,10 @@ var dicomParser = (function (dicomParser)
 
         // I am sure there is a better way than this but this should be safe
         var byteArrayForParsingFloat= new Uint8Array(4);
-        byteArrayForParsingFloat[0] = byteArray[0];
-        byteArrayForParsingFloat[1] = byteArray[1];
-        byteArrayForParsingFloat[2] = byteArray[2];
-        byteArrayForParsingFloat[3] = byteArray[3];
+        byteArrayForParsingFloat[0] = byteArray[position];
+        byteArrayForParsingFloat[1] = byteArray[position + 1];
+        byteArrayForParsingFloat[2] = byteArray[position + 2];
+        byteArrayForParsingFloat[3] = byteArray[position + 3];
         var floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
         return floatArray[0];
     };
@@ -298,14 +298,14 @@ var dicomParser = (function (dicomParser)
 
         // I am sure there is a better way than this but this should be safe
         var byteArrayForParsingFloat= new Uint8Array(8);
-        byteArrayForParsingFloat[0] = byteArray[0];
-        byteArrayForParsingFloat[1] = byteArray[1];
-        byteArrayForParsingFloat[2] = byteArray[2];
-        byteArrayForParsingFloat[3] = byteArray[3];
-        byteArrayForParsingFloat[4] = byteArray[4];
-        byteArrayForParsingFloat[5] = byteArray[5];
-        byteArrayForParsingFloat[6] = byteArray[6];
-        byteArrayForParsingFloat[7] = byteArray[7];
+        byteArrayForParsingFloat[0] = byteArray[position];
+        byteArrayForParsingFloat[1] = byteArray[position + 1];
+        byteArrayForParsingFloat[2] = byteArray[position + 2];
+        byteArrayForParsingFloat[3] = byteArray[position + 3];
+        byteArrayForParsingFloat[4] = byteArray[position + 4];
+        byteArrayForParsingFloat[5] = byteArray[position + 5];
+        byteArrayForParsingFloat[6] = byteArray[position + 6];
+        byteArrayForParsingFloat[7] = byteArray[position + 7];
         var floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
         return floatArray[0];
     };
