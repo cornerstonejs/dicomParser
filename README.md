@@ -126,8 +126,9 @@ Future:
 
 Contributors
 ============================================
-@neandrake for help with getting Node.js support
-@ggerade for implementing support for floats/doubles with VM > 1
+
+* @neandrake for help with getting Node.js support
+* @ggerade for implementing support for floats/doubles with VM > 1
 
 Why another Javascript DICOM parsing library?
 ============================================
