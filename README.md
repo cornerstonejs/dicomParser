@@ -1,8 +1,8 @@
 dicomParser
 ===========
 
-dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+).
-dicomParser is fast, easy to use and has no external dependencies.
+dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+) ande Node.js.
+dicomParser is fast, easy to use and has no external dependencies.  .
 
 Live Examples
 ---------------
@@ -72,7 +72,7 @@ Key Features
 * Does not require a data dictionary
 * Designed for use in the browser
 * Each element exposes the offset and length of its data in the underlying byte stream
-* Packaged using the module pattern and as an AMD module
+* Packaged using the module pattern, as an AMD module and as a CommonJS module for Node.js
 * No external dependencies
 * Supports extraction of encapsulated pixel data frames
 
@@ -168,8 +168,7 @@ _Designed to work well in a browser (modern ones at least)_
 
 There are some good javascript DICOM parsing libraries available for server development on node.js but they
 won't automatically work in a browser.  I needed a library that let me easily parse WADO responses and
-I figured others would also prefer a simple library to do this with no dependencies.  I don't have any plans
-to make this library work in node.js but would be open to contributions from anyone that wants to do the work.
+I figured others would also prefer a simple library to do this with no dependencies.
 The library does make use of the [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBuffer)
 object which is widely supported except for IE (it is available on IE10+).  I have no current plans to add support
 for older versions of IE but would be open to contributions if someone wants to do the work.
