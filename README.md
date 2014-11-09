@@ -124,6 +124,10 @@ Future:
 * Figure out how to not have a global dicomParser object when used with an AMD loader
 * See what needs to be done to support different character sets (assumes ASCII currently)
 
+Contributors
+============================================
+@neandrake for help with getting Node.js support
+
 
 Why another Javascript DICOM parsing library?
 ============================================
