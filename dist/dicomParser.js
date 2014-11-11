@@ -1,4 +1,4 @@
-/*! dicomParser - v0.4.0 - 2014-11-09 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.4.1 - 2014-11-11 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = factory();
