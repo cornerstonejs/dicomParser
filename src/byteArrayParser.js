@@ -56,7 +56,7 @@ var dicomParser = (function (dicomParser)
         // fix sign
         if(int16 & 0x8000)
         {
-            int16 = int16 - 0xFFFF - 1;
+            int16 = int16 - 0x10000 ; // int16 - 0xFFFF - 1
         }
         return int16;
     };
@@ -82,10 +82,10 @@ var dicomParser = (function (dicomParser)
             throw 'dicomParser.readUint32: attempt to read past end of buffer';
         }
 
-        var uint32 =(byteArray[position] +
-                    (byteArray[position + 1] * 256) +
-                    (byteArray[position + 2] * 256 * 256) +
-                    (byteArray[position + 3] * 256 * 256 * 256 ));
+        var uint32 = (byteArray[position] +
+                     256 * (byteArray[position + 1] +
+                     256 * (byteArray[position + 2] +
+                     256 * byteArray[position + 3])));
 
         return uint32;
     };
