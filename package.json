@@ -1,6 +1,6 @@
 {
   "name": "dicomParser",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Javascript parser for DICOM Part 10 data",
   "keywords": [
     "DICOM",

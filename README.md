@@ -1,8 +1,8 @@
 dicomParser
 ===========
 
-dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+) ande Node.js.
-dicomParser is fast, easy to use and has no external dependencies.  .
+dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+),  Node.js
+and meteor.  dicomParser is fast, easy to use and has no external dependencies.
 
 Live Examples
 ---------------
@@ -39,9 +39,8 @@ try
 
     // access elements by tag
     var sopInstanceUid = dataSet.string('x0020000d');
-    // access pixel data (assumes uncompressed 8 bit pixels grayscale)
-    var pixelData = new UInt8Array(dataSet.elements.x7fe00010.buffer, dataSet.elements.x7fe00010.dataOffset);
-
+    // access pixel data (use Uint8Array for for 8 bit gray data and Int16Array for 16 bit signed data)
+    var pixelData = new Uint16Array(dataSet.elements.x7fe00010.buffer, dataSet.elements.x7fe00010.dataOffset);
 }
 catch(err)
 {

@@ -1,5 +1,7 @@
-/*! dicomParser - v0.4.1 - 2014-11-11 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.4.2 - 2015-01-07 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
+
+    // node.js
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = factory();
     }
@@ -10,6 +12,11 @@
         // Browser globals
         if(dicomParser === undefined) {
             dicomParser = {};
+
+            // meteor
+            if (typeof Package !== 'undefined') {
+                root.dicomParser = dicomParser;
+            }
         }
         dicomParser = factory();
     }

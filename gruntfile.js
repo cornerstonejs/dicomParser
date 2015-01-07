@@ -17,6 +17,14 @@ module.exports = function(grunt) {
                 dest: 'examples',
                 expand: true,
                 flatten: true
+            },
+            meteor : {
+                src: [
+                    'meteor/package.js',
+                ],
+                dest: 'dist',
+                expand: true,
+                flatten: true
             }
         },
         concat: {
@@ -73,7 +81,7 @@ module.exports = function(grunt) {
 
     require('load-grunt-tasks')(grunt);
 
-    grunt.registerTask('buildAll', ['clean','concat:build', 'concat:dist', 'uglify', 'jshint', 'qunit']);
+    grunt.registerTask('buildAll', ['clean','concat:build', 'concat:dist', 'uglify', 'copy:meteor', 'jshint', 'qunit']);
     grunt.registerTask('default', ['buildAll']);
 };
 
