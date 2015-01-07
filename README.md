@@ -2,7 +2,7 @@ dicomParser
 ===========
 
 dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+),  Node.js
-and meteor.  dicomParser is fast, easy to use and has no external dependencies.
+and Meteor.  dicomParser is fast, easy to use and has no external dependencies.
 
 Live Examples
 ---------------
@@ -22,6 +22,10 @@ Get a packaged source file:
 Or install via [Bower](http://bower.io/):
 
 > bower install dicomParser
+
+Or install via atmosphere for [Meteor](https://www.meteor.com/) applications
+
+> meteor add chafey:dicom-parser
 
 Usage
 -------
@@ -122,6 +126,8 @@ Future:
 * Add example that allows you to compare two sop instances against each other
 * Figure out how to not have a global dicomParser object when used with an AMD loader
 * See what needs to be done to support different character sets (assumes ASCII currently)
+* Support for parsing from streams on Node.js and Meteor
+* NPM Package
 
 Contributors
 ============================================
