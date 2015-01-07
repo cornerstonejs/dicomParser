@@ -1,7 +1,9 @@
 MeteorTestAp
 ============
 
-Example of using the dicom parser from meteor
+Example of using the dicom parser from meteor.  You can access this application
+ at [http://dicom-parser-test-app.meteor.com/](http://dicom-parser-test-app.meteor.com/)
+
 
 =============
 #### Installation
@@ -11,6 +13,7 @@ Example of using the dicom parser from meteor
 git clone https://github.com/chafey/dicomParser.git
 
 # And then running it...
-cd examples/meteor-query-test
+cd examples/meteorTestApp
 meteor
 ````
+
