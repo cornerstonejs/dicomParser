@@ -7,6 +7,6 @@
 meteor-platform
 autopublish
 insecure
-chafey:dicom-parser
 mizzao:bootstrap-3
 raix:ui-dropped-event
+chafey:dicom-parser

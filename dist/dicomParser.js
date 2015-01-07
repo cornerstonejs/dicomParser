@@ -1,4 +1,4 @@
-/*! dicomParser - v0.4.2 - 2015-01-07 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.4.3 - 2015-01-07 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
