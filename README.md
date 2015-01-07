@@ -43,8 +43,9 @@ try
 
     // access elements by tag
     var sopInstanceUid = dataSet.string('x0020000d');
-    // access pixel data (use Uint8Array for for 8 bit gray data and Int16Array for 16 bit signed data)
-    var pixelData = new Uint16Array(dataSet.elements.x7fe00010.buffer, dataSet.elements.x7fe00010.dataOffset);
+    // access 16 bit unsigned pixel data for single frame sop instance
+    // NOTE: use Uint8Array for for 8 bit gray data and Int16Array for 16 bit signed data
+    var pixelData = new Uint16Array(dataSet.byteArray.buffer, dataSet.elements.x7fe00010.dataOffset);
 }
 catch(err)
 {
