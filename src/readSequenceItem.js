@@ -1,5 +1,5 @@
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)

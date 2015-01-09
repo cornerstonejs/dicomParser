@@ -1,5 +1,5 @@
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -20,7 +20,7 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementImplicit(byteStream);
             elements[element.tag] = element;
 
-            // we hit an item delimeter tag, return the current offset to mark
+            // we hit an item delimiter tag, return the current offset to mark
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
@@ -28,7 +28,7 @@ var dicomParser = (function (dicomParser)
             }
         }
         // eof encountered - log a warning and return what we have for the element
-        byteStream.warnings.push('eof encountered before finding sequence item delimeter in sequence item of undefined length');
+        byteStream.warnings.push('eof encountered before finding sequence item delimiter in sequence item of undefined length');
         return new dicomParser.DataSet(byteStream.byteArray, elements);
     }
 

@@ -1,6 +1,6 @@
 /**
  *
- * Interal helper class to assist with parsing class supports reading from a little endian byte
+ * Internal helper class to assist with parsing class supports reading from a little endian byte
  * stream contained in an Uint18Array.  Example usage:
  *
  *  var byteArray = new Uint8Array(32);
