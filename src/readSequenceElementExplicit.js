@@ -1,5 +1,5 @@
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -20,7 +20,7 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementExplicit(byteStream);
             elements[element.tag] = element;
 
-            // we hit an item delimeter tag, return the current offset to mark
+            // we hit an item delimiter tag, return the current offset to mark
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {

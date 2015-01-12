@@ -1,5 +1,5 @@
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -38,7 +38,7 @@ var dicomParser = (function (dicomParser)
                     // but we will just log a warning for now
                     var itemDelimiterLength = byteStream.readUint32(); // the length
                     if(itemDelimiterLength !== 0) {
-                        byteStream.warnings('encountered non zero length following item delimeter at position' + byteStream.position - 4 + " while reading element of undefined length with tag ' + element.tag");
+                        byteStream.warnings('encountered non zero length following item delimiter at position' + byteStream.position - 4 + " while reading element of undefined length with tag ' + element.tag");
                     }
                     element.length = byteStream.position - element.dataOffset;
                     return;
