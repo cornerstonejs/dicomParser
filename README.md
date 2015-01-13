@@ -79,6 +79,9 @@ Key Features
 * Packaged using the module pattern, as an AMD module and as a CommonJS module for Node.js
 * No external dependencies
 * Supports extraction of encapsulated pixel data frames
+* Convenient utility functions to parse strings formatted in DA, TM and PN VRs and return JavaScript objects
+* Convenient utility function to create a string version of an explicit element
+* Convenient utility function to convert a parsed explicit dataSet into a javascript object
 
 Build System
 ============
@@ -135,6 +138,7 @@ Contributors
 
 * @neandrake for help with getting Node.js support
 * @ggerade for implementing support for floats/doubles with VM > 1
+* @bryan-cool for bug fix related to parsing implicit little endian files
 
 Why another Javascript DICOM parsing library?
 ============================================

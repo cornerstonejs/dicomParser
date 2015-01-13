@@ -1,4 +1,4 @@
-/*! dicomParser - v0.4.3 - 2015-01-07 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.5.0 - 2015-01-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -622,81 +622,12 @@ var dicomParser = (function (dicomParser)
         return undefined;
     };
 
-    /**
-     * Parses a DA formatted string into a Javascript Date object
-     * @param tag The DICOM tag in the format xGGGGEEEE
-     * @returns {*} Javascript Date object or undefined if not present or not 8 bytes long
-     */
-    dicomParser.DataSet.prototype.date = function(tag)
-    {
-        var value = this.string(tag);
-        if(value && value.length === 8)
-        {
-            var yyyy = parseInt(value.substring(0, 4), 10);
-            var mm = parseInt(value.substring(4, 6), 10);
-            var dd = parseInt(value.substring(6, 8), 10);
-
-            return new Date(yyyy, mm - 1, dd);
-        }
-        return undefined;
-    };
-
-    /**
-     * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and fractionalSeconds
-     * @param tag The DICOM tag in the format xGGGGEEEE
-     * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data
-     */
-    dicomParser.DataSet.prototype.time = function(tag)
-    {
-        var value = this.string(tag);
-        if(value && value.length >=  2) // must at least have HH
-        {
-            // 0123456789
-            // HHMMSS.FFFFFF
-            var hh = parseInt(value.substring(0, 2), 10);
-            var mm = value.length >= 4 ? parseInt(value.substring(2, 4), 10) : 0;
-            var ss = value.length >= 6 ? parseInt(value.substring(4, 6), 10) : 0;
-            var ffffff = value.length >= 8 ? parseInt(value.substring(7, 13), 10) : 0;
-
-            return {
-                hours: hh,
-                minutes: mm,
-                seconds: ss,
-                fractionalSeconds: ffffff
-            };
-        }
-        return undefined;
-    };
-
-    /**
-     * Parses a PN formatted string into a javascript object with properties for givenName, familyName, middleName, prefix and suffix
-     * @param tag The DICOM tag in the format xGGGGEEEE
-     * @param index
-     * @returns {*} javascript object with properties for givenName, familyName, middleName, prefix and suffix or undefined if no element or data
-     */
-    dicomParser.DataSet.prototype.personName = function(tag, index)
-    {
-        var stringValue = this.string(tag, index);
-        if(stringValue)
-        {
-            var stringValues = stringValue.split('^');
-            return {
-                familyName: stringValues[0],
-                givenName: stringValues[1],
-                middleName: stringValues[2],
-                prefix: stringValues[3],
-                suffix: stringValues[4]
-            };
-        }
-        return undefined;
-    };
-
     //dicomParser.DataSet = DataSet;
 
     return dicomParser;
 }(dicomParser));
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -735,7 +666,7 @@ var dicomParser = (function (dicomParser)
                     // but we will just log a warning for now
                     var itemDelimiterLength = byteStream.readUint32(); // the length
                     if(itemDelimiterLength !== 0) {
-                        byteStream.warnings('encountered non zero length following item delimeter at position' + byteStream.position - 4 + " while reading element of undefined length with tag ' + element.tag");
+                        byteStream.warnings('encountered non zero length following item delimiter at position' + byteStream.position - 4 + " while reading element of undefined length with tag ' + element.tag");
                     }
                     element.length = byteStream.position - element.dataOffset;
                     return;
@@ -754,7 +685,7 @@ var dicomParser = (function (dicomParser)
 }(dicomParser));
 /**
  *
- * Interal helper class to assist with parsing class supports reading from a little endian byte
+ * Internal helper class to assist with parsing class supports reading from a little endian byte
  * stream contained in an Uint18Array.  Example usage:
  *
  *  var byteArray = new Uint8Array(32);
@@ -1065,16 +996,17 @@ var dicomParser = (function (dicomParser)
 
         // peek ahead at the next tag to see if it looks like a sequence.  This is not 100%
         // safe because a non sequence item could have data that has these bytes, but this
-        // is how to do it without a data dictionary
-        var nextTag = dicomParser.readTag(byteStream);
-        byteStream.seek(-4);
+        // is how to do it without a data dictionary.
+        if ((byteStream.position + 4) <= byteStream.byteArray.length) {
+            var nextTag = dicomParser.readTag(byteStream);
+            byteStream.seek(-4);
 
-        if(nextTag === 'xfffee000')
-        {
-            // parse the sequence
-            dicomParser.readSequenceItemsImplicit(byteStream, element);
-            element.length = byteStream.byteArray.length - element.dataOffset;
-            return element;
+            if (nextTag === 'xfffee000') {
+                // parse the sequence
+                dicomParser.readSequenceItemsImplicit(byteStream, element);
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                return element;
+            }
         }
 
         // if element is not a sequence and has undefined length, we have to
@@ -1094,7 +1026,7 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -1205,7 +1137,7 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -1226,7 +1158,7 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementExplicit(byteStream);
             elements[element.tag] = element;
 
-            // we hit an item delimeter tag, return the current offset to mark
+            // we hit an item delimiter tag, return the current offset to mark
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
@@ -1315,7 +1247,7 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -1336,7 +1268,7 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementImplicit(byteStream);
             elements[element.tag] = element;
 
-            // we hit an item delimeter tag, return the current offset to mark
+            // we hit an item delimiter tag, return the current offset to mark
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
@@ -1344,7 +1276,7 @@ var dicomParser = (function (dicomParser)
             }
         }
         // eof encountered - log a warning and return what we have for the element
-        byteStream.warnings.push('eof encountered before finding sequence item delimeter in sequence item of undefined length');
+        byteStream.warnings.push('eof encountered before finding sequence item delimiter in sequence item of undefined length');
         return new dicomParser.DataSet(byteStream.byteArray, elements);
     }
 
@@ -1427,7 +1359,7 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -1467,7 +1399,7 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
- * Internal helper functions for for parsing DICOM elements
+ * Internal helper functions for parsing DICOM elements
  */
 
 var dicomParser = (function (dicomParser)
@@ -1496,6 +1428,292 @@ var dicomParser = (function (dicomParser)
         var elementNumber = byteStream.readUint16();
         var tag = "x" + ('00000000' + (groupNumber + elementNumber).toString(16)).substr(-8);
         return tag;
+    };
+
+    return dicomParser;
+}(dicomParser));
+var dicomParser = (function (dicomParser) {
+    "use strict";
+
+    if (dicomParser === undefined) {
+        dicomParser = {};
+    }
+
+    /**
+     * converts an explicit dataSet to a javascript object
+     * @param dataSet
+     * @param options
+     */
+    dicomParser.explicitDataSetToJS = function (dataSet, options) {
+
+        if(dataSet === undefined) {
+            throw 'dicomParser.explicitDataSetToJS: missing required parameter dataSet';
+        }
+
+        options = options || {
+            omitPrivateAttibutes: true, // true if private elements should be omitted
+            maxElementLength : 128      // maximum element length to try and convert to string format
+        };
+
+        var result = {
+
+        };
+
+        for(var tag in dataSet.elements) {
+            var element = dataSet.elements[tag];
+
+            // skip this element if it a private element and our options specify that we should
+            if(options.omitPrivateAttibutes === true && dicomParser.isPrivateTag(tag))
+            {
+                continue;
+            }
+
+            if(element.items) {
+                // handle sequences
+                var sequenceItems = [];
+                for(var i=0; i < element.items.length; i++) {
+                    sequenceItems.push(dicomParser.explicitDataSetToJS(element.items[i].dataSet, options));
+                }
+                result[tag] = sequenceItems;
+            } else {
+                var asString;
+                asString = undefined;
+                if(element.length < options.maxElementLength) {
+                    asString = dicomParser.explicitElementToString(dataSet, element);
+                }
+
+                if(asString !== undefined) {
+                    result[tag] = asString;
+                }  else {
+                    result[tag] = {
+                        dataOffset: element.dataOffset,
+                        length : element.length
+                    };
+                }
+            }
+        }
+
+        return result;
+    };
+
+
+    return dicomParser;
+}(dicomParser));
+var dicomParser = (function (dicomParser) {
+    "use strict";
+
+    if (dicomParser === undefined) {
+        dicomParser = {};
+    }
+
+    /**
+     * Converts an explicit VR element to a string or undefined if it is not possible to convert.
+     * Throws an error if an implicit element is supplied
+     * @param dataSet
+     * @param element
+     * @returns {*}
+     */
+    dicomParser.explicitElementToString = function(dataSet, element)
+    {
+        if(dataSet === undefined || element === undefined) {
+            throw 'dicomParser.explicitElementToString: missing required parameters';
+        }
+        if(element.vr === undefined) {
+            throw 'dicomParser.explicitElementToString: cannot convert implicit element to string';
+        }
+        var vr = element.vr;
+        var tag = element.tag;
+
+        var textResult;
+
+        function multiElementToString(numItems, func) {
+            var result = "";
+            for(var i=0; i < numItems; i++) {
+                if(i !== 0) {
+                    result += '/';
+                }
+                result += func.call(dataSet, tag).toString();
+            }
+            return result;
+        }
+
+        if(dicomParser.isStringVr(vr) === true)
+        {
+            textResult = dataSet.string(tag);
+        }
+        else if (vr == 'AT') {
+            var num = dataSet.uint32(tag);
+            if(num === undefined) {
+                return undefined;
+            }
+            if (num < 0)
+            {
+                num = 0xFFFFFFFF + num + 1;
+            }
+
+            return 'x' + num.toString(16).toUpperCase();
+        }
+        else if (vr == 'US')
+        {
+            textResult = multiElementToString(element.length / 2, dataSet.uint16);
+        }
+        else if(vr === 'SS')
+        {
+            textResult = multiElementToString(element.length / 2, dataSet.int16);
+        }
+        else if (vr == 'UL')
+        {
+            textResult = multiElementToString(element.length / 4, dataSet.uint32);
+        }
+        else if(vr === 'SL')
+        {
+            textResult = multiElementToString(element.length / 4, dataSet.int32);
+        }
+        else if(vr == 'FD')
+        {
+            textResult = multiElementToString(element.length / 8, dataSet.int32);
+        }
+        else if(vr == 'FL')
+        {
+            textResult = multiElementToString(element.length / 4, dataSet.float);
+        }
+
+        return textResult;
+    };
+    return dicomParser;
+}(dicomParser));
+/**
+ * Utility functions for dealing with DICOM
+ */
+
+var dicomParser = (function (dicomParser)
+{
+    "use strict";
+
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
+    }
+
+    var stringVrs = {
+        AE: true,
+        AS: true,
+        AT: false,
+        CS: true,
+        DA: true,
+        DS: true,
+        DT: true,
+        FL: false,
+        FD: false,
+        IS: true,
+        LO: true,
+        LT: true,
+        OB: false,
+        OD: false,
+        OF: false,
+        OW: false,
+        PN: true,
+        SH: true,
+        SL: false,
+        SQ: false,
+        ST: true,
+        TM: true,
+        UI: true,
+        UL: false,
+        UN: undefined, // dunno
+        UR: true,
+        US: false,
+        UT: true
+    };
+
+    /**
+     * Tests to see if vr is a string or not.
+     * @param vr
+     * @returns true if string, false it not string, undefined if unknown vr or UN type
+     */
+    dicomParser.isStringVr = function(vr)
+    {
+        return stringVrs[vr];
+    };
+
+    /**
+     * Tests to see if a given tag in the format xggggeeee is a private tag or not
+     * @param tag
+     * @returns {boolean}
+     */
+    dicomParser.isPrivateTag = function(tag)
+    {
+        var lastGroupDigit = parseInt(tag[4]);
+        var groupIsOdd = (lastGroupDigit % 2) === 1;
+        return groupIsOdd;
+    };
+
+    /**
+     * Parses a PN formatted string into a javascript object with properties for givenName, familyName, middleName, prefix and suffix
+     * @param personName a string in the PN VR format
+     * @param index
+     * @returns {*} javascript object with properties for givenName, familyName, middleName, prefix and suffix or undefined if no element or data
+     */
+    dicomParser.parsePN = function(personName) {
+        if(personName === undefined) {
+            return undefined;
+        }
+        var stringValues = personName.split('^');
+        return {
+            familyName: stringValues[0],
+            givenName: stringValues[1],
+            middleName: stringValues[2],
+            prefix: stringValues[3],
+            suffix: stringValues[4]
+        };
+    };
+
+    /**
+     * Parses a DA formatted string into a Javascript object
+     * @param date a string in the DA VR format
+     * @returns {*} Javascript object with properties year, month and day or undefined if not present or not 8 bytes long
+     */
+    dicomParser.parseDA = function(date)
+    {
+        if(date && date.length === 8)
+        {
+            var yyyy = parseInt(date.substring(0, 4), 10);
+            var mm = parseInt(date.substring(4, 6), 10);
+            var dd = parseInt(date.substring(6, 8), 10);
+
+            return {
+                year: yyyy,
+                month: mm,
+                day: dd
+            };
+        }
+        return undefined;
+    };
+
+    /**
+     * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and fractionalSeconds
+     * @param time a string in the TM VR format
+     * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data.  Missing fields are set to undefined
+     */
+    dicomParser.parseTM = function(time) {
+
+        if (time.length >= 2) // must at least have HH
+        {
+            // 0123456789
+            // HHMMSS.FFFFFF
+            var hh = parseInt(time.substring(0, 2), 10);
+            var mm = time.length >= 4 ? parseInt(time.substring(2, 4), 10) : undefined;
+            var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : undefined;
+            var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : undefined;
+
+            return {
+                hours: hh,
+                minutes: mm,
+                seconds: ss,
+                fractionalSeconds: ffffff
+            };
+        }
+        return undefined;
     };
 
     return dicomParser;

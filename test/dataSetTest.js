@@ -200,54 +200,5 @@
         equal(val, 1234, "intString returned wrong value");
     });
 
-    test("DataSet date", function() {
-        // Arrange
-        var byteArray = makeTestData();
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
-
-        // Act
-        var val = dataSet.date('x22114437');
-
-        // Assert
-        equal(val.getFullYear(), 2014, "date returned wrong value");
-        equal(val.getMonth(), 2, "date returned wrong value");
-        equal(val.getDate(), 29, "date returned wrong value");
-    });
-
-
-    test("DataSet time", function() {
-        // Arrange
-        var byteArray = makeTestData();
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
-
-        // Act
-        var val = dataSet.time('x22114438');
-
-        // Assert
-        equal(val.hours, 8, "time returned wrong value for hours");
-        equal(val.minutes, 12, "time returned wrong value for minutes");
-        equal(val.seconds, 36, "time returned wrong value for seconds");
-        equal(val.fractionalSeconds, 531000, "time returned wrong value for fractionalSeconds");
-    });
-
-    test("DataSet personName", function() {
-        // Arrange
-        var byteArray = makeTestData();
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
-
-        // Act
-        var val = dataSet.personName('x22114439');
-
-        // Assert
-        equal(val.familyName, 'F', "personName returned wrong value for familyName");
-        equal(val.givenName, 'G', "personName returned wrong value for givenName");
-        equal(val.middleName, 'M', "personName returned wrong value for middleName");
-        equal(val.prefix, 'P', "personName returned wrong value for prefix");
-        equal(val.suffix, 'S', "personName returned wrong value for suffix");
-    });
-
 
 })(dicomParser);

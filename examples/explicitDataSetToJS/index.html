@@ -1,0 +1,225 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by dicomParser -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        #dropZone {
+            height: 500px;
+            width: 100%;
+            background-color: #F0F0F0;
+            overflow: auto;
+        }
+
+
+    </style>
+
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>DICOM Dump using explicitDataSetToJS</h1>
+        <p class="lead">
+            Drag and drop a DICOM Part 10 file into the light gray region below for a dump of its elements.
+        </p>
+        <p>
+            This example illustrates how to recursively iterate over a parsed data set to dump all data elements
+            into a tree like structure using the explicitDataSetToJS utility function.  Note that DICOM files dropped here are not uploaded anywhere, all processing
+            is done inside your web browser in Javascript.
+        </p>
+        <strong>Use of this example require IE10+ or any other modern browser.</strong>
+    </div>
+
+    <div id="status" class="alert alert-success">
+        <div id="statusText">
+            Status: Ready (no file loaded)
+        </div>
+        <ul id="warnings">
+
+        </ul>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="dropZone">
+
+                <div class="text-center" style="margin-top:225px;"><h3>Drag DICOM P10 file here to dump its elements</h3></div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+
+<!-- include the dicomParser library -->
+<script src="../../dist/dicomParser.js"></script>
+
+<!-- jquery - included to make things easier to demo, not needed by dicomParser -->
+<script src="../jquery.min.js"></script>
+
+<script>
+
+    // This function iterates through dataSet recursively and adds new HTML strings
+    // to the output array passed into it
+    function dumpDataSet(instance, output)
+    {
+        // the dataSet.elements object contains properties for each element parsed.  The name of the property
+        // is based on the elements tag and looks like 'xGGGGEEEE' where GGGG is the group number and EEEE is the
+        // element number both with lowercase hexadecimal letters.  For example, the Series Description DICOM element 0008,103E would
+        // be named 'x0008103e'.  Here we iterate over each property (element) so we can build a string describing its
+        // contents to add to the output array
+        for(var propertyName in instance) {
+            var element = instance[propertyName];
+
+            // The output string begins with the element tag, length and VR (if present).  VR is undefined for
+            // implicit transfer syntaxes
+            var text = propertyName;
+            //text += " length=" + element.length;
+
+            if(element.constructor === Array) {
+                output.push('<li>' + text + '</li>');
+                output.push('<ul>');
+
+                // each item contains its own data set so we iterate over the items
+                // and recursively call this function
+                var itemNumber = 0;
+                element.forEach(function (item) {
+                    output.push('<li>Item #' + itemNumber++ + '</li>')
+                    output.push('<ul>');
+                    dumpDataSet(item, output);
+                    output.push('</ul>');
+                });
+                output.push('</ul>');
+            } else if(typeof element == 'object')
+            {
+                if(element.hadUndefinedLength) {
+                    text += " <strong>(-1)</strong>";
+                }
+                text += " length=" + element.length + '; offset=' + element.dataOffset;
+            } else if(typeof element == 'string') {
+                text += " = " + element;
+            }
+
+
+            var color = 'black';
+
+            // finally we add the string to our output array surrounded by li elements so it shows up in the
+            // DOM as a list
+            output.push('<li style="color:' + color +';">'+ text + '</li>');
+        }
+    }
+
+    // This function will read the file into memory and then start dumping it
+    function dumpFile(file)
+    {
+        // clear any data currently being displayed as we parse this next file
+        document.getElementById('dropZone').innerHTML = '';
+        $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
+        $('#warnings').empty();
+        document.getElementById('statusText').innerHTML = 'Status: Loading file, please wait..';
+
+        var reader = new FileReader();
+        reader.onload = function(file) {
+            var arrayBuffer = reader.result;
+            // Here we have the file data as an ArrayBuffer.  dicomParser requires as input a
+            // Uint8Array so we create that here
+            var byteArray = new Uint8Array(arrayBuffer);
+            var kb = byteArray.length / 1024;
+            var mb = kb / 1024;
+            var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
+            document.getElementById('statusText').innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
+            // set a short timeout to do the parse so the DOM has time to update itself with the above message
+            setTimeout(function() {
+
+                // Invoke the paresDicom function and get back a DataSet object with the contents
+                var dataSet;
+                try {
+                    var start = new Date().getTime();
+                    dataSet = dicomParser.parseDicom(byteArray);
+
+                    var options = {
+                        omitPrivateAttibutes :false ,
+                        maxElementLength: 128
+                    };
+
+                    var instance = dicomParser.explicitDataSetToJS(dataSet, options);
+
+                    // Here we call dumpDataSet to recursively iterate through the DataSet and create an array
+                    // of strings of the contents.
+                    var output = [];
+                    dumpDataSet(instance, output);
+
+                    // Combine the array of strings into one string and add it to the DOM
+                    document.getElementById('dropZone').innerHTML = '<ul>' + output.join('') + '</ul>';
+
+                    var end = new Date().getTime();
+                    var time = end - start;
+                    if(dataSet.warnings.length > 0)
+                    {
+                        $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
+                        $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+
+                        dataSet.warnings.forEach(function(warning) {
+                            $("#warnings").append('<li>' + warning +'</li>');
+                        });
+                    }
+                    else
+                    {
+                        var pixelData = dataSet.elements.x7fe00010;
+                        if(pixelData) {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                        }
+                        else
+                        {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
+                        }
+                    }
+
+
+                }
+                catch(err)
+                {
+                    $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+                    document.getElementById('statusText').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
+                }
+            },10);
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+
+    // this function gets called once the user drops the file onto the div
+    function handleFileSelect(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        // Get the FileList object that contains the list of files that were dropped
+        var files = evt.dataTransfer.files;
+
+        // this UI is only built for a single file so just dump the first one
+        dumpFile(files[0]);
+    }
+
+    function handleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+    }
+
+    // Setup the dnd listeners.
+    var dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', handleDragOver, false);
+    dropZone.addEventListener('drop', handleFileSelect, false);
+
+
+</script>
+</html>

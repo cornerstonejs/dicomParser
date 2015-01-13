@@ -29,10 +29,10 @@ var dicomParser = (function (dicomParser)
             element.hadUndefinedLength = true;
         }
 
+        // peek ahead at the next tag to see if it looks like a sequence.  This is not 100%
+        // safe because a non sequence item could have data that has these bytes, but this
+        // is how to do it without a data dictionary.
         if ((byteStream.position + 4) <= byteStream.byteArray.length) {
-            // peek ahead at the next tag to see if it looks like a sequence.  This is not 100%
-            // safe because a non sequence item could have data that has these bytes, but this
-            // is how to do it without a data dictionary
             var nextTag = dicomParser.readTag(byteStream);
             byteStream.seek(-4);
 

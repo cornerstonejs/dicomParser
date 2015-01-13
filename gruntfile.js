@@ -29,7 +29,7 @@ module.exports = function(grunt) {
         },
         concat: {
             build: {
-                src : ['src/parseDicom.js', 'src/*.js'],
+                src : ['src/parseDicom.js', 'src/*.js', 'src/util/*.js'],
                 dest: 'build/built.js'
             },
             dist: {
@@ -73,7 +73,7 @@ module.exports = function(grunt) {
         },
         watch: {
             scripts: {
-                files: ['src/*.js', 'test/*.js'],
+                files: ['src/*.js', 'test/*.js', 'src/util/*.js'],
                 tasks: ['concat:build', 'concat:dist', 'jshint', 'qunit']
             }
         }
