@@ -1,0 +1,212 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by dicomParser -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        #dropZone {
+            height: 500px;
+            width: 100%;
+            background-color: #F0F0F0;
+            overflow: auto;
+        }
+
+
+    </style>
+
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>DICOM Dump to JSON</h1>
+        <p class="lead">
+            Drag and drop a DICOM Part 10 file into the light gray region below for a json version of it
+        </p>
+        <p>
+            This example illustrates how to generate a JSON string from a DICOM SOP Instance.
+            Note that DICOM files dropped here are not uploaded anywhere, all processing
+            is done inside your web browser in Javascript.
+        </p>
+        <strong>Use of this example require IE10+ or any other modern browser.</strong>
+    </div>
+
+    <div id="status" class="alert alert-success">
+        <div id="statusText">
+            Status: Ready (no file loaded)
+        </div>
+        <ul id="warnings">
+
+        </ul>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <button id="selectAll">Select All</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="dropZone">
+
+                <div class="text-center" style="margin-top:225px;"><h3>Drag DICOM P10 file here to dump its elements</h3></div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+
+<!-- include the dicomParser library -->
+<script src="../../dist/dicomParser.js"></script>
+
+<!-- jquery - included to make things easier to demo, not needed by dicomParser -->
+<script src="../jquery.min.js"></script>
+
+<script>
+
+    // This function iterates through dataSet recursively and adds new HTML strings
+    // to the output array passed into it
+    function dumpDataSet(instance)
+    {
+        var json = JSON.stringify(instance, undefined, 2);
+        return '<pre><code id="code" class="prettyprint">' + json + '</code></pre>';
+    }
+
+    // This function will read the file into memory and then start dumping it
+    function dumpFile(file)
+    {
+        // clear any data currently being displayed as we parse this next file
+        document.getElementById('dropZone').innerHTML = '';
+        $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
+        $('#warnings').empty();
+        document.getElementById('statusText').innerHTML = 'Status: Loading file, please wait..';
+
+        var reader = new FileReader();
+        reader.onload = function(file) {
+            var arrayBuffer = reader.result;
+            // Here we have the file data as an ArrayBuffer.  dicomParser requires as input a
+            // Uint8Array so we create that here
+            var byteArray = new Uint8Array(arrayBuffer);
+            var kb = byteArray.length / 1024;
+            var mb = kb / 1024;
+            var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
+            document.getElementById('statusText').innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
+            // set a short timeout to do the parse so the DOM has time to update itself with the above message
+            setTimeout(function() {
+
+                // Invoke the paresDicom function and get back a DataSet object with the contents
+                var dataSet;
+                try {
+                    var start = new Date().getTime();
+                    dataSet = dicomParser.parseDicom(byteArray);
+
+                    var options = {
+                        omitPrivateAttibutes :false ,
+                        maxElementLength: 128
+                    };
+
+                    var instance = dicomParser.explicitDataSetToJS(dataSet, options);
+
+                    // Here we call dumpDataSet to recursively iterate through the DataSet and create an array
+                    // of strings of the contents.
+
+                    var output = dumpDataSet(instance);
+
+                    // Combine the array of strings into one string and add it to the DOM
+                    document.getElementById('dropZone').innerHTML = output;
+
+                    var end = new Date().getTime();
+                    var time = end - start;
+                    if(dataSet.warnings.length > 0)
+                    {
+                        $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
+                        $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+
+                        dataSet.warnings.forEach(function(warning) {
+                            $("#warnings").append('<li>' + warning +'</li>');
+                        });
+                    }
+                    else
+                    {
+                        var pixelData = dataSet.elements.x7fe00010;
+                        if(pixelData) {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                        }
+                        else
+                        {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
+                        }
+                    }
+
+
+                }
+                catch(err)
+                {
+                    $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+                    document.getElementById('statusText').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
+                }
+            },10);
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+
+    // this function gets called once the user drops the file onto the div
+    function handleFileSelect(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        // Get the FileList object that contains the list of files that were dropped
+        var files = evt.dataTransfer.files;
+
+        // this UI is only built for a single file so just dump the first one
+        dumpFile(files[0]);
+    }
+
+    function handleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+    }
+
+    // Setup the dnd listeners.
+    var dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', handleDragOver, false);
+    dropZone.addEventListener('drop', handleFileSelect, false);
+
+    function SelectText(element) {
+        var doc = document
+                , text = doc.getElementById(element)
+                , range, selection
+                ;
+        if (doc.body.createTextRange) {
+            range = document.body.createTextRange();
+            range.moveToElementText(text);
+            range.select();
+        } else if (window.getSelection) {
+            selection = window.getSelection();
+            range = document.createRange();
+            range.selectNodeContents(text);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    }
+
+
+    $('#selectAll').click(function() {
+        SelectText('code');
+    });
+
+
+</script>
+</html>
