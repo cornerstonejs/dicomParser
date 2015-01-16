@@ -32,6 +32,7 @@ var dicomParser = (function (dicomParser)
         SH: true,
         SL: false,
         SQ: false,
+        SS: false,
         ST: true,
         TM: true,
         UI: true,
