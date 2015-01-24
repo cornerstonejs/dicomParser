@@ -31,7 +31,7 @@ var dicomParser = (function (dicomParser)
         // read all fragments for this frame
         var fragments = [];
         var frameSize = 0;
-        while(byteStream.position < nextFrameOffset) {
+        while (byteStream.position < nextFrameOffset + baseOffset) {
             var fragment = dicomParser.readSequenceItem(byteStream);
             if(fragment.tag === 'xfffee0dd')
             {
