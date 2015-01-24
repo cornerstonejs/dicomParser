@@ -1,4 +1,4 @@
-/*! dicomParser - v0.5.0 - 2015-01-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.5.0 - 2015-01-24 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1058,7 +1058,7 @@ var dicomParser = (function (dicomParser)
         // read all fragments for this frame
         var fragments = [];
         var frameSize = 0;
-        while(byteStream.position < nextFrameOffset) {
+        while (byteStream.position < nextFrameOffset + baseOffset) {
             var fragment = dicomParser.readSequenceItem(byteStream);
             if(fragment.tag === 'xfffee0dd')
             {
@@ -1616,6 +1616,7 @@ var dicomParser = (function (dicomParser)
         SH: true,
         SL: false,
         SQ: false,
+        SS: false,
         ST: true,
         TM: true,
         UI: true,
