@@ -25,7 +25,7 @@ var dicomParser = (function (dicomParser)
         // calculate the next frame offset so we know when to stop reading this frame
         var nextFrameOffset = byteStream.byteArray.length;
         if(frame < frameOffsets.length - 1) {
-            nextFrameOffset = frameOffsets[frame+1];
+            nextFrameOffset = baseOffset + frameOffsets[frame+1];
         }
 
         // read all fragments for this frame
