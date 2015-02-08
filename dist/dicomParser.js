@@ -1,4 +1,4 @@
-/*! dicomParser - v0.5.0 - 2015-01-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.5.1 - 2015-02-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1052,7 +1052,7 @@ var dicomParser = (function (dicomParser)
         // calculate the next frame offset so we know when to stop reading this frame
         var nextFrameOffset = byteStream.byteArray.length;
         if(frame < frameOffsets.length - 1) {
-            nextFrameOffset = frameOffsets[frame+1];
+            nextFrameOffset = baseOffset + frameOffsets[frame+1];
         }
 
         // read all fragments for this frame
@@ -1136,6 +1136,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Internal helper functions for parsing DICOM elements
  */
@@ -1616,6 +1617,7 @@ var dicomParser = (function (dicomParser)
         SH: true,
         SL: false,
         SQ: false,
+        SS: false,
         ST: true,
         TM: true,
         UI: true,

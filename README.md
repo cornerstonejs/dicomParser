@@ -139,6 +139,7 @@ Contributors
 * @neandrake for help with getting Node.js support
 * @ggerade for implementing support for floats/doubles with VM > 1
 * @bryan-cool for bug fix related to parsing implicit little endian files
+* @snagytx, @doncharkowsky - for bug fix related to reading encapsulated frames
 
 Why another Javascript DICOM parsing library?
 ============================================
@@ -177,7 +178,7 @@ help it reach the widest adoption.
 
 _Designed to work well in a browser (modern ones at least)_
 
-There are some good javascript DICOM parsing libraries available for server development on node.js but they
+There are some [good javascript DICOM parsing libraries](https://github.com/grmble/node-dicom) available for server development on node.js but they
 won't automatically work in a browser.  I needed a library that let me easily parse WADO responses and
 I figured others would also prefer a simple library to do this with no dependencies.
 The library does make use of the [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBuffer)
