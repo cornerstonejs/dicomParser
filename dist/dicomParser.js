@@ -1,4 +1,4 @@
-/*! dicomParser - v0.5.4 - 2015-02-09 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.6.0 - 2015-02-09 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -667,7 +667,7 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.findEndOfEncapsulatedElement: missing required parameter 'byteStream'";
         }
 
-        element.fragmentOffsets = [];
+        element.fragments = [];
         var basicOffsetTableItemTag = dicomParser.readTag(byteStream);
         if(basicOffsetTableItemTag !== 'xfffee000') {
             throw "dicomParser.findEndOfEncapsulatedElement: no basic offset table found";
@@ -676,8 +676,12 @@ var dicomParser = (function (dicomParser)
         var items = basicOffsetTableItemlength / 4;
         for(var i =0; i < items; i++) {
             var offset = byteStream.readUint32();
-            element.fragmentOffsets.push(offset);
+            element.fragments.push({
+                offset : offset
+            });
         }
+
+        var fragment = 0;
 
         while(byteStream.position < byteStream.byteArray.length)
         {
@@ -686,10 +690,10 @@ var dicomParser = (function (dicomParser)
             byteStream.seek(length);
             if(tag === 'xfffee0dd')
             {
-                element.length = byteStream.byteArray.length - element.dataOffset;
-                byteStream.seek(byteStream.byteArray.length - byteStream.position);
+                element.length = byteStream.position - element.dataOffset;
                 return;
             }
+            element.fragments[fragment++].length = length;
         }
 
         throw "dicomParser.findEndOfEncapsulatedElement: did not find sequence delimiter";
