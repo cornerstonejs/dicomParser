@@ -24,6 +24,11 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
+        if(element.tag === 'xfffee00d')
+        {
+            var foo = 0;
+        }
+
         if(element.length === 4294967295)
         {
             element.hadUndefinedLength = true;
@@ -39,7 +44,7 @@ var dicomParser = (function (dicomParser)
             if (nextTag === 'xfffee000') {
                 // parse the sequence
                 dicomParser.readSequenceItemsImplicit(byteStream, element);
-                element.length = byteStream.byteArray.length - element.dataOffset;
+                //element.length = byteStream.byteArray.length - element.dataOffset;
                 return element;
             }
         }

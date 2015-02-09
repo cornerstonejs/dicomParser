@@ -1,4 +1,4 @@
-/*! dicomParser - v0.5.2 - 2015-02-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.5.4 - 2015-02-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1051,6 +1051,11 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
+        if(element.tag === 'xfffee00d')
+        {
+            var foo = 0;
+        }
+
         if(element.length === 4294967295)
         {
             element.hadUndefinedLength = true;
@@ -1066,7 +1071,7 @@ var dicomParser = (function (dicomParser)
             if (nextTag === 'xfffee000') {
                 // parse the sequence
                 dicomParser.readSequenceItemsImplicit(byteStream, element);
-                element.length = byteStream.byteArray.length - element.dataOffset;
+                //element.length = byteStream.byteArray.length - element.dataOffset;
                 return element;
             }
         }
