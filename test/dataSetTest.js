@@ -46,7 +46,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var uint16 = dataSet.uint16('x22114433');
@@ -59,7 +60,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var uint16 = dataSet.uint16('x22114433', 1);
@@ -72,7 +74,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var uint32 = dataSet.uint32('x22114434');
@@ -86,7 +89,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var numStringValues = dataSet.numStringValues('x22114434');
@@ -99,7 +103,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var str = dataSet.string('x2211443a');
@@ -113,7 +118,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var text = dataSet.text('x2211443a');
@@ -126,7 +132,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var str = dataSet.string('x22114434', 1);
@@ -139,7 +146,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var float = dataSet.floatString('x22114435', 0);
@@ -152,7 +160,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var float = dataSet.floatString('x22114435', 0);
@@ -165,7 +174,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var float = dataSet.floatString('x22114435');
@@ -178,7 +188,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var float = dataSet.floatString('x22114435', 0);
@@ -191,7 +202,8 @@
         // Arrange
         var byteArray = makeTestData();
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Act
         var val = dataSet.intString('x22114436');

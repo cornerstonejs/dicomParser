@@ -1,4 +1,4 @@
-/*! dicomParser - v0.5.4 - 2015-02-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.5.4 - 2015-02-09 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -57,7 +57,9 @@
             var metaHeaderLength = dicomParser.readUint32(byteStream.byteArray, groupLengthElement.dataOffset);
             var positionAfterMetaHeader = byteStream.position + metaHeaderLength;
 
-            var metaHeaderDataSet = dicomParser.parseDicomDataSetExplicit(byteStream, positionAfterMetaHeader);
+            var metaHeaderDataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+
+            dicomParser.parseDicomDataSetExplicit(metaHeaderDataSet, byteStream, positionAfterMetaHeader);
             metaHeaderDataSet[groupLengthElement.tag] = groupLengthElement;
             return metaHeaderDataSet;
         }
@@ -96,13 +98,26 @@
         {
             var explicit = isExplicit(metaHeaderDataSet);
 
-            if(explicit) {
-                return dicomParser.parseDicomDataSetExplicit(byteStream);
+            var elements = {};
+            var dataSet = new dicomParser.DataSet(byteStream.byteArray, elements);
+
+            try{
+                if(explicit) {
+                    dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
+                }
+                else
+                {
+                    dicomParser.parseDicomDataSetImplicit(dataSet, byteStream);
+                }
             }
-            else
-            {
-                return dicomParser.parseDicomDataSetImplicit(byteStream);
+            catch(e) {
+                var ex = {
+                    exception: e,
+                    dataSet: dataSet
+                };
+                throw ex;
             }
+            return dataSet;
         }
 
         // main function here
@@ -885,7 +900,7 @@ var dicomParser = (function (dicomParser)
      * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
      * @returns {dicomParser.DataSet}
      */
-    dicomParser.parseDicomDataSetExplicit = function (byteStream, maxPosition) {
+    dicomParser.parseDicomDataSetExplicit = function (dataSet, byteStream, maxPosition) {
 
         maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition ;
 
@@ -897,15 +912,14 @@ var dicomParser = (function (dicomParser)
         {
             throw "dicomParser.parseDicomDataSetExplicit: invalid value for parameter 'maxPosition'";
         }
-        var elements = {};
-
+        var elements = dataSet.elements;
 
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementExplicit(byteStream);
             elements[element.tag] = element;
         }
-        return new dicomParser.DataSet(byteStream.byteArray, elements);
+        //return new dicomParser.DataSet(byteStream.byteArray, elements);
     };
 
     /**
@@ -914,9 +928,9 @@ var dicomParser = (function (dicomParser)
      * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
      * @returns {dicomParser.DataSet}
      */
-    dicomParser.parseDicomDataSetImplicit = function(byteStream, maxPosition)
+    dicomParser.parseDicomDataSetImplicit = function(dataSet, byteStream, maxPosition)
     {
-        maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition ;
+        maxPosition = (maxPosition === undefined) ? dataSet.byteArray.length : maxPosition ;
 
         if(byteStream === undefined)
         {
@@ -927,15 +941,14 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.parseDicomDataSetImplicit: invalid value for parameter 'maxPosition'";
         }
 
-        var elements = {};
-
+        var elements = dataSet.elements;
 
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementImplicit(byteStream);
             elements[element.tag] = element;
         }
-        return new dicomParser.DataSet(byteStream.byteArray, elements);
+        //return new dicomParser.DataSet(byteStream.byteArray, elements);
     };
 
     return dicomParser;
@@ -1252,7 +1265,8 @@ var dicomParser = (function (dicomParser)
         }
         else
         {
-            item.dataSet = dicomParser.parseDicomDataSetExplicit(byteStream, byteStream.position + item.length);
+            item.dataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+            dicomParser.parseDicomDataSetExplicit(item.dataSet, byteStream, byteStream.position + item.length);
         }
         return item;
     }
@@ -1360,7 +1374,8 @@ var dicomParser = (function (dicomParser)
         }
         else
         {
-            item.dataSet = dicomParser.parseDicomDataSetImplicit(byteStream, byteStream.position + item.length);
+            item.dataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+            dicomParser.parseDicomDataSetImplicit(item.dataSet, byteStream, byteStream.position + item.length);
         }
         return item;
     }

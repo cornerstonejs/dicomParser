@@ -41,7 +41,8 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Assert
         ok(dataSet, "dataSet created");
@@ -53,7 +54,8 @@
         var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
 
         // Act
-        var dataSet = dicomParser.parseDicomDataSetExplicit(byteStream);
+        var dataSet = new dicomParser.DataSet(byteArray, {});
+        dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Assert
         ok(dataSet.elements.x22104433, "DataSet does not contain element with tag x22104433");

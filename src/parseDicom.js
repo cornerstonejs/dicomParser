@@ -66,7 +66,9 @@
             var metaHeaderLength = dicomParser.readUint32(byteStream.byteArray, groupLengthElement.dataOffset);
             var positionAfterMetaHeader = byteStream.position + metaHeaderLength;
 
-            var metaHeaderDataSet = dicomParser.parseDicomDataSetExplicit(byteStream, positionAfterMetaHeader);
+            var metaHeaderDataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+
+            dicomParser.parseDicomDataSetExplicit(metaHeaderDataSet, byteStream, positionAfterMetaHeader);
             metaHeaderDataSet[groupLengthElement.tag] = groupLengthElement;
             return metaHeaderDataSet;
         }
@@ -105,13 +107,26 @@
         {
             var explicit = isExplicit(metaHeaderDataSet);
 
-            if(explicit) {
-                return dicomParser.parseDicomDataSetExplicit(byteStream);
+            var elements = {};
+            var dataSet = new dicomParser.DataSet(byteStream.byteArray, elements);
+
+            try{
+                if(explicit) {
+                    dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
+                }
+                else
+                {
+                    dicomParser.parseDicomDataSetImplicit(dataSet, byteStream);
+                }
             }
-            else
-            {
-                return dicomParser.parseDicomDataSetImplicit(byteStream);
+            catch(e) {
+                var ex = {
+                    exception: e,
+                    dataSet: dataSet
+                };
+                throw ex;
             }
+            return dataSet;
         }
 
         // main function here
