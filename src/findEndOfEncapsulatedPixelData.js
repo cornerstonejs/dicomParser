@@ -12,8 +12,8 @@ var dicomParser = (function (dicomParser)
     }
 
     /**
-     * reads from the byte stream until it finds the magic numbers for the item delimitation item
-     * and then sets the length of the element
+     * Reads an encapsulated pixel data element and adds an array of fragments to the element
+     * contain the offset and length.
      * @param byteStream
      * @param element
      */
@@ -23,34 +23,41 @@ var dicomParser = (function (dicomParser)
         {
             throw "dicomParser.findEndOfEncapsulatedElement: missing required parameter 'byteStream'";
         }
+        if(element === undefined)
+        {
+            throw "dicomParser.findEndOfEncapsulatedElement: missing required parameter 'element'";
+        }
 
+        element.basicOffsetTable = [];
         element.fragments = [];
         var basicOffsetTableItemTag = dicomParser.readTag(byteStream);
         if(basicOffsetTableItemTag !== 'xfffee000') {
-            throw "dicomParser.findEndOfEncapsulatedElement: no basic offset table found";
+            throw "dicomParser.findEndOfEncapsulatedElement: basic offset table not found";
         }
         var basicOffsetTableItemlength = byteStream.readUint32();
-        var items = basicOffsetTableItemlength / 4;
-        for(var i =0; i < items; i++) {
+        var numFragments = basicOffsetTableItemlength / 4;
+        for(var i =0; i < numFragments; i++) {
             var offset = byteStream.readUint32();
-            element.fragments.push({
-                offset : offset
-            });
+            element.basicOffsetTable.push(offset);
         }
-
-        var fragment = 0;
+        var baseOffset = byteStream.position;
 
         while(byteStream.position < byteStream.byteArray.length)
         {
             var tag = dicomParser.readTag(byteStream);
             var length = byteStream.readUint32();
-            byteStream.seek(length);
             if(tag === 'xfffee0dd')
             {
+                byteStream.seek(length);
                 element.length = byteStream.position - element.dataOffset;
                 return;
             }
-            element.fragments[fragment++].length = length;
+            element.fragments.push({
+                offset: byteStream.position - baseOffset - 8,
+                position : byteStream.position,
+                length : length
+            });
+            byteStream.seek(length);
         }
 
         throw "dicomParser.findEndOfEncapsulatedElement: did not find sequence delimiter";

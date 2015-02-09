@@ -125,7 +125,15 @@
                     // and recursively call this function
                     var itemNumber = 0;
                     element.fragments.forEach(function (fragment) {
-                        output.push('<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset + '; length = ' + fragment.length + '</li>')
+                        var basicOffset;
+                        if(element.basicOffsetTable) {
+                            basicOffset = element.basicOffsetTable[itemNumber];
+                        }
+
+                        var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
+                        str += '(' + basicOffset + ')';
+                        str += '; length = ' + fragment.length + '</li>';
+                        output.push(str);
                     });
                     output.push('</ul>');
                 }
