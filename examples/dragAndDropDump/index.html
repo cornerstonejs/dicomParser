@@ -112,14 +112,30 @@
                 var itemNumber = 0;
                 element.items.forEach(function(item)
                 {
-                    output.push('<li>Item #' + itemNumber++ + '</li>')
+                    output.push('<li>Item #' + itemNumber++ + ' ' + item.tag + '</li>')
                     output.push('<ul>');
                     dumpDataSet(item.dataSet, output);
                     output.push('</ul>');
                 });
                 output.push('</ul>');
             }
+            else if(element.fragmentOffsets)
+            {
+                output.push('<li>'+ text + '</li>');
+                output.push('<ul>');
+
+                // each item contains its own data set so we iterate over the items
+                // and recursively call this function
+                var itemNumber = 0;
+                element.fragmentOffsets.forEach(function(offset)
+                {
+                    output.push('<li>Fragment #' + itemNumber++ + ' offset = ' + offset + '</li>')
+                });
+                output.push('</ul>');
+            }
             else {
+
+
                 // if the length of the element is less than 128 we try to show it.  We put this check in
                 // to avoid displaying large strings which makes it harder to use.
                 if(element.length < 128) {
@@ -177,10 +193,11 @@
                     // Add text saying the data is too long to show...
                     text += "<i>data too long to show</i>";
                 }
+                // finally we add the string to our output array surrounded by li elements so it shows up in the
+                // DOM as a list
+                output.push('<li style="color:' + color +';">'+ text + '</li>');
+
             }
-            // finally we add the string to our output array surrounded by li elements so it shows up in the
-            // DOM as a list
-            output.push('<li style="color:' + color +';">'+ text + '</li>');
         }
     }
 

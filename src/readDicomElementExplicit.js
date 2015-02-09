@@ -68,8 +68,13 @@ var dicomParser = (function (dicomParser)
         }
         if(element.length === 4294967295)
         {
-            dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
-            return element;
+            if(element.tag === 'x7fe00010') {
+                dicomParser.findEndOfEncapsulatedElement(byteStream, element);
+                return element;
+            } else {
+                dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
+                return element;
+            }
         }
 
         byteStream.seek(element.length);
