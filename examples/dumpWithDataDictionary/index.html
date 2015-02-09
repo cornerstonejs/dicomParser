@@ -149,7 +149,7 @@ function dumpDataSet(dataSet, output)
             var itemNumber = 0;
             element.items.forEach(function(item)
             {
-                output.push('<li>Item #' + itemNumber++ + '</li>')
+                output.push('<li>Item #' + itemNumber++ + ' ' + item.tag + '</li>')
                 output.push('<ul>');
                 dumpDataSet(item.dataSet, output);
                 output.push('</ul>');

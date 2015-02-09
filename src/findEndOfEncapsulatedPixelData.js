@@ -36,7 +36,6 @@ var dicomParser = (function (dicomParser)
             element.fragmentOffsets.push(offset);
         }
 
-
         while(byteStream.position < byteStream.byteArray.length)
         {
             var tag = dicomParser.readTag(byteStream);
@@ -44,6 +43,8 @@ var dicomParser = (function (dicomParser)
             byteStream.seek(length);
             if(tag === 'xfffee0dd')
             {
+                element.length = byteStream.byteArray.length - element.dataOffset;
+                byteStream.seek(byteStream.byteArray.length - byteStream.position);
                 return;
             }
         }
