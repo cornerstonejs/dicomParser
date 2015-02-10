@@ -41,6 +41,45 @@
         )
     });
 
+    test("readInt16", function() {
+        // Arrange
+        var byteArray = new Uint8Array(32);
+        byteArray[0] = 0xff;
+        byteArray[1] = 0x80;
+
+        // Act
+        var int16 = dicomParser.readInt16(byteArray, 0);
+
+        // Assert (256 - 32768 - 1 = -32513)
+        equal(int16, -32513, "readInt16 did not return expected value");
+    });
+
+    test("readInt16 throws on buffer overread", function() {
+        // Arrange
+        var byteArray = new Uint8Array(32);
+
+        // Act
+        throws(
+            function() {
+                var int16 = dicomParser.readInt16(byteArray, 31);
+            },
+            "readInt16 did not throw on buffer overread"
+        )
+    });
+
+    test("readInt16 throws on position < 0", function() {
+        // Arrange
+        var byteArray = new Uint8Array(32);
+
+        // Act
+        throws(
+            function() {
+                var int16 = dicomParser.readInt16(byteArray, -1);
+            },
+            "readInt16 did not throw on buffer overread"
+        )
+    });
+
     test("readUint32", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
