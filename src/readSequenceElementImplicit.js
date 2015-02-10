@@ -82,8 +82,8 @@ var dicomParser = (function (dicomParser)
     }
 
     /**
-     * Reads sequence items for an element in an implicit little endian byte stream
-     * @param byteStream the implicit little endian byte stream
+     * Reads sequence items for an element in an implicit byte stream
+     * @param byteStream the implicit byte stream
      * @param element the element to read the sequence items for
      */
     dicomParser.readSequenceItemsImplicit = function(byteStream, element)

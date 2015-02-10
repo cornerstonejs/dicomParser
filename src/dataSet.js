@@ -27,14 +27,21 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
+    function getByteArrayParser(element, defaultParser)
+    {
+        return (element.parser !== undefined ? element.parser : defaultParser);
+    }
+
     /**
      * Constructs a new DataSet given byteArray and collection of elements
+     * @param byteArrayParser
      * @param byteArray
      * @param elements
      * @constructor
      */
-    dicomParser.DataSet = function(byteArray, elements)
+    dicomParser.DataSet = function(byteArrayParser, byteArray, elements)
     {
+        this.byteArrayParser = byteArrayParser;
         this.byteArray = byteArray;
         this.elements = elements;
     };
@@ -51,7 +58,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readUint16(this.byteArray, element.dataOffset + (index *2));
+            return getByteArrayParser(element, this.byteArrayParser).readUint16(this.byteArray, element.dataOffset + (index *2));
         }
         return undefined;
     };
@@ -68,7 +75,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readInt16(this.byteArray, element.dataOffset + (index * 2));
+            return getByteArrayParser(element, this.byteArrayParser).readInt16(this.byteArray, element.dataOffset + (index * 2));
         }
         return undefined;
     };
@@ -85,7 +92,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readUint32(this.byteArray, element.dataOffset + (index * 4));
+            return getByteArrayParser(element, this.byteArrayParser).readUint32(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
     };
@@ -102,7 +109,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readInt32(this.byteArray, element.dataOffset + (index * 4));
+            return getByteArrayParser(element, this.byteArrayParser).readInt32(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
     };
@@ -119,7 +126,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readFloat(this.byteArray, element.dataOffset + (index * 4));
+            return getByteArrayParser(element, this.byteArrayParser).readFloat(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
     };
@@ -136,7 +143,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readDouble(this.byteArray, element.dataOffset + (index * 8));
+            return getByteArrayParser(element, this.byteArrayParser).readDouble(this.byteArray, element.dataOffset + (index * 8));
         }
         return undefined;
     };

@@ -1,13 +1,13 @@
 
 (function(dicomParser) {
-    module("dicomParser.LittleEndianByteStream");
+    module("dicomParser.ByteStream");
 
     test("construction", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
 
         // Act
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Assert
         ok(byteStream, "construction did not return object");
@@ -18,7 +18,7 @@
         var byteArray = new Uint8Array(32);
 
         // Act
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser, byteArray);
 
         // Assert
         equal(byteStream.position, 0, "position 0");
@@ -29,19 +29,31 @@
         var byteArray = new Uint8Array(32);
 
         // Act
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray, 10);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray, 10);
 
         // Assert
         equal(byteStream.position, 10, "position 10");
     });
 
-    test("missing constructor parameter throws", function() {
+    test("missing byte stream parser throws", function() {
         // Arrange
 
         // Act
         throws(
             function() {
-                var byteStream = new dicomParser.LittleEndianByteStream();
+                var byteStream = new dicomParser.ByteStream();
+            },
+            "construction without byteArray parameter throws"
+        )
+    });
+
+    test("missing byte array throws", function() {
+        // Arrange
+
+        // Act
+        throws(
+            function() {
+                var byteStream = new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser);
             },
             "construction without byteArray parameter throws"
         )
@@ -56,7 +68,7 @@
         // Act
         throws(
             function() {
-                var byteStream = new dicomParser.LittleEndianByteStream(uint16Array);
+                var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, uint16Array);
             },
             "construction did not throw on invalid type for byteArray parameter"
         )
@@ -70,7 +82,7 @@
         // Act
         throws(
             function() {
-                var byteStream = new dicomParser.LittleEndianByteStream(byteArray, -1);
+                var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray, -1);
             },
             "position cannot be < 0"
         )
@@ -83,7 +95,7 @@
         // Act
         throws(
             function() {
-                var byteStream = new dicomParser.LittleEndianByteStream(byteArray, 32);
+                var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray, 32);
             },
             "position cannot exceed array length"
         )
@@ -92,7 +104,7 @@
     test("seek succeeds", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         byteStream.seek(10);
@@ -104,7 +116,7 @@
     test("seek to negative position throws", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         throws(
@@ -118,7 +130,7 @@
     test("readByteStream returns object", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var subByteStream = byteStream.readByteStream(5);
@@ -127,10 +139,22 @@
         ok(subByteStream, "readByteStream did not return an object");
     });
 
+    test("readByteStream returns object with same parser", function() {
+        // Arrange
+        var byteArray = new Uint8Array(32);
+        var byteStream = new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser, byteArray);
+
+        // Act
+        var subByteStream = byteStream.readByteStream(5);
+
+        // Assert
+        equal(subByteStream.byteArrayParser, dicomParser.bigEndianByteArrayParser, "readByteStream did not pass the parser through");
+    });
+
     test("readByteStream returns array with size matching numBytes parameter", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var subByteStream = byteStream.readByteStream(5);
@@ -142,7 +166,7 @@
     test("readByteStream returns object with position 0", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var subByteStream = byteStream.readByteStream(5);
@@ -154,7 +178,7 @@
     test("readByteStream can read all remaining bytes", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var subByteStream = byteStream.readByteStream(32);
@@ -166,7 +190,7 @@
     test("readByteStream throws on buffer overread", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         throws(
@@ -182,7 +206,21 @@
         var byteArray = new Uint8Array(32);
         byteArray[0] = 0xff;
         byteArray[1] = 0x80;
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
+
+        // Act
+        var uint16 = byteStream.readUint16();
+
+        // Assert
+        equal(uint16, 0x80ff, "readUint16 did not return expected value");
+    });
+
+    test("readUint16 works with different parser", function() {
+        // Arrange
+        var byteArray = new Uint8Array(32);
+        byteArray[0] = 0x80;
+        byteArray[1] = 0xff;
+        var byteStream = new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser, byteArray);
 
         // Act
         var uint16 = byteStream.readUint16();
@@ -196,7 +234,7 @@
         var byteArray = new Uint8Array(2);
         byteArray[0] = 0xff;
         byteArray[1] = 0x80;
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var uint16 = byteStream.readUint16();
@@ -209,7 +247,7 @@
     test("readUint16 throws on buffer overread", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
         byteStream.seek(31);
         // Act
         throws(
@@ -227,7 +265,23 @@
         byteArray[1] = 0x22;
         byteArray[2] = 0x33;
         byteArray[3] = 0x44;
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
+
+        // Act
+        var uint32 = byteStream.readUint32();
+
+        // Assert
+        equal(uint32, 0x44332211, "readUint32 did not return expected value");
+    });
+
+    test("readUint32 works with different parser", function() {
+        // Arrange
+        var byteArray = new Uint8Array(32);
+        byteArray[0] = 0x44;
+        byteArray[1] = 0x33;
+        byteArray[2] = 0x22;
+        byteArray[3] = 0x11;
+        var byteStream = new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser, byteArray);
 
         // Act
         var uint32 = byteStream.readUint32();
@@ -243,7 +297,7 @@
         byteArray[1] = 0x22;
         byteArray[2] = 0x33;
         byteArray[3] = 0x44;
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var uint32 = byteStream.readUint32();
@@ -256,7 +310,7 @@
     test("readUint32 throws on buffer overread", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
         byteStream.seek(31);
         // Act
         throws(
@@ -274,7 +328,7 @@
         for(var i=0; i < str.length; i++) {
             byteArray[i] = str.charCodeAt(i);
         }
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var fixedString = byteStream.readFixedString(5);
@@ -286,7 +340,7 @@
     test("readUint32 throws on buffer overread", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         throws(
@@ -300,7 +354,7 @@
     test("readUint32 throws on negative length", function() {
         // Arrange
         var byteArray = new Uint8Array(32);
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         throws(
@@ -318,7 +372,7 @@
         for(var i=0; i < str.length; i++) {
             byteArray[i] = str.charCodeAt(i);
         }
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var fixedString = byteStream.readFixedString(5);
@@ -334,7 +388,7 @@
         for(var i=0; i < str.length; i++) {
             byteArray[i] = str.charCodeAt(i);
         }
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var fixedString = byteStream.readFixedString(6);
@@ -350,7 +404,7 @@
         for(var i=0; i < str.length; i++) {
             byteArray[i] = str.charCodeAt(i);
         }
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
         var fixedString = byteStream.readFixedString(6);

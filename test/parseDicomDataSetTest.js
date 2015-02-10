@@ -38,10 +38,10 @@
     test("parse returns DataSet", function() {
         // Arrange
         var byteArray = makeTestData();
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
-        var dataSet = new dicomParser.DataSet(byteArray, {});
+        var dataSet = new dicomParser.DataSet(byteStream.byteArrayParser, byteArray, {});
         dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Assert
@@ -51,10 +51,10 @@
     test("DataSet has two elements", function() {
         // Arrange
         var byteArray = makeTestData();
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         // Act
-        var dataSet = new dicomParser.DataSet(byteArray, {});
+        var dataSet = new dicomParser.DataSet(byteStream.byteArrayParser, byteArray, {});
         dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
 
         // Assert
