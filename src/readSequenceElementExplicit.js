@@ -46,7 +46,7 @@ var dicomParser = (function (dicomParser)
         }
         else
         {
-            item.dataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+            item.dataSet = new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, {});
             dicomParser.parseDicomDataSetExplicit(item.dataSet, byteStream, byteStream.position + item.length);
         }
         return item;

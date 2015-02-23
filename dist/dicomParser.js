@@ -1,4 +1,4 @@
-/*! dicomParser - v0.7.0 - 2015-02-23 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.7.1 - 2015-02-23 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1495,7 +1495,7 @@ var dicomParser = (function (dicomParser)
         }
         else
         {
-            item.dataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+            item.dataSet = new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, {});
             dicomParser.parseDicomDataSetExplicit(item.dataSet, byteStream, byteStream.position + item.length);
         }
         return item;
@@ -1589,7 +1589,7 @@ var dicomParser = (function (dicomParser)
         }
         // eof encountered - log a warning and return what we have for the element
         byteStream.warnings.push('eof encountered before finding sequence item delimiter in sequence item of undefined length');
-        return new dicomParser.DataSet(byteStream.byteArray, elements);
+        return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     }
 
     function readSequenceItemImplicit(byteStream)
@@ -1604,7 +1604,7 @@ var dicomParser = (function (dicomParser)
         }
         else
         {
-            item.dataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+            item.dataSet = new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, {});
             dicomParser.parseDicomDataSetImplicit(item.dataSet, byteStream, byteStream.position + item.length);
         }
         return item;
