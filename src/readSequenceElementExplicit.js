@@ -24,14 +24,14 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
-                return new dicomParser.DataSet(byteStream.byteArray, elements);
+                return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
 
         }
 
         // eof encountered - log a warning and return what we have for the element
         byteStream.warnings.push('eof encountered before finding sequence delimitation item while reading sequence item of undefined length');
-        return new dicomParser.DataSet(byteStream.byteArray, elements);
+        return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     }
 
     function readSequenceItemExplicit(byteStream)

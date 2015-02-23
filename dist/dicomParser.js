@@ -1,4 +1,4 @@
-/*! dicomParser - v0.6.1 - 2015-02-10 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.7.0 - 2015-02-23 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1473,14 +1473,14 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
-                return new dicomParser.DataSet(byteStream.byteArray, elements);
+                return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
 
         }
 
         // eof encountered - log a warning and return what we have for the element
         byteStream.warnings.push('eof encountered before finding sequence delimitation item while reading sequence item of undefined length');
-        return new dicomParser.DataSet(byteStream.byteArray, elements);
+        return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     }
 
     function readSequenceItemExplicit(byteStream)
@@ -1584,7 +1584,7 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
-                return new dicomParser.DataSet(byteStream.byteArray, elements);
+                return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
         }
         // eof encountered - log a warning and return what we have for the element
@@ -1642,8 +1642,8 @@ var dicomParser = (function (dicomParser)
     }
 
     /**
-     * Reads sequence items for an element in an implicit byte stream
-     * @param byteStream the implicit byte stream
+     * Reads sequence items for an element in an implicit little endian byte stream
+     * @param byteStream the implicit little endian byte stream
      * @param element the element to read the sequence items for
      */
     dicomParser.readSequenceItemsImplicit = function(byteStream, element)

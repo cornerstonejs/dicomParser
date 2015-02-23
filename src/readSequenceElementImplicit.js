@@ -24,7 +24,7 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
-                return new dicomParser.DataSet(byteStream.byteArray, elements);
+                return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
         }
         // eof encountered - log a warning and return what we have for the element
@@ -82,8 +82,8 @@ var dicomParser = (function (dicomParser)
     }
 
     /**
-     * Reads sequence items for an element in an implicit byte stream
-     * @param byteStream the implicit byte stream
+     * Reads sequence items for an element in an implicit little endian byte stream
+     * @param byteStream the implicit little endian byte stream
      * @param element the element to read the sequence items for
      */
     dicomParser.readSequenceItemsImplicit = function(byteStream, element)

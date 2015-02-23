@@ -68,7 +68,9 @@ You can find the actual code that extracts grayscale pixel data using this libra
 Key Features
 ------------
 
-* Parses DICOM Part 10 byte arrays in both implicit little endian and explicit little endian transfer syntaxes
+* Parses DICOM Part 10 byte arrays in all encodings
+  * Explicit and implicit
+  * Little endian and big endian
 * Supports all VR's including sequences
 * Supports elements with undefined length
 * Supports sequence items with undefined length
@@ -138,7 +140,7 @@ Contributors
 
 * @neandrake for help with getting Node.js support
 * @ggerade for implementing support for floats/doubles with VM > 1
-* @bryan-cool for bug fix related to parsing implicit little endian files
+* @bryan-cool for bug fix related to parsing implicit little endian files and big endian support
 * @snagytx, @doncharkowsky - for bug fix related to reading encapsulated frames
 
 Why another Javascript DICOM parsing library?
