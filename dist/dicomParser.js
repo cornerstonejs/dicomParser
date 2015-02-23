@@ -1,4 +1,4 @@
-/*! dicomParser - v0.6.1 - 2015-02-09 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicomParser - v0.6.1 - 2015-02-10 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -35,12 +35,12 @@
             throw "dicomParser.parseDicom: missing required parameter 'byteArray'";
         }
 
-        var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
+        var littleEndianByteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
 
         function readPrefix()
         {
-            byteStream.seek(128);
-            var prefix = byteStream.readFixedString(4);
+            littleEndianByteStream.seek(128);
+            var prefix = littleEndianByteStream.readFixedString(4);
             if(prefix !== "DICM")
             {
                 throw "dicomParser.parseDicom: DICM prefix not found at location 132";
@@ -49,37 +49,60 @@
 
         function readPart10Header()
         {
+            // Per the DICOM standard, the header is always encoded in Explicit VR Little Endian (see PS3.10, section 7.1)
+            // so use littleEndianByteStream throughout this method regardless of the transfer syntax
             readPrefix();
 
             // Read the group length element so we know how many bytes needed
             // to read the entire meta header
-            var groupLengthElement = dicomParser.readDicomElementExplicit(byteStream);
-            var metaHeaderLength = dicomParser.readUint32(byteStream.byteArray, groupLengthElement.dataOffset);
-            var positionAfterMetaHeader = byteStream.position + metaHeaderLength;
+            var groupLengthElement = dicomParser.readDicomElementExplicit(littleEndianByteStream);
+            var metaHeaderLength = dicomParser.littleEndianByteArrayParser.readUint32(littleEndianByteStream.byteArray, groupLengthElement.dataOffset);
+            var positionAfterMetaHeader = littleEndianByteStream.position + metaHeaderLength;
 
-            var metaHeaderDataSet = new dicomParser.DataSet(byteStream.byteArray, {});
+            var metaHeaderDataSet = new dicomParser.DataSet(littleEndianByteStream.byteArrayParser, littleEndianByteStream.byteArray, {});
+            dicomParser.parseDicomDataSetExplicit(metaHeaderDataSet, littleEndianByteStream, positionAfterMetaHeader);
+            metaHeaderDataSet.elements[groupLengthElement.tag] = groupLengthElement;
 
-            dicomParser.parseDicomDataSetExplicit(metaHeaderDataSet, byteStream, positionAfterMetaHeader);
-            metaHeaderDataSet[groupLengthElement.tag] = groupLengthElement;
+            // Cache the littleEndianByteArrayParser for meta header elements, since the rest of the data set may be big endian
+            // and this parser will be needed later if the meta header values are to be read.
+            for (var propertyName in metaHeaderDataSet.elements)
+            {
+                if(metaHeaderDataSet.elements.hasOwnProperty(propertyName)) {
+                    metaHeaderDataSet.elements[propertyName].parser = dicomParser.littleEndianByteArrayParser;
+                }
+            }
+            metaHeaderDataSet.warnings = littleEndianByteStream.warnings;
             return metaHeaderDataSet;
         }
 
-        function isExplicit(metaHeaderDataSet) {
+        function readTransferSyntax(metaHeaderDataSet) {
             if(metaHeaderDataSet.elements.x00020010 === undefined) {
                 throw 'dicomParser.parseDicom: missing required meta header attribute 0002,0010';
             }
             var transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
-            var transferSyntax = dicomParser.readFixedString(byteStream.byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
+            return dicomParser.readFixedString(littleEndianByteStream.byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
+        }
+
+        function isExplicit(transferSyntax) {
             if(transferSyntax === '1.2.840.10008.1.2') // implicit little endian
             {
                 return false;
             }
-            else if(transferSyntax === '1.2.840.10008.1.2.2')
-            {
-                throw 'dicomParser.parseDicom: explicit big endian transfer syntax not supported';
-            }
             // all other transfer syntaxes should be explicit
             return true;
+        }
+
+        function getDataSetByteStream(transferSyntax) {
+            if(transferSyntax === '1.2.840.10008.1.2.2') // explicit big endian
+            {
+                return new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser, byteArray, littleEndianByteStream.position);
+            }
+            else
+            {
+                // all other transfer syntaxes are little endian; only the pixel encoding differs
+                // make a new stream so the metaheader warnings don't come along for the ride
+                return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray, littleEndianByteStream.position);
+            }
         }
 
         function mergeDataSets(metaHeaderDataSet, instanceDataSet)
@@ -91,24 +114,30 @@
                     instanceDataSet.elements[propertyName] = metaHeaderDataSet.elements[propertyName];
                 }
             }
+            if (metaHeaderDataSet.warnings !== undefined) {
+                instanceDataSet.warnings = metaHeaderDataSet.warnings.concat(instanceDataSet.warnings);
+            }
             return instanceDataSet;
         }
 
         function readDataSet(metaHeaderDataSet)
         {
-            var explicit = isExplicit(metaHeaderDataSet);
+            var transferSyntax = readTransferSyntax(metaHeaderDataSet);
+            var explicit = isExplicit(transferSyntax);
+            var dataSetByteStream = getDataSetByteStream(transferSyntax);
 
             var elements = {};
-            var dataSet = new dicomParser.DataSet(byteStream.byteArray, elements);
+            var dataSet = new dicomParser.DataSet(dataSetByteStream.byteArrayParser, dataSetByteStream.byteArray, elements);
 
             try{
                 if(explicit) {
-                    dicomParser.parseDicomDataSetExplicit(dataSet, byteStream);
+                    dicomParser.parseDicomDataSetExplicit(dataSet, dataSetByteStream);
                 }
                 else
                 {
-                    dicomParser.parseDicomDataSetImplicit(dataSet, byteStream);
+                    dicomParser.parseDicomDataSetImplicit(dataSet, dataSetByteStream);
                 }
+                dataSet.warnings = dataSetByteStream.warnings;
             }
             catch(e) {
                 var ex = {
@@ -125,8 +154,6 @@
             var metaHeaderDataSet = readPart10Header();
 
             var dataSet = readDataSet(metaHeaderDataSet);
-
-            dataSet.warnings = byteStream.warnings;
 
             return mergeDataSets(metaHeaderDataSet, dataSet);
         }
@@ -147,8 +174,183 @@
         return dicomParser;
     }
 }));
+
 /**
- * Internal helper functions for parsing different types from a byte array
+ * Internal helper functions for parsing different types from a big-endian byte array
+ */
+
+var dicomParser = (function (dicomParser)
+{
+    "use strict";
+
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
+    }
+
+    dicomParser.bigEndianByteArrayParser = {
+        /**
+         *
+         * Parses an unsigned int 16 from a big-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed unsigned int 16
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readUint16: function (byteArray, position) {
+            if (position < 0) {
+                throw 'bigEndianByteArrayParser.readUint16: position cannot be less than 0';
+            }
+            if (position + 2 > byteArray.length) {
+                throw 'bigEndianByteArrayParser.readUint16: attempt to read past end of buffer';
+            }
+            return (byteArray[position] << 8) + byteArray[position + 1];
+        },
+
+        /**
+         *
+         * Parses a signed int 16 from a big-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed signed int 16
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readInt16: function (byteArray, position) {
+            if (position < 0) {
+                throw 'bigEndianByteArrayParser.readInt16: position cannot be less than 0';
+            }
+            if (position + 2 > byteArray.length) {
+                throw 'bigEndianByteArrayParser.readInt16: attempt to read past end of buffer';
+            }
+            var int16 = (byteArray[position] << 8) + byteArray[position + 1];
+            // fix sign
+            if (int16 & 0x8000) {
+                int16 = int16 - 0xFFFF - 1;
+            }
+            return int16;
+        },
+
+        /**
+         * Parses an unsigned int 32 from a big-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed unsigned int 32
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readUint32: function (byteArray, position) {
+            if (position < 0) {
+                throw 'bigEndianByteArrayParser.readUint32: position cannot be less than 0';
+            }
+
+            if (position + 4 > byteArray.length) {
+                throw 'bigEndianByteArrayParser.readUint32: attempt to read past end of buffer';
+            }
+
+            var uint32 = (256 * (256 * (256 * byteArray[position] +
+                                              byteArray[position + 1]) +
+                                              byteArray[position + 2]) +
+                                              byteArray[position + 3]);
+
+            return uint32;
+        },
+
+        /**
+         * Parses a signed int 32 from a big-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed signed int 32
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readInt32: function (byteArray, position) {
+            if (position < 0) {
+                throw 'bigEndianByteArrayParser.readInt32: position cannot be less than 0';
+            }
+
+            if (position + 4 > byteArray.length) {
+                throw 'bigEndianByteArrayParser.readInt32: attempt to read past end of buffer';
+            }
+
+            var int32 = ((byteArray[position] << 24) +
+                         (byteArray[position + 1] << 16) +
+                         (byteArray[position + 2] << 8) +
+                          byteArray[position + 3]);
+
+            return int32;
+        },
+
+        /**
+         * Parses 32-bit float from a big-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed 32-bit float
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readFloat: function (byteArray, position) {
+            if (position < 0) {
+                throw 'bigEndianByteArrayParser.readFloat: position cannot be less than 0';
+            }
+
+            if (position + 4 > byteArray.length) {
+                throw 'bigEndianByteArrayParser.readFloat: attempt to read past end of buffer';
+            }
+
+            // I am sure there is a better way than this but this should be safe
+            var byteArrayForParsingFloat = new Uint8Array(4);
+            byteArrayForParsingFloat[3] = byteArray[position];
+            byteArrayForParsingFloat[2] = byteArray[position + 1];
+            byteArrayForParsingFloat[1] = byteArray[position + 2];
+            byteArrayForParsingFloat[0] = byteArray[position + 3];
+            var floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
+            return floatArray[0];
+        },
+
+        /**
+         * Parses 64-bit float from a big-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed 64-bit float
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readDouble: function (byteArray, position) {
+            if (position < 0) {
+                throw 'bigEndianByteArrayParser.readDouble: position cannot be less than 0';
+            }
+
+            if (position + 8 > byteArray.length) {
+                throw 'bigEndianByteArrayParser.readDouble: attempt to read past end of buffer';
+            }
+
+            // I am sure there is a better way than this but this should be safe
+            var byteArrayForParsingFloat = new Uint8Array(8);
+            byteArrayForParsingFloat[7] = byteArray[position];
+            byteArrayForParsingFloat[6] = byteArray[position + 1];
+            byteArrayForParsingFloat[5] = byteArray[position + 2];
+            byteArrayForParsingFloat[4] = byteArray[position + 3];
+            byteArrayForParsingFloat[3] = byteArray[position + 4];
+            byteArrayForParsingFloat[2] = byteArray[position + 5];
+            byteArrayForParsingFloat[1] = byteArray[position + 6];
+            byteArrayForParsingFloat[0] = byteArray[position + 7];
+            var floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
+            return floatArray[0];
+        }
+    };
+
+    return dicomParser;
+}(dicomParser));
+/**
+ * Internal helper functions common to parsing byte arrays of any type
  */
 
 var dicomParser = (function (dicomParser)
@@ -161,179 +363,7 @@ var dicomParser = (function (dicomParser)
     }
 
     /**
-     *
-     * Parses an unsigned int 16 from a little endian byte stream and advances
-     * the position by 2 bytes
-     *
-     * @param byteArray the byteArray to read from
-     * @param position the position in the byte array to read from
-     * @returns {*} the parsed unsigned int 16
-     * @throws error if buffer overread would occur
-     * @access private
-     */
-    dicomParser.readUint16 = function(byteArray, position)
-    {
-        if(position < 0) {
-            throw 'dicomParser.readUint16: position cannot be less than 0';
-        }
-        if(position + 2 > byteArray.length) {
-            throw 'dicomParser.readUint16: attempt to read past end of buffer';
-        }
-        return byteArray[position] + (byteArray[position + 1] * 256);
-    };
-
-    /**
-     *
-     * Parses an signed int 16 from a little endian byte stream and advances
-     * the position by 2 bytes
-     *
-     * @param byteArray the byteArray to read from
-     * @param position the position in the byte array to read from
-     * @returns {*} the parsed signed int 16
-     * @throws error if buffer overread would occur
-     * @access private
-     */
-    dicomParser.readInt16 = function(byteArray, position)
-    {
-        if(position < 0) {
-            throw 'dicomParser.readInt16: position cannot be less than 0';
-        }
-        if(position + 2 > byteArray.length) {
-            throw 'dicomParser.readInt16: attempt to read past end of buffer';
-        }
-        var int16 = byteArray[position] + (byteArray[position + 1] << 8);
-        // fix sign
-        if(int16 & 0x8000)
-        {
-            int16 = int16 - 0xFFFF - 1;
-        }
-        return int16;
-    };
-
-
-    /**
-     * Parses an unsigned int 32 from a little endian byte stream and advances
-     * the position by 2 bytes
-     *
-     * @param byteArray the byteArray to read from
-     * @param position the position in the byte array to read from
-     * @returns {*} the parse unsigned int 32
-     * @throws error if buffer overread would occur
-     * @access private
-     */
-    dicomParser.readUint32 = function(byteArray, position)    {
-        if(position < 0)
-        {
-            throw 'dicomParser.readUint32: position cannot be less than 0';
-        }
-
-        if(position + 4 > byteArray.length) {
-            throw 'dicomParser.readUint32: attempt to read past end of buffer';
-        }
-
-        var uint32 =(byteArray[position] +
-                    (byteArray[position + 1] * 256) +
-                    (byteArray[position + 2] * 256 * 256) +
-                    (byteArray[position + 3] * 256 * 256 * 256 ));
-
-        return uint32;
-    };
-
-    /**
-     * Parses an signed int 32 from a little endian byte stream and advances
-     * the position by 2 bytes
-     *
-     * @param byteArray the byteArray to read from
-     * @param position the position in the byte array to read from
-     * @returns {*} the parse unsigned int 32
-     * @throws error if buffer overread would occur
-     * @access private
-     */
-    dicomParser.readInt32 = function(byteArray, position)    {
-        if(position < 0)
-        {
-            throw 'dicomParser.readInt32: position cannot be less than 0';
-        }
-
-        if(position + 4 > byteArray.length) {
-            throw 'dicomParser.readInt32: attempt to read past end of buffer';
-        }
-
-        var int32 = (byteArray[position] +
-                    (byteArray[position + 1] << 8) +
-                    (byteArray[position + 2] << 16) +
-                    (byteArray[position + 3] << 24));
-
-        return int32;
-
-    };
-
-    /**
-     * Parses 32 bit float from a little endian byte stream and advances
-     * the position by 4 bytes
-     *
-     * @param byteArray the byteArray to read from
-     * @param position the position in the byte array to read from
-     * @returns {*} the parse 32 bit float
-     * @throws error if buffer overread would occur
-     * @access private
-     */
-    dicomParser.readFloat = function(byteArray, position)    {
-        if(position < 0)
-        {
-            throw 'dicomParser.readFloat: position cannot be less than 0';
-        }
-
-        if(position + 4 > byteArray.length) {
-            throw 'dicomParser.readFloat: attempt to read past end of buffer';
-        }
-
-        // I am sure there is a better way than this but this should be safe
-        var byteArrayForParsingFloat= new Uint8Array(4);
-        byteArrayForParsingFloat[0] = byteArray[position];
-        byteArrayForParsingFloat[1] = byteArray[position + 1];
-        byteArrayForParsingFloat[2] = byteArray[position + 2];
-        byteArrayForParsingFloat[3] = byteArray[position + 3];
-        var floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
-        return floatArray[0];
-    };
-
-    /**
-     * Parses 64 bit float from a little endian byte stream and advances
-     * the position by 4 bytes
-     *
-     * @param byteArray the byteArray to read from
-     * @param position the position in the byte array to read from
-     * @returns {*} the parse 32 bit float
-     * @throws error if buffer overread would occur
-     * @access private
-     */
-    dicomParser.readDouble = function(byteArray, position)    {
-        if(position < 0)
-        {
-            throw 'dicomParser.readDouble: position cannot be less than 0';
-        }
-
-        if(position + 8 > byteArray.length) {
-            throw 'dicomParser.readDouble: attempt to read past end of buffer';
-        }
-
-        // I am sure there is a better way than this but this should be safe
-        var byteArrayForParsingFloat= new Uint8Array(8);
-        byteArrayForParsingFloat[0] = byteArray[position];
-        byteArrayForParsingFloat[1] = byteArray[position + 1];
-        byteArrayForParsingFloat[2] = byteArray[position + 2];
-        byteArrayForParsingFloat[3] = byteArray[position + 3];
-        byteArrayForParsingFloat[4] = byteArray[position + 4];
-        byteArrayForParsingFloat[5] = byteArray[position + 5];
-        byteArrayForParsingFloat[6] = byteArray[position + 6];
-        byteArrayForParsingFloat[7] = byteArray[position + 7];
-        var floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
-        return floatArray[0];
-    };
-
-    /**
-     * Reads a string of 8 bit characters from an array of bytes and advances
+     * Reads a string of 8-bit characters from an array of bytes and advances
      * the position by length bytes.  A null terminator will end the string
      * but will not effect advancement of the position.  Trailing and leading
      * spaces are preserved (not trimmed)
@@ -374,6 +404,138 @@ var dicomParser = (function (dicomParser)
 }(dicomParser));
 /**
  *
+ * Internal helper class to assist with parsing. Supports reading from a byte
+ * stream contained in a Uint8Array.  Example usage:
+ *
+ *  var byteArray = new Uint8Array(32);
+ *  var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
+ *
+ * */
+var dicomParser = (function (dicomParser)
+{
+    "use strict";
+
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
+    }
+
+    /**
+     * Constructor for ByteStream objects.
+     * @param byteArrayParser a parser for parsing the byte array
+     * @param byteArray a Uint8Array containing the byte stream
+     * @param position (optional) the position to start reading from.  0 if not specified
+     * @constructor
+     * @throws will throw an error if the byteArrayParser parameter is not present
+     * @throws will throw an error if the byteArray parameter is not present or invalid
+     * @throws will throw an error if the position parameter is not inside the byte array
+     */
+    dicomParser.ByteStream = function(byteArrayParser, byteArray, position) {
+        if(byteArrayParser === undefined)
+        {
+            throw "dicomParser.ByteStream: missing required parameter 'byteArrayParser'";
+        }
+        if(byteArray === undefined)
+        {
+            throw "dicomParser.ByteStream: missing required parameter 'byteArray'";
+        }
+        if((byteArray instanceof Uint8Array) === false) {
+            throw 'dicomParser.ByteStream: parameter byteArray is not of type Uint8Array';
+        }
+        if(position < 0)
+        {
+            throw "dicomParser.ByteStream: parameter 'position' cannot be less than 0";
+        }
+        if(position >= byteArray.length)
+        {
+            throw "dicomParser.ByteStream: parameter 'position' cannot be greater than or equal to 'byteArray' length";
+
+        }
+        this.byteArrayParser = byteArrayParser;
+        this.byteArray = byteArray;
+        this.position = position ? position : 0;
+        this.warnings = []; // array of string warnings encountered while parsing
+    };
+
+    /**
+     * Safely seeks through the byte stream.  Will throw an exception if an attempt
+     * is made to seek outside of the byte array.
+     * @param offset the number of bytes to add to the position
+     * @throws error if seek would cause position to be outside of the byteArray
+     */
+    dicomParser.ByteStream.prototype.seek = function(offset)
+    {
+        if(this.position + offset < 0)
+        {
+            throw "cannot seek to position < 0";
+        }
+        this.position += offset;
+    };
+
+    /**
+     * Returns a new ByteStream object from the current position and of the requested number of bytes
+     * @param numBytes the length of the byte array for the ByteStream to contain
+     * @returns {dicomParser.ByteStream}
+     * @throws error if buffer overread would occur
+     */
+    dicomParser.ByteStream.prototype.readByteStream = function(numBytes)
+    {
+        if(this.position + numBytes > this.byteArray.length) {
+            throw 'readByteStream - buffer overread';
+        }
+        var byteArrayView = new Uint8Array(this.byteArray.buffer, this.position, numBytes);
+        this.position += numBytes;
+        return new dicomParser.ByteStream(this.byteArrayParser, byteArrayView);
+    };
+
+    /**
+     *
+     * Parses an unsigned int 16 from a byte array and advances
+     * the position by 2 bytes
+     *
+     * @returns {*} the parsed unsigned int 16
+     * @throws error if buffer overread would occur
+     */
+    dicomParser.ByteStream.prototype.readUint16 = function()
+    {
+        var result = this.byteArrayParser.readUint16(this.byteArray, this.position);
+        this.position += 2;
+        return result;
+    };
+
+    /**
+     * Parses an unsigned int 32 from a byte array and advances
+     * the position by 2 bytes
+     *
+     * @returns {*} the parse unsigned int 32
+     * @throws error if buffer overread would occur
+     */
+    dicomParser.ByteStream.prototype.readUint32 = function()
+    {
+        var result = this.byteArrayParser.readUint32(this.byteArray, this.position);
+        this.position += 4;
+        return result;
+    };
+
+    /**
+     * Reads a string of 8-bit characters from an array of bytes and advances
+     * the position by length bytes.  A null terminator will end the string
+     * but will not effect advancement of the position.
+     * @param length the maximum number of bytes to parse
+     * @returns {string} the parsed string
+     * @throws error if buffer overread would occur
+     */
+    dicomParser.ByteStream.prototype.readFixedString = function(length)
+    {
+        var result = dicomParser.readFixedString(this.byteArray, this.position, length);
+        this.position += length;
+        return result;
+    };
+
+    return dicomParser;
+}(dicomParser));
+/**
+ *
  * The DataSet class encapsulates a collection of DICOM Elements and provides various functions
  * to access the data in those elements
  *
@@ -401,14 +563,21 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
+    function getByteArrayParser(element, defaultParser)
+    {
+        return (element.parser !== undefined ? element.parser : defaultParser);
+    }
+
     /**
      * Constructs a new DataSet given byteArray and collection of elements
+     * @param byteArrayParser
      * @param byteArray
      * @param elements
      * @constructor
      */
-    dicomParser.DataSet = function(byteArray, elements)
+    dicomParser.DataSet = function(byteArrayParser, byteArray, elements)
     {
+        this.byteArrayParser = byteArrayParser;
         this.byteArray = byteArray;
         this.elements = elements;
     };
@@ -425,7 +594,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readUint16(this.byteArray, element.dataOffset + (index *2));
+            return getByteArrayParser(element, this.byteArrayParser).readUint16(this.byteArray, element.dataOffset + (index *2));
         }
         return undefined;
     };
@@ -442,7 +611,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readInt16(this.byteArray, element.dataOffset + (index * 2));
+            return getByteArrayParser(element, this.byteArrayParser).readInt16(this.byteArray, element.dataOffset + (index * 2));
         }
         return undefined;
     };
@@ -459,7 +628,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readUint32(this.byteArray, element.dataOffset + (index * 4));
+            return getByteArrayParser(element, this.byteArrayParser).readUint32(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
     };
@@ -476,7 +645,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readInt32(this.byteArray, element.dataOffset + (index * 4));
+            return getByteArrayParser(element, this.byteArrayParser).readInt32(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
     };
@@ -493,7 +662,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readFloat(this.byteArray, element.dataOffset + (index * 4));
+            return getByteArrayParser(element, this.byteArrayParser).readFloat(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
     };
@@ -510,7 +679,7 @@ var dicomParser = (function (dicomParser)
         index = (index !== undefined) ? index : 0;
         if(element && element.length !== 0)
         {
-            return dicomParser.readDouble(this.byteArray, element.dataOffset + (index * 8));
+            return getByteArrayParser(element, this.byteArrayParser).readDouble(this.byteArray, element.dataOffset + (index * 8));
         }
         return undefined;
     };
@@ -767,14 +936,9 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
- *
- * Internal helper class to assist with parsing class supports reading from a little endian byte
- * stream contained in an Uint18Array.  Example usage:
- *
- *  var byteArray = new Uint8Array(32);
- *  var byteStream = new dicomParser.LittleEndianByteStream(byteArray);
- *
- * */
+ * Internal helper functions for parsing different types from a little-endian byte array
+ */
+
 var dicomParser = (function (dicomParser)
 {
     "use strict";
@@ -784,110 +948,165 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
-    /**
-     * Constructor for LittleEndianByteStream objects.
-     * @param byteArray a Uint8Array containing the byte stream
-     * @param position (optional) the position to start reading from.  0 if not specified
-     * @constructor
-     * @throws will throw an error the byteArray parameter is not present or invalid
-     * @throws will throw an error the position parameter is not inside the byteArray
-     */
-    dicomParser.LittleEndianByteStream = function(byteArray, position) {
-        if(byteArray === undefined)
-        {
-            throw "dicomParser.LittleEndianByteStream: missing required parameter 'byteArray'";
+    dicomParser.littleEndianByteArrayParser = {
+        /**
+         *
+         * Parses an unsigned int 16 from a little-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed unsigned int 16
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readUint16: function (byteArray, position) {
+            if (position < 0) {
+                throw 'littleEndianByteArrayParser.readUint16: position cannot be less than 0';
+            }
+            if (position + 2 > byteArray.length) {
+                throw 'littleEndianByteArrayParser.readUint16: attempt to read past end of buffer';
+            }
+            return byteArray[position] + (byteArray[position + 1] * 256);
+        },
+
+        /**
+         *
+         * Parses a signed int 16 from a little-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed signed int 16
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readInt16: function (byteArray, position) {
+            if (position < 0) {
+                throw 'littleEndianByteArrayParser.readInt16: position cannot be less than 0';
+            }
+            if (position + 2 > byteArray.length) {
+                throw 'littleEndianByteArrayParser.readInt16: attempt to read past end of buffer';
+            }
+            var int16 = byteArray[position] + (byteArray[position + 1] << 8);
+            // fix sign
+            if (int16 & 0x8000) {
+                int16 = int16 - 0xFFFF - 1;
+            }
+            return int16;
+        },
+
+
+        /**
+         * Parses an unsigned int 32 from a little-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed unsigned int 32
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readUint32: function (byteArray, position) {
+            if (position < 0) {
+                throw 'littleEndianByteArrayParser.readUint32: position cannot be less than 0';
+            }
+
+            if (position + 4 > byteArray.length) {
+                throw 'littleEndianByteArrayParser.readUint32: attempt to read past end of buffer';
+            }
+
+            var uint32 = (byteArray[position] +
+            (byteArray[position + 1] * 256) +
+            (byteArray[position + 2] * 256 * 256) +
+            (byteArray[position + 3] * 256 * 256 * 256 ));
+
+            return uint32;
+        },
+
+        /**
+         * Parses a signed int 32 from a little-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed unsigned int 32
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readInt32: function (byteArray, position) {
+            if (position < 0) {
+                throw 'littleEndianByteArrayParser.readInt32: position cannot be less than 0';
+            }
+
+            if (position + 4 > byteArray.length) {
+                throw 'littleEndianByteArrayParser.readInt32: attempt to read past end of buffer';
+            }
+
+            var int32 = (byteArray[position] +
+            (byteArray[position + 1] << 8) +
+            (byteArray[position + 2] << 16) +
+            (byteArray[position + 3] << 24));
+
+            return int32;
+
+        },
+
+        /**
+         * Parses 32-bit float from a little-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed 32-bit float
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readFloat: function (byteArray, position) {
+            if (position < 0) {
+                throw 'littleEndianByteArrayParser.readFloat: position cannot be less than 0';
+            }
+
+            if (position + 4 > byteArray.length) {
+                throw 'littleEndianByteArrayParser.readFloat: attempt to read past end of buffer';
+            }
+
+            // I am sure there is a better way than this but this should be safe
+            var byteArrayForParsingFloat = new Uint8Array(4);
+            byteArrayForParsingFloat[0] = byteArray[position];
+            byteArrayForParsingFloat[1] = byteArray[position + 1];
+            byteArrayForParsingFloat[2] = byteArray[position + 2];
+            byteArrayForParsingFloat[3] = byteArray[position + 3];
+            var floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
+            return floatArray[0];
+        },
+
+        /**
+         * Parses 64-bit float from a little-endian byte array
+         *
+         * @param byteArray the byte array to read from
+         * @param position the position in the byte array to read from
+         * @returns {*} the parsed 64-bit float
+         * @throws error if buffer overread would occur
+         * @access private
+         */
+        readDouble: function (byteArray, position) {
+            if (position < 0) {
+                throw 'littleEndianByteArrayParser.readDouble: position cannot be less than 0';
+            }
+
+            if (position + 8 > byteArray.length) {
+                throw 'littleEndianByteArrayParser.readDouble: attempt to read past end of buffer';
+            }
+
+            // I am sure there is a better way than this but this should be safe
+            var byteArrayForParsingFloat = new Uint8Array(8);
+            byteArrayForParsingFloat[0] = byteArray[position];
+            byteArrayForParsingFloat[1] = byteArray[position + 1];
+            byteArrayForParsingFloat[2] = byteArray[position + 2];
+            byteArrayForParsingFloat[3] = byteArray[position + 3];
+            byteArrayForParsingFloat[4] = byteArray[position + 4];
+            byteArrayForParsingFloat[5] = byteArray[position + 5];
+            byteArrayForParsingFloat[6] = byteArray[position + 6];
+            byteArrayForParsingFloat[7] = byteArray[position + 7];
+            var floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
+            return floatArray[0];
         }
-        if((byteArray instanceof Uint8Array) === false) {
-            throw 'dicomParser.LittleEndianByteStream: parameter byteArray is not of type Uint8Array';
-        }
-        if(position < 0)
-        {
-            throw "dicomParser.LittleEndianByteStream: parameter 'position' cannot be less than 0";
-        }
-        if(position >= byteArray.length)
-        {
-            throw "dicomParser.LittleEndianByteStream: parameter 'position' cannot be greater than or equal to 'byteArray' length";
-
-        }
-        this.byteArray = byteArray;
-        this.position = position ? position : 0;
-        this.warnings = []; // array of string warnings encountered while parsing
-    };
-
-    /**
-     * Safely seeks through the byte stream.  Will throw an exception if an attempt
-     * is made to seek outside of the byte array.
-     * @param offset the number of bytes to add to the position
-     * @throws error if seek would cause position to be outside of the byteArray
-     */
-    dicomParser.LittleEndianByteStream.prototype.seek = function(offset)
-    {
-        if(this.position + offset < 0)
-        {
-            throw "cannot seek to position < 0";
-        }
-        this.position += offset;
-    };
-
-    /**
-     * Returns a new LittleEndianByteStream object from the current position and of the requested number of bytes
-     * @param numBytes the length of the byteArray for the LittleEndianByteStream to contain
-     * @returns {dicomParser.LittleEndianByteStream}
-     * @throws error if buffer overread would occur
-     */
-    dicomParser.LittleEndianByteStream.prototype.readByteStream = function(numBytes)
-    {
-        if(this.position + numBytes > this.byteArray.length) {
-            throw 'readByteStream - buffer overread';
-        }
-        var byteArrayView = new Uint8Array(this.byteArray.buffer, this.position, numBytes);
-        this.position += numBytes;
-        return new dicomParser.LittleEndianByteStream(byteArrayView);
-    };
-
-    /**
-     *
-     * Parses an unsigned int 16 from a little endian byte stream and advances
-     * the position by 2 bytes
-     *
-     * @returns {*} the parsed unsigned int 16
-     * @throws error if buffer overread would occur
-     */
-    dicomParser.LittleEndianByteStream.prototype.readUint16 = function()
-    {
-        var result = dicomParser.readUint16(this.byteArray, this.position);
-        this.position += 2;
-        return result;
-    };
-
-    /**
-     * Parses an unsigned int 32 from a little endian byte stream and advances
-     * the position by 2 bytes
-     *
-     * @returns {*} the parse unsigned int 32
-     * @throws error if buffer overread would occur
-     */
-    dicomParser.LittleEndianByteStream.prototype.readUint32 = function()
-    {
-        var result = dicomParser.readUint32(this.byteArray, this.position);
-        this.position += 4;
-        return result;
-    };
-
-    /**
-     * Reads a string of 8 bit characters from an array of bytes and advances
-     * the position by length bytes.  A null terminator will end the string
-     * but will not effect advancement of the position.
-     * @param length the maximum number of bytes to parse
-     * @returns {string} the parsed string
-     * @throws error if buffer overread would occur
-     */
-    dicomParser.LittleEndianByteStream.prototype.readFixedString = function(length)
-    {
-        var result = dicomParser.readFixedString(this.byteArray, this.position, length);
-        this.position += length;
-        return result;
-
     };
 
     return dicomParser;
@@ -930,7 +1149,7 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementExplicit(byteStream);
             elements[element.tag] = element;
         }
-        //return new dicomParser.DataSet(byteStream.byteArray, elements);
+        //return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     };
 
     /**
@@ -959,11 +1178,12 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementImplicit(byteStream);
             elements[element.tag] = element;
         }
-        //return new dicomParser.DataSet(byteStream.byteArray, elements);
+        //return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     };
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Internal helper functions for for parsing DICOM elements
  */
@@ -1198,8 +1418,7 @@ var dicomParser = (function (dicomParser)
         }
 
         // seek to the beginning of the encapsulated pixel data and read the basic offset table
-        var byteStream = new dicomParser.LittleEndianByteStream(dataSet.byteArray);
-        byteStream.seek(pixelElement.dataOffset);
+        var byteStream = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelElement.dataOffset);
         var basicOffsetTable = dicomParser.readSequenceItem(byteStream);
         if(basicOffsetTable.tag !== 'xfffee000') {
             throw "dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000";
@@ -1423,8 +1642,8 @@ var dicomParser = (function (dicomParser)
     }
 
     /**
-     * Reads sequence items for an element in an implicit little endian byte stream
-     * @param byteStream the implicit little endian byte stream
+     * Reads sequence items for an element in an implicit byte stream
+     * @param byteStream the implicit byte stream
      * @param element the element to read the sequence items for
      */
     dicomParser.readSequenceItemsImplicit = function(byteStream, element)

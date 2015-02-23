@@ -36,7 +36,7 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementExplicit(byteStream);
             elements[element.tag] = element;
         }
-        //return new dicomParser.DataSet(byteStream.byteArray, elements);
+        //return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     };
 
     /**
@@ -65,7 +65,7 @@ var dicomParser = (function (dicomParser)
             var element = dicomParser.readDicomElementImplicit(byteStream);
             elements[element.tag] = element;
         }
-        //return new dicomParser.DataSet(byteStream.byteArray, elements);
+        //return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     };
 
     return dicomParser;

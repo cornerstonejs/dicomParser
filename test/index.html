@@ -8,10 +8,13 @@
      
     <link rel='stylesheet' href='../bower_components/qunit/qunit/qunit.css'>
 
+    <script src="../src/bigEndianByteArrayParser.js"></script>
+    <script src="../src/littleEndianByteArrayParser.js"></script>
     <script src="../src/byteArrayParser.js"></script>
     <script src="../src/dataSet.js"></script>
     <script src="../src/findItemDelimitationItem.js"></script>
-    <script src="../src/littleEndianByteStream.js"></script>
+    <script src="../src/byteStream.js"></script>
+    <script src="../src/parseDicom.js"></script>
     <script src="../src/parseDicomDataSet.js"></script>
     <script src="../src/readDicomElementImplicit.js"></script>
     <script src="../src/readDicomElementExplicit.js"></script>
@@ -23,9 +26,12 @@
     <script src='../bower_components/qunit/qunit/qunit.js'></script>
 
 
-    <script src='byteArrayParserTest.js'></script>
+    <script src="bigEndianByteArrayParserTest.js"></script>
+    <script src="byteArrayParserTest.js"></script>
+    <script src="littleEndianByteArrayParserTest.js"></script>
     <script src="dataSetTest.js"></script>
-    <script src='littleEndianByteStreamTest.js'></script>
+    <script src="byteStreamTest.js"></script>
+    <script src="parseDicomTest.js"></script>
     <script src="parseDicomDataSetTest.js"></script>
     <script src='parseDicomElementTest.js'></script>
     <script src='utilTest.js'></script>

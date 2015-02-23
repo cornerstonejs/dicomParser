@@ -80,8 +80,7 @@ var dicomParser = (function (dicomParser)
         }
 
         // seek to the beginning of the encapsulated pixel data and read the basic offset table
-        var byteStream = new dicomParser.LittleEndianByteStream(dataSet.byteArray);
-        byteStream.seek(pixelElement.dataOffset);
+        var byteStream = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelElement.dataOffset);
         var basicOffsetTable = dicomParser.readSequenceItem(byteStream);
         if(basicOffsetTable.tag !== 'xfffee000') {
             throw "dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000";
