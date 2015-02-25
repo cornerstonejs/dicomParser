@@ -28,7 +28,7 @@ var dicomParser = (function (dicomParser)
         }
     }
 
-    dicomParser.readDicomElementExplicit = function(byteStream)
+    dicomParser.readDicomElementExplicit = function(byteStream, untilTag)
     {
         if(byteStream === undefined)
         {
@@ -58,6 +58,10 @@ var dicomParser = (function (dicomParser)
         if(element.length === 4294967295)
         {
             element.hadUndefinedLength = true;
+        }
+
+        if(element.tag === untilTag) {
+            return element;
         }
 
         // if VR is SQ, parse the sequence items

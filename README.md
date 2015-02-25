@@ -84,6 +84,9 @@ Key Features
 * Convenient utility functions to parse strings formatted in DA, TM and PN VRs and return JavaScript objects
 * Convenient utility function to create a string version of an explicit element
 * Convenient utility function to convert a parsed explicit dataSet into a javascript object
+* Supports reading incomplete/partial byte streams
+  * By specifying a tag to stop reading at
+  * By returning the elements parsed so far in the exception thrown during a parse error
 
 Build System
 ============
@@ -134,6 +137,12 @@ Future:
 * See what needs to be done to support different character sets (assumes ASCII currently)
 * Support for parsing from streams on Node.js and Meteor
 * NPM Package
+* Switch to JavaScript ES6
+* Make part 10 header parsing more forgiving by not requiring the groupElementLength tag x00020000
+* Separate the parsing logic from the dataSet creation logic (e.g. parsing generates events
+  which dataSet creation logic creates the dataSet from)
+  * dataSet creation logic could filter out unwanted tags to improve performance of parse
+  * dataSet creation logic could defer creation of sequence dataSets to improve performance of parse
 
 Contributors
 ============================================

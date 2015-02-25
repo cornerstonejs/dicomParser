@@ -32,12 +32,17 @@
 }(this, function () {
 
     /**
-     * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements
+     * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
+     * argument is supplied and it contains the untilTag property, parsing will stop once that
+     * tag is encoutered.  This can be used to parse partial byte streams.
+     *
      * @param byteArray the byte array
+     * @param options object to control parsing behavior (optional)
      * @returns {DataSet}
-     * @throws error if unable to parse the file
+     * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
+     *         elements successfully parsed before the error.
      */
-     function parseDicom(byteArray) {
+     function parseDicom(byteArray, options) {
 
         if(byteArray === undefined)
         {
@@ -63,8 +68,14 @@
             readPrefix();
 
             // Read the group length element so we know how many bytes needed
-            // to read the entire meta header
+            // to read the entire meta header.
+            // NOTE: While the groupLengthElement is required by DICOM, it is possible that this is not present and
+            // it would be nice to support such a case by calculating the group length by reading elements
+            // until we find one with a group > x0002
             var groupLengthElement = dicomParser.readDicomElementExplicit(littleEndianByteStream);
+            if(groupLengthElement.tag !== 'x00020000') {
+                throw 'dicomParser.parseDicom: missing required element x00020000 in P10 Header';
+            }
             var metaHeaderLength = dicomParser.littleEndianByteArrayParser.readUint32(littleEndianByteStream.byteArray, groupLengthElement.dataOffset);
             var positionAfterMetaHeader = littleEndianByteStream.position + metaHeaderLength;
 
@@ -140,11 +151,11 @@
 
             try{
                 if(explicit) {
-                    dicomParser.parseDicomDataSetExplicit(dataSet, dataSetByteStream);
+                    dicomParser.parseDicomDataSetExplicit(dataSet, dataSetByteStream, dataSetByteStream.byteArray.length, options);
                 }
                 else
                 {
-                    dicomParser.parseDicomDataSetImplicit(dataSet, dataSetByteStream);
+                    dicomParser.parseDicomDataSetImplicit(dataSet, dataSetByteStream, dataSetByteStream.byteArray.length, options);
                 }
                 dataSet.warnings = dataSetByteStream.warnings;
             }
