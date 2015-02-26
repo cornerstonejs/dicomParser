@@ -19,6 +19,10 @@ Get a packaged source file:
 * [dicomParser.js](https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.js)
 * [dicomParser.min.js](https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.min.js)
 
+Or install via [NPM](https://www.npmjs.com/):
+
+> npm install dicom-parser
+
 Or install via [Bower](http://bower.io/):
 
 > bower install dicomParser

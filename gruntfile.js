@@ -86,8 +86,9 @@ module.exports = function(grunt) {
 };
 
 // Release process:
-//  1) Update version numbers
+//  1) Update version numbers in bower.json, package.json and meteor/package.js
 //  2) do a build (needed to update dist versions with correct build number)
+//      grunt
 //  3) commit changes
 //      git commit -am "Changes...."
 //  4) tag the commit
@@ -96,3 +97,5 @@ module.exports = function(grunt) {
 //      git push origin master --tags
 //  6) Update atmosphere
 //      meteor publish
+//  7) Update npm
+//      npm publish
