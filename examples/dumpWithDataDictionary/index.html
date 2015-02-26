@@ -268,13 +268,13 @@ function dumpDataSet(dataSet, output)
                                 }
                             }
                         }
-                        else if (vr == 'US') {
+                        else if (vr === 'US') {
                             text += dataSet.uint16(propertyName);
                         }
                         else if (vr === 'SS') {
                             text += dataSet.int16(propertyName);
                         }
-                        else if (vr == 'UL') {
+                        else if (vr === 'UL') {
                             text += dataSet.uint32(propertyName);
                         }
                         else if (vr === 'SL') {
@@ -290,6 +290,13 @@ function dumpDataSet(dataSet, output)
                             color = '#C8C8C8';
                             // If it is some other length and we have no string
                             text += "<i>binary data of length " + element.length + " and VR " + vr + "</i>";
+                        }
+                        else if(vr === 'AT') {
+                            var group = dataSet.uint16(propertyName, 0);
+                            var groupHexStr = ("0000" + group.toString(16)).substr(-4);
+                            var element = dataSet.uint16(propertyName, 1);
+                            var elementHexStr = ("0000" + element.toString(16)).substr(-4);
+                            text += "x" + groupHexStr + elementHexStr;
                         }
                         else {
                             // If it is some other length and we have no string
