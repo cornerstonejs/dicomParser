@@ -13,11 +13,12 @@ var dicomParser = (function (dicomParser)
 
     /**
      * Reads an encapsulated pixel data element and adds an array of fragments to the element
-     * contain the offset and length.
+     * containing the offset and length of each fragment and any offsets from the basic offset
+     * table
      * @param byteStream
      * @param element
      */
-    dicomParser.findEndOfEncapsulatedElement = function(byteStream, element)
+    dicomParser.findEndOfEncapsulatedElement = function(byteStream, element, warnings)
     {
         if(byteStream === undefined)
         {
@@ -28,6 +29,7 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.findEndOfEncapsulatedElement: missing required parameter 'element'";
         }
 
+        element.encapsulatedPixelData = true;
         element.basicOffsetTable = [];
         element.fragments = [];
         var basicOffsetTableItemTag = dicomParser.readTag(byteStream);
@@ -52,15 +54,39 @@ var dicomParser = (function (dicomParser)
                 element.length = byteStream.position - element.dataOffset;
                 return;
             }
-            element.fragments.push({
-                offset: byteStream.position - baseOffset - 8,
-                position : byteStream.position,
-                length : length
-            });
+            else if(tag === 'xfffee000')
+            {
+                element.fragments.push({
+                    offset: byteStream.position - baseOffset - 8,
+                    position : byteStream.position,
+                    length : length
+                });
+            }
+            else {
+                if(warnings) {
+                    warnings.push('unexpected tag ' + tag + ' while searching for end of pixel data element with undefined length');
+                }
+                if(length > byteStream.byteArray.length - byteStream.position)
+                {
+                    // fix length
+                    length = byteStream.byteArray.length - byteStream.position;
+                }
+                element.fragments.push({
+                    offset: byteStream.position - baseOffset - 8,
+                    position : byteStream.position,
+                    length : length
+                });
+                byteStream.seek(length);
+                element.length = byteStream.position - element.dataOffset;
+                return;
+            }
+
             byteStream.seek(length);
         }
 
-        throw "dicomParser.findEndOfEncapsulatedElement: did not find sequence delimiter";
+        if(warnings) {
+            warnings.push("pixel data element " + element.tag + " missing sequence delimiter tag xfffee0dd");
+        }
     };
 
 

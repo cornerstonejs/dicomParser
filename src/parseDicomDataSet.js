@@ -33,7 +33,7 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, options.untilTag);
+            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;

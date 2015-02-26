@@ -28,7 +28,7 @@ var dicomParser = (function (dicomParser)
         }
     }
 
-    dicomParser.readDicomElementExplicit = function(byteStream, untilTag)
+    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag)
     {
         if(byteStream === undefined)
         {
@@ -67,13 +67,13 @@ var dicomParser = (function (dicomParser)
         // if VR is SQ, parse the sequence items
         if(element.vr === 'SQ')
         {
-            dicomParser.readSequenceItemsExplicit(byteStream, element);
+            dicomParser.readSequenceItemsExplicit(byteStream, element, warnings);
             return element;
         }
         if(element.length === 4294967295)
         {
             if(element.tag === 'x7fe00010') {
-                dicomParser.findEndOfEncapsulatedElement(byteStream, element);
+                dicomParser.findEndOfEncapsulatedElement(byteStream, element, warnings);
                 return element;
             } else {
                 dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);

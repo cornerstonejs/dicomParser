@@ -72,7 +72,8 @@
             // NOTE: While the groupLengthElement is required by DICOM, it is possible that this is not present and
             // it would be nice to support such a case by calculating the group length by reading elements
             // until we find one with a group > x0002
-            var groupLengthElement = dicomParser.readDicomElementExplicit(littleEndianByteStream);
+            var warnings = [];
+            var groupLengthElement = dicomParser.readDicomElementExplicit(littleEndianByteStream, warnings);
             if(groupLengthElement.tag !== 'x00020000') {
                 throw 'dicomParser.parseDicom: missing required element x00020000 in P10 Header';
             }
@@ -148,6 +149,7 @@
 
             var elements = {};
             var dataSet = new dicomParser.DataSet(dataSetByteStream.byteArrayParser, dataSetByteStream.byteArray, elements);
+            dataSet.warnings = dataSetByteStream.warnings;
 
             try{
                 if(explicit) {
@@ -157,7 +159,6 @@
                 {
                     dicomParser.parseDicomDataSetImplicit(dataSet, dataSetByteStream, dataSetByteStream.byteArray.length, options);
                 }
-                dataSet.warnings = dataSetByteStream.warnings;
             }
             catch(e) {
                 var ex = {

@@ -154,24 +154,21 @@ function dumpDataSet(dataSet, output)
                 output.push('</ul>');
             }
             else if (element.fragments) {
+                text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " + element.fragments.length + " fragments";
                 output.push('<li>' + text + '</li>');
+                /*
                 output.push('<ul>');
 
                 // each item contains its own data set so we iterate over the items
                 // and recursively call this function
                 var itemNumber = 0;
                 element.fragments.forEach(function (fragment) {
-                    var basicOffset;
-                    if(element.basicOffsetTable) {
-                        basicOffset = element.basicOffsetTable[itemNumber];
-                    }
-
                     var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
-                    str += '(' + basicOffset + ')';
                     str += '; length = ' + fragment.length + '</li>';
                     output.push(str);
                 });
                 output.push('</ul>');
+                */
             }
             else {
                 // use VR to display the right value
