@@ -1,6 +1,6 @@
 {
   "name": "dicomParser",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Javascript parser for DICOM Part 10 data",
   "keywords": [
     "DICOM",
@@ -10,6 +10,9 @@
   "author": "Chris Hafey",
   "homepage": "https://github.com/chafey/dicomParser",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chafey/dicomParser/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/chafey/dicomParser.git"

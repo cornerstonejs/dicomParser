@@ -67,31 +67,21 @@
             // so use littleEndianByteStream throughout this method regardless of the transfer syntax
             readPrefix();
 
-            // Read the group length element so we know how many bytes needed
-            // to read the entire meta header.
-            // NOTE: While the groupLengthElement is required by DICOM, it is possible that this is not present and
-            // it would be nice to support such a case by calculating the group length by reading elements
-            // until we find one with a group > x0002
             var warnings = [];
-            var groupLengthElement = dicomParser.readDicomElementExplicit(littleEndianByteStream, warnings);
-            if(groupLengthElement.tag !== 'x00020000') {
-                throw 'dicomParser.parseDicom: missing required element x00020000 in P10 Header';
-            }
-            var metaHeaderLength = dicomParser.littleEndianByteArrayParser.readUint32(littleEndianByteStream.byteArray, groupLengthElement.dataOffset);
-            var positionAfterMetaHeader = littleEndianByteStream.position + metaHeaderLength;
-
-            var metaHeaderDataSet = new dicomParser.DataSet(littleEndianByteStream.byteArrayParser, littleEndianByteStream.byteArray, {});
-            dicomParser.parseDicomDataSetExplicit(metaHeaderDataSet, littleEndianByteStream, positionAfterMetaHeader);
-            metaHeaderDataSet.elements[groupLengthElement.tag] = groupLengthElement;
-
-            // Cache the littleEndianByteArrayParser for meta header elements, since the rest of the data set may be big endian
-            // and this parser will be needed later if the meta header values are to be read.
-            for (var propertyName in metaHeaderDataSet.elements)
-            {
-                if(metaHeaderDataSet.elements.hasOwnProperty(propertyName)) {
-                    metaHeaderDataSet.elements[propertyName].parser = dicomParser.littleEndianByteArrayParser;
+            var elements = {};
+            while(littleEndianByteStream.position < littleEndianByteStream.byteArray.length) {
+                var position = littleEndianByteStream.position;
+                var element = dicomParser.readDicomElementExplicit(littleEndianByteStream, warnings);
+                if(element.tag > 'x0002ffff') {
+                    littleEndianByteStream.position = position;
+                    break;
                 }
+                // Cache the littleEndianByteArrayParser for meta header elements, since the rest of the data set may be big endian
+                // and this parser will be needed later if the meta header values are to be read.
+                element.parser = dicomParser.littleEndianByteArrayParser;
+                elements[element.tag] = element;
             }
+            var metaHeaderDataSet = new dicomParser.DataSet(littleEndianByteStream.byteArrayParser, littleEndianByteStream.byteArray, elements);
             metaHeaderDataSet.warnings = littleEndianByteStream.warnings;
             return metaHeaderDataSet;
         }
