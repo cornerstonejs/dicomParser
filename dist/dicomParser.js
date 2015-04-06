@@ -1,4 +1,4 @@
-/*! dicom-parser - v0.8.3 - 2015-02-26 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.0.0 - 2015-04-06 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1408,7 +1408,7 @@ var dicomParser = (function (dicomParser)
         // Read fragments until we reach endOfFrame
         var fragments = [];
         var bufferSize = 0;
-        while(byteStream.position < endOfFrame) {
+        while(byteStream.position < endOfFrame && byteStream.position < byteStream.length) {
             var fragment = dicomParser.readSequenceItem(byteStream);
             // NOTE: we only encounter this for the sequence delimiter tag when extracting the last frame
             if(fragment.tag === 'xfffee0dd') {

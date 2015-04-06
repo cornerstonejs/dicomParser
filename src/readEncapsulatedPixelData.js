@@ -35,7 +35,7 @@ var dicomParser = (function (dicomParser)
         // Read fragments until we reach endOfFrame
         var fragments = [];
         var bufferSize = 0;
-        while(byteStream.position < endOfFrame) {
+        while(byteStream.position < endOfFrame && byteStream.position < byteStream.length) {
             var fragment = dicomParser.readSequenceItem(byteStream);
             // NOTE: we only encounter this for the sequence delimiter tag when extracting the last frame
             if(fragment.tag === 'xfffee0dd') {
