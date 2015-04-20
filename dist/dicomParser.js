@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.0.1 - 2015-04-06 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.0.1 - 2015-04-20 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1179,6 +1179,9 @@ var dicomParser = (function (dicomParser)
             if(element.tag === options.untilTag) {
                 return;
             }
+        }
+        if(byteStream.position > maxPosition) {
+            throw "dicomParser:parseDicomDataSetExplicit: buffer overrun";
         }
     };
 

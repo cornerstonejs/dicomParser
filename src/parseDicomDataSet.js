@@ -39,6 +39,9 @@ var dicomParser = (function (dicomParser)
                 return;
             }
         }
+        if(byteStream.position > maxPosition) {
+            throw "dicomParser:parseDicomDataSetExplicit: buffer overrun";
+        }
     };
 
     /**
