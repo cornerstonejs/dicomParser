@@ -22,64 +22,65 @@
 <body>
 <div class="container">
 
-    <div class="page-header">
+    <div>
         <h1>DICOM Dump with Data Dictionary</h1>
         <p class="lead">
             DICOM files dropped here are not uploaded anywhere, all processing
             is done inside your web browser in Javascript.
         </p>
+        <form class="form-inline">
+            <div class="form-group">
+                <label for="maxLength">Max Length</label>
+                <input type="text" class="form-control" id="maxLength" placeholder="(e.g. 128)" value="128">
+            </div>
+            <div class="form-group">
+                <label for="untilTag">Until Tag</label>
+                <input type="text" class="form-control" id="untilTag" placeholder="(e.g. x7fe00010)">
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="privateElements" type="checkbox"> Private Elements
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="p10Header" type="checkbox"> P10 Header
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="emptyValues" type="checkbox"> Empty Values
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="length" type="checkbox"> Length
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="vr" type="checkbox"> VR
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="groupElement" type="checkbox"> Group/Element
+                </label>
+            </div>
+        </form>
+        <div id="status" class="alert alert-success">
+            <div id="statusText">
+                Status: Ready (no file loaded)
+            </div>
+            <ul id="warnings">
+
+            </ul>
+        </div>
     </div>
 
-    <form class="form-inline">
-        <div class="form-group">
-            <label for="maxLength">Max Length</label>
-            <input type="text" class="form-control" id="maxLength" placeholder="(e.g. 128)" value="128">
-        </div>
-        <div class="form-group">
-            <label for="untilTag">Until Tag</label>
-            <input type="text" class="form-control" id="untilTag" placeholder="(e.g. x7fe00010)">
-        </div>
-        <div class="checkbox">
-            <label>
-                <input id="privateElements" type="checkbox"> Private Elements
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input id="p10Header" type="checkbox"> P10 Header
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input id="emptyValues" type="checkbox"> Empty Values
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input id="length" type="checkbox"> Length
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input id="vr" type="checkbox"> VR
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input id="groupElement" type="checkbox"> Group/Element
-            </label>
-        </div>
-    </form>
 
 
-    <div id="status" class="alert alert-success">
-        <div id="statusText">
-            Status: Ready (no file loaded)
-        </div>
-        <ul id="warnings">
 
-        </ul>
-    </div>
 
     <div class="row">
         <div class="col-md-12">
