@@ -25,15 +25,51 @@
     <div class="page-header">
         <h1>DICOM Dump with Data Dictionary</h1>
         <p class="lead">
-            Drag and drop a DICOM Part 10 file into the light gray region below for a dump of its elements.
-        </p>
-        <p>
-            This example illustrates how to recursively iterate over a parsed data set to dump all data elements
-            into a tree like structure using a data dictionary.  Note that DICOM files dropped here are not uploaded anywhere, all processing
+            DICOM files dropped here are not uploaded anywhere, all processing
             is done inside your web browser in Javascript.
         </p>
-        <strong>Use of this example require IE10+ or any other modern browser.</strong>
     </div>
+
+    <form class="form-inline">
+        <div class="form-group">
+            <label for="maxLength">Max Length</label>
+            <input type="text" class="form-control" id="maxLength" placeholder="(e.g. 128)" value="128">
+        </div>
+        <div class="form-group">
+            <label for="untilTag">Until Tag</label>
+            <input type="text" class="form-control" id="untilTag" placeholder="(e.g. x7fe00010)">
+        </div>
+        <div class="checkbox">
+            <label>
+                <input id="privateElements" type="checkbox"> Private Elements
+            </label>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input id="p10Header" type="checkbox"> P10 Header
+            </label>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input id="emptyValues" type="checkbox"> Empty Values
+            </label>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input id="length" type="checkbox"> Length
+            </label>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input id="vr" type="checkbox"> VR
+            </label>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input id="groupElement" type="checkbox"> Group/Element
+            </label>
+        </div>
+    </form>
 
 
     <div id="status" class="alert alert-success">
@@ -70,6 +106,16 @@
 
 <script>
 
+var maxLength = 128;
+var untilTag = "";
+var showPrivateElements = false;
+var showP10Header = false;
+var showEmptyValues = false;
+var showLength = false;
+var showVR = false;
+var showGroupElement = false;
+var file = undefined;
+
 // helper function to see if a string only has ascii characters in it
 function isASCII(str) {
     return /^[\x00-\x7F]*$/.test(str);
@@ -99,7 +145,17 @@ function dumpDataSet(dataSet, output)
         for(var propertyName in dataSet.elements) {
             var element = dataSet.elements[propertyName];
 
+            if(showP10Header === false && element.tag <= "x0002ffff") {
+                continue;
+            }
+            if(showPrivateElements === false && dicomParser.isPrivateTag(element.tag)) {
+                continue;
+            }
+            if(showEmptyValues === false && element.length <= 0) {
+                continue;
+            }
             var text = "";
+            var title = "";
 
             var color = 'black';
 
@@ -108,32 +164,59 @@ function dumpDataSet(dataSet, output)
             // implicit transfer syntaxes
             if (tag === undefined) {
                 text += element.tag;
-                text += "; length=" + element.length;
 
+                var lengthText = "length=" + element.length;
                 if (element.hadUndefinedLength) {
-                    text += " <strong>(-1)</strong>";
+                    lengthText += " <strong>(-1)</strong>";
+                }
+                if(showLength === true) {
+                    text += "; " + lengthText;
                 }
 
+                title += lengthText;
+
+                var vrText = "";
                 if (element.vr) {
-                    text += " VR=" + element.vr + "; ";
+                    vrText += "VR=" + element.vr;
                 }
+
+                if(showVR) {
+                    text += "; " + vrText;
+                }
+                title += "; " + vrText;
 
                 // make text lighter since this is an unknown attribute
                 color = '#C8C8C8';
             }
             else {
                 text += tag.name;
-                text += "(" + element.tag + ") :";
-
-                text += " length=" + element.length;
-
-                if (element.hadUndefinedLength) {
-                    text += " <strong>(-1)</strong>";
+                if(showGroupElement === true) {
+                    text += "(" + element.tag + ")";
                 }
-                text += "; ";
+                text += " : ";
 
+                title += "(" + element.tag + ")";
+
+                var lengthText = " length=" + element.length;
+                if (element.hadUndefinedLength) {
+                    lengthText += " <strong>(-1)</strong>";
+                }
+
+                if(showLength === true) {
+                    text += lengthText + "; ";
+                }
+                title += "; " + lengthText;
+
+                var vrText = "";
+                if (element.vr) {
+                    vrText += "VR=" + element.vr;
+                }
+
+                if(showVR) {
+                    text += vrText + "; ";
+                }
+                title +="; " + vrText;
             }
-
 
             // Here we check for Sequence items and iterate over them if present.  items will not be set in the
             // element object for elements that don't have SQ VR type.  Note that implicit little endian
@@ -184,7 +267,7 @@ function dumpDataSet(dataSet, output)
 
                 // if the length of the element is less than 128 we try to show it.  We put this check in
                 // to avoid displaying large strings which makes it harder to use.
-                if (element.length < 128) {
+                if (element.length < maxLength) {
                     // Since the dataset might be encoded using implicit transfer syntax and we aren't using
                     // a data dictionary, we need some simple logic to figure out what data types these
                     // elements might be.  Since the dataset might also be explicit we could be switch on the
@@ -316,7 +399,7 @@ function dumpDataSet(dataSet, output)
                 }
                 // finally we add the string to our output array surrounded by li elements so it shows up in the
                 // DOM as a list
-                output.push('<li style="color:' + color + ';">' + text + '</li>');
+                output.push('<li style="color:' + color + ';" title="' + title + '">' + text + '</li>');
 
             }
         }
@@ -329,9 +412,34 @@ function dumpDataSet(dataSet, output)
     }
 }
 
+function updateFilter() {
+    console.log('updateFilter');
+    maxLength = parseInt($("#maxLength").val());
+    untilTag = $('#untilTag').val();
+    showPrivateElements = $('#privateElements').prop('checked');
+    showP10Header = $('#p10Header').prop('checked');
+    showEmptyValues = $('#emptyValues').prop('checked');
+    showLength = $('#length').prop('checked');
+    showVR = $('#vr').prop('checked');
+    showGroupElement = $('#groupElement').prop('checked');
+    dumpFile();
+}
+
+$('#maxLength').change(updateFilter);
+$('#untilTag').change(updateFilter);
+$('#privateElements').change(updateFilter);
+$('#p10Header').change(updateFilter);
+$('#emptyValues').change(updateFilter);
+$('#length').change(updateFilter);
+$('#vr').change(updateFilter);
+$('#groupElement').change(updateFilter);
+
 // This function will read the file into memory and then start dumping it
-function dumpFile(file)
+function dumpFile()
 {
+    if(file === undefined) {
+        return;
+    }
     // clear any data currently being displayed as we parse this next file
     document.getElementById('dropZone').innerHTML = '';
     $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
@@ -355,7 +463,10 @@ function dumpFile(file)
             var dataSet;
             try {
                 var start = new Date().getTime();
-                dataSet = dicomParser.parseDicom(byteArray);
+                var options = {
+                    untilTag: untilTag
+                };
+                dataSet = dicomParser.parseDicom(byteArray, options);
                 // Here we call dumpDataSet to recursively iterate through the DataSet and create an array
                 // of strings of the contents.
                 var output = [];
@@ -423,7 +534,8 @@ function handleFileSelect(evt) {
     var files = evt.dataTransfer.files;
 
     // this UI is only built for a single file so just dump the first one
-    dumpFile(files[0]);
+    file = files[0]
+    dumpFile();
 }
 
 function handleDragOver(evt) {
