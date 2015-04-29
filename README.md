@@ -11,6 +11,12 @@ The best way to see the power of this library is to actually see it in use.  A n
 included that are not only useful but also show how to use dicomParser.
 [Click here for a list of all live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
 
+Community
+---------
+
+Have questions?  Try posting on our [google groups forum](https://groups.google.com/forum/#!forum/cornerstone-platform).
+
+
 Install
 -------
 
@@ -32,7 +38,7 @@ Or install via atmosphere for [Meteor](https://www.meteor.com/) applications
 > meteor add chafey:dicom-parser
 
 Usage
--------
+-----
 
 ```
 // create a Uint8Array with the contents of the DICOM P10 byte stream
@@ -40,21 +46,23 @@ Usage
 var arrayBuffer = new ArrayBuffer(bufferSize);
 var byteArray = new Uint8Array(arrayBuffer);
 
-// Parse the byte array to get a DataSet object that has the parsed contents
 try
 {
+   // Parse the byte array to get a DataSet object that has the parsed contents
     var dataSet = dicomParser.parseDicom(byteArray);
 
-    // access elements by tag
+    // access a string element
     var sopInstanceUid = dataSet.string('x0020000d');
-    // access 16 bit unsigned pixel data for single frame sop instance
-    // NOTE: use Uint8Array for for 8 bit gray data and Int16Array for 16 bit signed data
-    var pixelData = new Uint16Array(dataSet.byteArray.buffer, dataSet.elements.x7fe00010.dataOffset);
+
+    // get the pixel data element (contains the offset and length of the data)
+    var pixelDataElement = dataSet.elements.x7fe00010;
+
+    // create a typed array on the pixel data (this example assumes 16 bit unsigned data)
+    var pixelData = new Uint16Array(dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
 }
-catch(err)
+catch(ex)
 {
-   // catch parse errors
-   console.log('Error parsing byte stream' - err);
+   console.log('Error parsing byte stream' - ex);
 }
 ```
 
@@ -89,8 +97,9 @@ Key Features
 * Convenient utility function to create a string version of an explicit element
 * Convenient utility function to convert a parsed explicit dataSet into a javascript object
 * Supports reading incomplete/partial byte streams
-  * By specifying a tag to stop reading at
-  * By returning the elements parsed so far in the exception thrown during a parse error
+  * By specifying a tag to stop reading at (e.g. parseDicom(byteArray, {untilTag: "x7fe00010"}); )
+  * By returning the elements parsed so far in the exception thrown during a parse error (the elements parsed will be
+    in the dataSet property of the exception)
 
 Build System
 ============
@@ -139,9 +148,10 @@ Future:
 * Support for parsing from streams on Node.js and Meteor
 * Switch to JavaScript ES6
 * Separate the parsing logic from the dataSet creation logic (e.g. parsing generates events
-  which dataSet creation logic creates the dataSet from)
+  which dataSet creation logic creates the dataSet from).  Similar concept to SAX parsers.
   * dataSet creation logic could filter out unwanted tags to improve performance of parse
   * dataSet creation logic could defer creation of sequence dataSets to improve performance of parse
+* Function to parse non P10 byte streams given the byte stream and the transfer syntax
 
 Contributors
 ============================================
