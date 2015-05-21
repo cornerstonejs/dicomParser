@@ -20,6 +20,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "main": "dist/dicomParser.js",
   "devDependencies": {
     "grunt-contrib-copy": "0.4.x",
     "grunt-contrib-qunit": "^0.4.0",
