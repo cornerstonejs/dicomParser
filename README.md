@@ -160,6 +160,7 @@ Contributors
 * @ggerade for implementing support for floats/doubles with VM > 1
 * @bryan-cool for bug fix related to parsing implicit little endian files and big endian support
 * @snagytx, @doncharkowsky - for bug fix related to reading encapsulated frames
+* @bbunderson, @jpambrun - bug fix for reading encapsulated frames
 
 Why another Javascript DICOM parsing library?
 ============================================
