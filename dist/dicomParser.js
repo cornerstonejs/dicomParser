@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.1.0 - 2015-07-10 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.1.0 - 2015-07-20 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -10,7 +10,7 @@
         define([], factory);
     } else {
         // Browser globals
-        if(dicomParser === undefined) {
+        if(typeof cornerstone === 'undefined'){
             dicomParser = {};
 
             // meteor
@@ -609,9 +609,6 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
-
-    return dicomParser;
-}));
 
 /**
  * Internal helper functions for parsing different types from a big-endian byte array
@@ -2108,3 +2105,5 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+    return dicomParser;
+}));

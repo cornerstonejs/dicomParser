@@ -9,7 +9,7 @@
         define([], factory);
     } else {
         // Browser globals
-        if(dicomParser === undefined) {
+        if(typeof cornerstone === 'undefined'){
             dicomParser = {};
 
             // meteor
