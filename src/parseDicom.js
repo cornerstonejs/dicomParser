@@ -1,36 +1,3 @@
-/**
- * This module contains the entry point for parsing a DICOM P10 byte stream
- *
- * This module exports itself as both an AMD module for use with AMD loaders as well
- * as a global browser variable when AMD modules are not being used.  See the following:
- *
- * https://github.com/umdjs/umd/blob/master/amdWeb.js
- *
- */
-
-(function (root, factory) {
-
-    // node.js
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = factory();
-    }
-    else if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], factory);
-    } else {
-        // Browser globals
-        if(dicomParser === undefined) {
-            dicomParser = {};
-
-            // meteor
-            if (typeof Package !== 'undefined') {
-                root.dicomParser = dicomParser;
-            }
-        }
-        dicomParser = factory();
-    }
-}(this, function () {
-
     /**
      * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
      * argument is supplied and it contains the untilTag property, parsing will stop once that
@@ -42,7 +9,13 @@
      * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
      *         elements successfully parsed before the error.
      */
-     function parseDicom(byteArray, options) {
+var dicomParser = (function(dicomParser) {
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
+    }
+
+    dicomParser.parseDicom = function(byteArray, options) {
 
         if(byteArray === undefined)
         {
@@ -171,17 +144,7 @@
 
         // This is where we actually start parsing
         return parseTheByteStream();
-    }
+    };
 
-    if(dicomParser === undefined) {
-        // this happens in the AMD case
-        return {
-            parseDicom: parseDicom
-        };
-    }
-    else {
-        // this is the browser global var case
-        dicomParser.parseDicom = parseDicom;
-        return dicomParser;
-    }
-}));
+    return dicomParser;
+})(dicomParser);

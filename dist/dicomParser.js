@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.0.2 - 2015-05-30 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.1.0 - 2015-07-20 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -10,7 +10,7 @@
         define([], factory);
     } else {
         // Browser globals
-        if(dicomParser === undefined) {
+        if(typeof cornerstone === 'undefined'){
             dicomParser = {};
 
             // meteor
@@ -33,7 +33,13 @@
      * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
      *         elements successfully parsed before the error.
      */
-     function parseDicom(byteArray, options) {
+var dicomParser = (function(dicomParser) {
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
+    }
+
+    dicomParser.parseDicom = function(byteArray, options) {
 
         if(byteArray === undefined)
         {
@@ -162,20 +168,447 @@
 
         // This is where we actually start parsing
         return parseTheByteStream();
+    };
+
+    return dicomParser;
+})(dicomParser);
+
+var dicomParser = (function (dicomParser) {
+    "use strict";
+
+    if (dicomParser === undefined) {
+        dicomParser = {};
     }
 
-    if(dicomParser === undefined) {
-        // this happens in the AMD case
-        return {
-            parseDicom: parseDicom
+    /**
+     * converts an explicit dataSet to a javascript object
+     * @param dataSet
+     * @param options
+     */
+    dicomParser.explicitDataSetToJS = function (dataSet, options) {
+
+        if(dataSet === undefined) {
+            throw 'dicomParser.explicitDataSetToJS: missing required parameter dataSet';
+        }
+
+        options = options || {
+            omitPrivateAttibutes: true, // true if private elements should be omitted
+            maxElementLength : 128      // maximum element length to try and convert to string format
         };
+
+        var result = {
+
+        };
+
+        for(var tag in dataSet.elements) {
+            var element = dataSet.elements[tag];
+
+            // skip this element if it a private element and our options specify that we should
+            if(options.omitPrivateAttibutes === true && dicomParser.isPrivateTag(tag))
+            {
+                continue;
+            }
+
+            if(element.items) {
+                // handle sequences
+                var sequenceItems = [];
+                for(var i=0; i < element.items.length; i++) {
+                    sequenceItems.push(dicomParser.explicitDataSetToJS(element.items[i].dataSet, options));
+                }
+                result[tag] = sequenceItems;
+            } else {
+                var asString;
+                asString = undefined;
+                if(element.length < options.maxElementLength) {
+                    asString = dicomParser.explicitElementToString(dataSet, element);
+                }
+
+                if(asString !== undefined) {
+                    result[tag] = asString;
+                }  else {
+                    result[tag] = {
+                        dataOffset: element.dataOffset,
+                        length : element.length
+                    };
+                }
+            }
+        }
+
+        return result;
+    };
+
+
+    return dicomParser;
+}(dicomParser));
+var dicomParser = (function (dicomParser) {
+    "use strict";
+
+    if (dicomParser === undefined) {
+        dicomParser = {};
     }
-    else {
-        // this is the browser global var case
-        dicomParser.parseDicom = parseDicom;
-        return dicomParser;
+
+    /**
+     * Converts an explicit VR element to a string or undefined if it is not possible to convert.
+     * Throws an error if an implicit element is supplied
+     * @param dataSet
+     * @param element
+     * @returns {*}
+     */
+    dicomParser.explicitElementToString = function(dataSet, element)
+    {
+        if(dataSet === undefined || element === undefined) {
+            throw 'dicomParser.explicitElementToString: missing required parameters';
+        }
+        if(element.vr === undefined) {
+            throw 'dicomParser.explicitElementToString: cannot convert implicit element to string';
+        }
+        var vr = element.vr;
+        var tag = element.tag;
+
+        var textResult;
+
+        function multiElementToString(numItems, func) {
+            var result = "";
+            for(var i=0; i < numItems; i++) {
+                if(i !== 0) {
+                    result += '/';
+                }
+                result += func.call(dataSet, tag).toString();
+            }
+            return result;
+        }
+
+        if(dicomParser.isStringVr(vr) === true)
+        {
+            textResult = dataSet.string(tag);
+        }
+        else if (vr == 'AT') {
+            var num = dataSet.uint32(tag);
+            if(num === undefined) {
+                return undefined;
+            }
+            if (num < 0)
+            {
+                num = 0xFFFFFFFF + num + 1;
+            }
+
+            return 'x' + num.toString(16).toUpperCase();
+        }
+        else if (vr == 'US')
+        {
+            textResult = multiElementToString(element.length / 2, dataSet.uint16);
+        }
+        else if(vr === 'SS')
+        {
+            textResult = multiElementToString(element.length / 2, dataSet.int16);
+        }
+        else if (vr == 'UL')
+        {
+            textResult = multiElementToString(element.length / 4, dataSet.uint32);
+        }
+        else if(vr === 'SL')
+        {
+            textResult = multiElementToString(element.length / 4, dataSet.int32);
+        }
+        else if(vr == 'FD')
+        {
+            textResult = multiElementToString(element.length / 8, dataSet.int32);
+        }
+        else if(vr == 'FL')
+        {
+            textResult = multiElementToString(element.length / 4, dataSet.float);
+        }
+
+        return textResult;
+    };
+    return dicomParser;
+}(dicomParser));
+/**
+ * Utility functions for dealing with DICOM
+ */
+
+var dicomParser = (function (dicomParser)
+{
+    "use strict";
+
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
     }
-}));
+
+    var stringVrs = {
+        AE: true,
+        AS: true,
+        AT: false,
+        CS: true,
+        DA: true,
+        DS: true,
+        DT: true,
+        FL: false,
+        FD: false,
+        IS: true,
+        LO: true,
+        LT: true,
+        OB: false,
+        OD: false,
+        OF: false,
+        OW: false,
+        PN: true,
+        SH: true,
+        SL: false,
+        SQ: false,
+        SS: false,
+        ST: true,
+        TM: true,
+        UI: true,
+        UL: false,
+        UN: undefined, // dunno
+        UR: true,
+        US: false,
+        UT: true
+    };
+
+    /**
+     * Tests to see if vr is a string or not.
+     * @param vr
+     * @returns true if string, false it not string, undefined if unknown vr or UN type
+     */
+    dicomParser.isStringVr = function(vr)
+    {
+        return stringVrs[vr];
+    };
+
+    /**
+     * Tests to see if a given tag in the format xggggeeee is a private tag or not
+     * @param tag
+     * @returns {boolean}
+     */
+    dicomParser.isPrivateTag = function(tag)
+    {
+        var lastGroupDigit = parseInt(tag[4]);
+        var groupIsOdd = (lastGroupDigit % 2) === 1;
+        return groupIsOdd;
+    };
+
+    /**
+     * Parses a PN formatted string into a javascript object with properties for givenName, familyName, middleName, prefix and suffix
+     * @param personName a string in the PN VR format
+     * @param index
+     * @returns {*} javascript object with properties for givenName, familyName, middleName, prefix and suffix or undefined if no element or data
+     */
+    dicomParser.parsePN = function(personName) {
+        if(personName === undefined) {
+            return undefined;
+        }
+        var stringValues = personName.split('^');
+        return {
+            familyName: stringValues[0],
+            givenName: stringValues[1],
+            middleName: stringValues[2],
+            prefix: stringValues[3],
+            suffix: stringValues[4]
+        };
+    };
+
+    /**
+     * Parses a DA formatted string into a Javascript object
+     * @param date a string in the DA VR format
+     * @returns {*} Javascript object with properties year, month and day or undefined if not present or not 8 bytes long
+     */
+    dicomParser.parseDA = function(date)
+    {
+        if(date && date.length === 8)
+        {
+            var yyyy = parseInt(date.substring(0, 4), 10);
+            var mm = parseInt(date.substring(4, 6), 10);
+            var dd = parseInt(date.substring(6, 8), 10);
+
+            return {
+                year: yyyy,
+                month: mm,
+                day: dd
+            };
+        }
+        return undefined;
+    };
+
+    /**
+     * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and fractionalSeconds
+     * @param time a string in the TM VR format
+     * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data.  Missing fields are set to undefined
+     */
+    dicomParser.parseTM = function(time) {
+
+        if (time.length >= 2) // must at least have HH
+        {
+            // 0123456789
+            // HHMMSS.FFFFFF
+            var hh = parseInt(time.substring(0, 2), 10);
+            var mm = time.length >= 4 ? parseInt(time.substring(2, 4), 10) : undefined;
+            var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : undefined;
+            var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : undefined;
+
+            return {
+                hours: hh,
+                minutes: mm,
+                seconds: ss,
+                fractionalSeconds: ffffff
+            };
+        }
+        return undefined;
+    };
+
+    return dicomParser;
+}(dicomParser));
+/**
+ * Functionality for extracting encapsulated pixel data
+ */
+
+var dicomParser = (function (dicomParser)
+{
+    "use strict";
+
+    if(dicomParser === undefined)
+    {
+        dicomParser = {};
+    }
+
+    function getPixelDataFromFragments(byteStream, fragments, bufferSize)
+    {
+        // if there is only one fragment, return a view on this array to avoid copying
+        if(fragments.length === 1) {
+            return new Uint8Array(byteStream.byteArray.buffer, fragments[0].dataOffset, fragments[0].length);
+        }
+
+        // more than one fragment, combine all of the fragments into one buffer
+        var pixelData = new Uint8Array(bufferSize);
+        var pixelDataIndex = 0;
+        for(var i=0; i < fragments.length; i++) {
+            var fragmentOffset = fragments[i].dataOffset;
+            for(var j=0; j < fragments[i].length; j++) {
+                pixelData[pixelDataIndex++] = byteStream.byteArray[fragmentOffset++];
+            }
+        }
+
+        return pixelData;
+    }
+
+    function readFragmentsUntil(byteStream, endOfFrame) {
+        // Read fragments until we reach endOfFrame
+        var fragments = [];
+        var bufferSize = 0;
+        while(byteStream.position < endOfFrame && byteStream.position < byteStream.byteArray.length) {
+            var fragment = dicomParser.readSequenceItem(byteStream);
+            // NOTE: we only encounter this for the sequence delimiter tag when extracting the last frame
+            if(fragment.tag === 'xfffee0dd') {
+                break;
+            }
+            fragments.push(fragment);
+            byteStream.seek(fragment.length);
+            bufferSize += fragment.length;
+        }
+
+        // Convert the fragments into a single pixelData buffer
+        var pixelData = getPixelDataFromFragments(byteStream, fragments, bufferSize);
+        return pixelData;
+    }
+
+    function readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame) {
+        //  validate that we have an offset for this frame
+        var numFrames = pixelDataElement.basicOffsetTable.length;
+        if(frame > numFrames) {
+            throw "dicomParser.readEncapsulatedPixelData: parameter frame exceeds number of frames in basic offset table";
+        }
+
+        // move to the start of this frame
+        var frameOffset = pixelDataElement.basicOffsetTable[frame];
+        byteStream.seek(frameOffset);
+
+        // Find the end of this frame
+        var endOfFrameOffset = pixelDataElement.basicOffsetTable[frame + 1];
+        if(endOfFrameOffset === undefined) { // special case for last frame
+            endOfFrameOffset = byteStream.position + pixelDataElement.length;
+        }
+
+        // read this frame
+        var pixelData = readFragmentsUntil(byteStream, endOfFrameOffset);
+        return pixelData;
+    }
+
+    function readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame) {
+        // if the basic offset table is empty, this is a single frame so make sure the requested
+        // frame is 0
+        if(frame !== 0) {
+            throw 'dicomParser.readEncapsulatedPixelData: non zero frame specified for single frame encapsulated pixel data';
+        }
+
+        // read this frame
+        var endOfFrame = byteStream.position + pixelDataElement.length;
+        var pixelData = readFragmentsUntil(byteStream, endOfFrame);
+        return pixelData;
+    }
+
+    /**
+     * Returns the pixel data for the specified frame in an encapsulated pixel data element
+     *
+     * @param dataSet - the dataSet containing the encapsulated pixel data
+     * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
+     * @param frame - the zero based frame index
+     * @returns Uint8Array with the encapsulated pixel data
+     */
+    dicomParser.readEncapsulatedPixelData = function(dataSet, pixelDataElement, frame)
+    {
+        if(dataSet === undefined) {
+            throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'dataSet'";
+        }
+        if(pixelDataElement === undefined) {
+            throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'element'";
+        }
+        if(frame === undefined) {
+            throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'frame'";
+        }
+        if(pixelDataElement.tag !== 'x7fe00010') {
+            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to non pixel data tag (expected tag = x7fe00010'";
+        }
+        if(pixelDataElement.encapsulatedPixelData !== true) {
+            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
+        }
+        if(pixelDataElement.hadUndefinedLength !== true) {
+            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
+        }
+        if(pixelDataElement.basicOffsetTable === undefined) {
+            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
+        }
+        if(pixelDataElement.fragments === undefined) {
+            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
+        }
+        if(frame < 0) {
+            throw "dicomParser.readEncapsulatedPixelData: parameter 'frame' must be >= 0";
+        }
+
+        // seek past the basic offset table (no need to parse it again since we already have)
+        var byteStream = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelDataElement.dataOffset);
+        var basicOffsetTable = dicomParser.readSequenceItem(byteStream);
+        if(basicOffsetTable.tag !== 'xfffee000')
+        {
+            throw "dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000";
+        }
+        byteStream.seek(basicOffsetTable.length);
+
+        // If the basic offset table is empty (no entries), it is a single frame.  If it is not empty,
+        // it has at least one frame so use the basic offset table to find the bytes
+        if(pixelDataElement.basicOffsetTable.length !== 0)
+        {
+            return readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame);
+        }
+        else
+        {
+            return readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame);
+        }
+    };
+
+    return dicomParser;
+}(dicomParser));
 
 /**
  * Internal helper functions for parsing different types from a big-endian byte array
@@ -1375,156 +1808,6 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
- * Functionality for extracting encapsulated pixel data
- */
-
-var dicomParser = (function (dicomParser)
-{
-    "use strict";
-
-    if(dicomParser === undefined)
-    {
-        dicomParser = {};
-    }
-
-    function getPixelDataFromFragments(byteStream, fragments, bufferSize)
-    {
-        // if there is only one fragment, return a view on this array to avoid copying
-        if(fragments.length === 1) {
-            return new Uint8Array(byteStream.byteArray.buffer, fragments[0].dataOffset, fragments[0].length);
-        }
-
-        // more than one fragment, combine all of the fragments into one buffer
-        var pixelData = new Uint8Array(bufferSize);
-        var pixelDataIndex = 0;
-        for(var i=0; i < fragments.length; i++) {
-            var fragmentOffset = fragments[i].dataOffset;
-            for(var j=0; j < fragments[i].length; j++) {
-                pixelData[pixelDataIndex++] = byteStream.byteArray[fragmentOffset++];
-            }
-        }
-
-        return pixelData;
-    }
-
-    function readFragmentsUntil(byteStream, endOfFrame) {
-        // Read fragments until we reach endOfFrame
-        var fragments = [];
-        var bufferSize = 0;
-        while(byteStream.position < endOfFrame && byteStream.position < byteStream.byteArray.length) {
-            var fragment = dicomParser.readSequenceItem(byteStream);
-            // NOTE: we only encounter this for the sequence delimiter tag when extracting the last frame
-            if(fragment.tag === 'xfffee0dd') {
-                break;
-            }
-            fragments.push(fragment);
-            byteStream.seek(fragment.length);
-            bufferSize += fragment.length;
-        }
-
-        // Convert the fragments into a single pixelData buffer
-        var pixelData = getPixelDataFromFragments(byteStream, fragments, bufferSize);
-        return pixelData;
-    }
-
-    function readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        //  validate that we have an offset for this frame
-        var numFrames = pixelDataElement.basicOffsetTable.length;
-        if(frame > numFrames) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter frame exceeds number of frames in basic offset table";
-        }
-
-        // move to the start of this frame
-        var frameOffset = pixelDataElement.basicOffsetTable[frame];
-        byteStream.seek(frameOffset);
-
-        // Find the end of this frame
-        var endOfFrameOffset = pixelDataElement.basicOffsetTable[frame + 1];
-        if(endOfFrameOffset === undefined) { // special case for last frame
-            endOfFrameOffset = byteStream.position + pixelDataElement.length;
-        }
-
-        // read this frame
-        var pixelData = readFragmentsUntil(byteStream, endOfFrameOffset);
-        return pixelData;
-    }
-
-    function readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        // if the basic offset table is empty, this is a single frame so make sure the requested
-        // frame is 0
-        if(frame !== 0) {
-            throw 'dicomParser.readEncapsulatedPixelData: non zero frame specified for single frame encapsulated pixel data';
-        }
-
-        // read this frame
-        var endOfFrame = byteStream.position + pixelDataElement.length;
-        var pixelData = readFragmentsUntil(byteStream, endOfFrame);
-        return pixelData;
-    }
-
-    /**
-     * Returns the pixel data for the specified frame in an encapsulated pixel data element
-     *
-     * @param dataSet - the dataSet containing the encapsulated pixel data
-     * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
-     * @param frame - the zero based frame index
-     * @returns Uint8Array with the encapsulated pixel data
-     */
-    dicomParser.readEncapsulatedPixelData = function(dataSet, pixelDataElement, frame)
-    {
-        if(dataSet === undefined) {
-            throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'dataSet'";
-        }
-        if(pixelDataElement === undefined) {
-            throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'element'";
-        }
-        if(frame === undefined) {
-            throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'frame'";
-        }
-        if(pixelDataElement.tag !== 'x7fe00010') {
-            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to non pixel data tag (expected tag = x7fe00010'";
-        }
-        if(pixelDataElement.encapsulatedPixelData !== true) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
-        }
-        if(pixelDataElement.hadUndefinedLength !== true) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
-        }
-        if(pixelDataElement.basicOffsetTable === undefined) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
-        }
-        if(pixelDataElement.fragments === undefined) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter 'element' refers to pixel data element that does not have encapsulated pixel data";
-        }
-        if(frame < 0) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter 'frame' must be >= 0";
-        }
-
-        // seek past the basic offset table (no need to parse it again since we already have)
-        var byteStream = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelDataElement.dataOffset);
-        var basicOffsetTable = dicomParser.readSequenceItem(byteStream);
-        if(basicOffsetTable.tag !== 'xfffee000')
-        {
-            throw "dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000";
-        }
-        byteStream.seek(basicOffsetTable.length);
-
-        // If the basic offset table is empty (no entries), it is a single frame.  If it is not empty,
-        // it has at least one frame so use the basic offset table to find the bytes
-        if(pixelDataElement.basicOffsetTable.length !== 0)
-        {
-            return readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame);
-        }
-        else
-        {
-            return readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame);
-        }
-    };
-
-    return dicomParser;
-}(dicomParser));
-
-/**
  * Internal helper functions for parsing DICOM elements
  */
 
@@ -1822,290 +2105,5 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
-var dicomParser = (function (dicomParser) {
-    "use strict";
-
-    if (dicomParser === undefined) {
-        dicomParser = {};
-    }
-
-    /**
-     * converts an explicit dataSet to a javascript object
-     * @param dataSet
-     * @param options
-     */
-    dicomParser.explicitDataSetToJS = function (dataSet, options) {
-
-        if(dataSet === undefined) {
-            throw 'dicomParser.explicitDataSetToJS: missing required parameter dataSet';
-        }
-
-        options = options || {
-            omitPrivateAttibutes: true, // true if private elements should be omitted
-            maxElementLength : 128      // maximum element length to try and convert to string format
-        };
-
-        var result = {
-
-        };
-
-        for(var tag in dataSet.elements) {
-            var element = dataSet.elements[tag];
-
-            // skip this element if it a private element and our options specify that we should
-            if(options.omitPrivateAttibutes === true && dicomParser.isPrivateTag(tag))
-            {
-                continue;
-            }
-
-            if(element.items) {
-                // handle sequences
-                var sequenceItems = [];
-                for(var i=0; i < element.items.length; i++) {
-                    sequenceItems.push(dicomParser.explicitDataSetToJS(element.items[i].dataSet, options));
-                }
-                result[tag] = sequenceItems;
-            } else {
-                var asString;
-                asString = undefined;
-                if(element.length < options.maxElementLength) {
-                    asString = dicomParser.explicitElementToString(dataSet, element);
-                }
-
-                if(asString !== undefined) {
-                    result[tag] = asString;
-                }  else {
-                    result[tag] = {
-                        dataOffset: element.dataOffset,
-                        length : element.length
-                    };
-                }
-            }
-        }
-
-        return result;
-    };
-
-
     return dicomParser;
-}(dicomParser));
-var dicomParser = (function (dicomParser) {
-    "use strict";
-
-    if (dicomParser === undefined) {
-        dicomParser = {};
-    }
-
-    /**
-     * Converts an explicit VR element to a string or undefined if it is not possible to convert.
-     * Throws an error if an implicit element is supplied
-     * @param dataSet
-     * @param element
-     * @returns {*}
-     */
-    dicomParser.explicitElementToString = function(dataSet, element)
-    {
-        if(dataSet === undefined || element === undefined) {
-            throw 'dicomParser.explicitElementToString: missing required parameters';
-        }
-        if(element.vr === undefined) {
-            throw 'dicomParser.explicitElementToString: cannot convert implicit element to string';
-        }
-        var vr = element.vr;
-        var tag = element.tag;
-
-        var textResult;
-
-        function multiElementToString(numItems, func) {
-            var result = "";
-            for(var i=0; i < numItems; i++) {
-                if(i !== 0) {
-                    result += '/';
-                }
-                result += func.call(dataSet, tag).toString();
-            }
-            return result;
-        }
-
-        if(dicomParser.isStringVr(vr) === true)
-        {
-            textResult = dataSet.string(tag);
-        }
-        else if (vr == 'AT') {
-            var num = dataSet.uint32(tag);
-            if(num === undefined) {
-                return undefined;
-            }
-            if (num < 0)
-            {
-                num = 0xFFFFFFFF + num + 1;
-            }
-
-            return 'x' + num.toString(16).toUpperCase();
-        }
-        else if (vr == 'US')
-        {
-            textResult = multiElementToString(element.length / 2, dataSet.uint16);
-        }
-        else if(vr === 'SS')
-        {
-            textResult = multiElementToString(element.length / 2, dataSet.int16);
-        }
-        else if (vr == 'UL')
-        {
-            textResult = multiElementToString(element.length / 4, dataSet.uint32);
-        }
-        else if(vr === 'SL')
-        {
-            textResult = multiElementToString(element.length / 4, dataSet.int32);
-        }
-        else if(vr == 'FD')
-        {
-            textResult = multiElementToString(element.length / 8, dataSet.int32);
-        }
-        else if(vr == 'FL')
-        {
-            textResult = multiElementToString(element.length / 4, dataSet.float);
-        }
-
-        return textResult;
-    };
-    return dicomParser;
-}(dicomParser));
-/**
- * Utility functions for dealing with DICOM
- */
-
-var dicomParser = (function (dicomParser)
-{
-    "use strict";
-
-    if(dicomParser === undefined)
-    {
-        dicomParser = {};
-    }
-
-    var stringVrs = {
-        AE: true,
-        AS: true,
-        AT: false,
-        CS: true,
-        DA: true,
-        DS: true,
-        DT: true,
-        FL: false,
-        FD: false,
-        IS: true,
-        LO: true,
-        LT: true,
-        OB: false,
-        OD: false,
-        OF: false,
-        OW: false,
-        PN: true,
-        SH: true,
-        SL: false,
-        SQ: false,
-        SS: false,
-        ST: true,
-        TM: true,
-        UI: true,
-        UL: false,
-        UN: undefined, // dunno
-        UR: true,
-        US: false,
-        UT: true
-    };
-
-    /**
-     * Tests to see if vr is a string or not.
-     * @param vr
-     * @returns true if string, false it not string, undefined if unknown vr or UN type
-     */
-    dicomParser.isStringVr = function(vr)
-    {
-        return stringVrs[vr];
-    };
-
-    /**
-     * Tests to see if a given tag in the format xggggeeee is a private tag or not
-     * @param tag
-     * @returns {boolean}
-     */
-    dicomParser.isPrivateTag = function(tag)
-    {
-        var lastGroupDigit = parseInt(tag[4]);
-        var groupIsOdd = (lastGroupDigit % 2) === 1;
-        return groupIsOdd;
-    };
-
-    /**
-     * Parses a PN formatted string into a javascript object with properties for givenName, familyName, middleName, prefix and suffix
-     * @param personName a string in the PN VR format
-     * @param index
-     * @returns {*} javascript object with properties for givenName, familyName, middleName, prefix and suffix or undefined if no element or data
-     */
-    dicomParser.parsePN = function(personName) {
-        if(personName === undefined) {
-            return undefined;
-        }
-        var stringValues = personName.split('^');
-        return {
-            familyName: stringValues[0],
-            givenName: stringValues[1],
-            middleName: stringValues[2],
-            prefix: stringValues[3],
-            suffix: stringValues[4]
-        };
-    };
-
-    /**
-     * Parses a DA formatted string into a Javascript object
-     * @param date a string in the DA VR format
-     * @returns {*} Javascript object with properties year, month and day or undefined if not present or not 8 bytes long
-     */
-    dicomParser.parseDA = function(date)
-    {
-        if(date && date.length === 8)
-        {
-            var yyyy = parseInt(date.substring(0, 4), 10);
-            var mm = parseInt(date.substring(4, 6), 10);
-            var dd = parseInt(date.substring(6, 8), 10);
-
-            return {
-                year: yyyy,
-                month: mm,
-                day: dd
-            };
-        }
-        return undefined;
-    };
-
-    /**
-     * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and fractionalSeconds
-     * @param time a string in the TM VR format
-     * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data.  Missing fields are set to undefined
-     */
-    dicomParser.parseTM = function(time) {
-
-        if (time.length >= 2) // must at least have HH
-        {
-            // 0123456789
-            // HHMMSS.FFFFFF
-            var hh = parseInt(time.substring(0, 2), 10);
-            var mm = time.length >= 4 ? parseInt(time.substring(2, 4), 10) : undefined;
-            var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : undefined;
-            var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : undefined;
-
-            return {
-                hours: hh,
-                minutes: mm,
-                seconds: ss,
-                fractionalSeconds: ffffff
-            };
-        }
-        return undefined;
-    };
-
-    return dicomParser;
-}(dicomParser));
+}));
