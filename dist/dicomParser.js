@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.1.2 - 2015-08-03 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.1.3 - 2015-08-04 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1949,7 +1949,6 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
-              console.log('end of sequence item');
                 return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
         }

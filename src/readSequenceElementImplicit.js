@@ -24,7 +24,6 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
-              console.log('end of sequence item');
                 return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
         }
