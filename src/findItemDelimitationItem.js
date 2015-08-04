@@ -32,7 +32,7 @@ var dicomParser = (function (dicomParser)
             if(groupNumber === 0xfffe)
             {
                 var elementNumber = byteStream.readUint16();
-                if(elementNumber === 0xe00d)
+                if(elementNumber === 0xe00d || elementNumber === 0xe0dd)
                 {
                     // NOTE: It would be better to also check for the length to be 0 as part of the check above
                     // but we will just log a warning for now
@@ -42,7 +42,6 @@ var dicomParser = (function (dicomParser)
                     }
                     element.length = byteStream.position - element.dataOffset;
                     return;
-
                 }
             }
         }
