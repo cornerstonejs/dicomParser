@@ -161,6 +161,9 @@ Contributors
 * @bryan-cool for bug fix related to parsing implicit little endian files and big endian support
 * @snagytx, @doncharkowsky - for bug fix related to reading encapsulated frames
 * @bbunderson, @jpambrun - bug fix for reading encapsulated frames
+* @henryqdineen, adil.tiadi@gmail.com - bug report for sequences with undefined lengths and zero items
+* @swederik - bug fixes on sequences with undefined lengths and zero items
+
 
 Why another Javascript DICOM parsing library?
 ============================================
