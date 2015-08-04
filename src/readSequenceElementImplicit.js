@@ -24,6 +24,7 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
+              console.log('end of sequence item');
                 return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
         }
@@ -54,20 +55,19 @@ var dicomParser = (function (dicomParser)
     {
         while(byteStream.position < byteStream.byteArray.length)
         {
-            var item = readSequenceItemImplicit(byteStream);
-            element.items.push(item);
+          // end reading this sequence if the next tag is the sequence delimitation item
+          var nextTag = dicomParser.readTag(byteStream);
+          byteStream.seek(-4);
+          if (nextTag === 'xfffee0dd') {
+            // set the correct length
+            element.length = byteStream.position - element.dataOffset;
+            byteStream.seek(8);
+            return element;
+          }
 
-            // If this is the sequence delimitation item, return the offset of the next element
-            if(item.tag === 'xfffee0dd')
-            {
-                // sequence delimitation item, update attr data length and return
-                element.length = byteStream.position - element.dataOffset;
-                return;
-            }
+          var item = readSequenceItemImplicit(byteStream);
+          element.items.push(item);
         }
-
-        // eof encountered - log a warning and set the length of the element based on the buffer size
-        byteStream.warnings.push('eof encountered before finding sequence delimitation item in sequence of undefined length');
         element.length = byteStream.byteArray.length - element.dataOffset;
     }
 

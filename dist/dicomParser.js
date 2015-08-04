@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.1.0 - 2015-08-03 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.1.1 - 2015-08-03 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1373,7 +1373,7 @@ var dicomParser = (function (dicomParser)
             if(groupNumber === 0xfffe)
             {
                 var elementNumber = byteStream.readUint16();
-                if(elementNumber === 0xe00d || elementNumber === 0xe0dd)
+                if(elementNumber === 0xe00d)
                 {
                     // NOTE: It would be better to also check for the length to be 0 as part of the check above
                     // but we will just log a warning for now
@@ -1782,6 +1782,13 @@ var dicomParser = (function (dicomParser)
             var nextTag = dicomParser.readTag(byteStream);
             byteStream.seek(-4);
 
+            // zero length sequence
+            if (element.hadUndefinedLength && nextTag === 'xfffee0dd') {
+              element.length = 0;
+              byteStream.seek(8);
+              return element;
+            }
+
             if (nextTag === 'xfffee000') {
                 // parse the sequence
                 dicomParser.readSequenceItemsImplicit(byteStream, element);
@@ -1864,21 +1871,20 @@ var dicomParser = (function (dicomParser)
     {
         while(byteStream.position < byteStream.byteArray.length)
         {
+          // end reading this sequence if the next tag is the sequence delimitation item
+          var nextTag = dicomParser.readTag(byteStream);
+          byteStream.seek(-4);
+          if (nextTag === 'xfffee0dd') {
+            // set the correct length
+            element.length = byteStream.position - element.dataOffset;
+            byteStream.seek(8);
+            return element;
+          }
+
             var item = readSequenceItemExplicit(byteStream, warnings);
             element.items.push(item);
-
-            // If this is the sequence delimitation item, return the offset of the next element
-            if(item.tag === 'xfffee0dd')
-            {
-                // sequence delimitation item, update attr data length and return
-                element.length = byteStream.position - element.dataOffset;
-                return;
-            }
         }
-
-        // eof encountered - log a warning and set the length of the element based on the buffer size
-        byteStream.warnings.push('eof encountered before finding sequence delimitation item in sequence element of undefined length with tag ' + element.tag);
-        element.length = byteStream.byteArray.length - element.dataOffset;
+        element.length = byteStream.position - element.dataOffset;
     }
 
     function readSQElementKnownLengthExplicit(byteStream, element, warnings)
@@ -1943,6 +1949,7 @@ var dicomParser = (function (dicomParser)
             // the end of this sequence item
             if(element.tag === 'xfffee00d')
             {
+              console.log('end of sequence item');
                 return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
             }
         }
@@ -1973,20 +1980,19 @@ var dicomParser = (function (dicomParser)
     {
         while(byteStream.position < byteStream.byteArray.length)
         {
-            var item = readSequenceItemImplicit(byteStream);
-            element.items.push(item);
+          // end reading this sequence if the next tag is the sequence delimitation item
+          var nextTag = dicomParser.readTag(byteStream);
+          byteStream.seek(-4);
+          if (nextTag === 'xfffee0dd') {
+            // set the correct length
+            element.length = byteStream.position - element.dataOffset;
+            byteStream.seek(8);
+            return element;
+          }
 
-            // If this is the sequence delimitation item, return the offset of the next element
-            if(item.tag === 'xfffee0dd')
-            {
-                // sequence delimitation item, update attr data length and return
-                element.length = byteStream.position - element.dataOffset;
-                return;
-            }
+          var item = readSequenceItemImplicit(byteStream);
+          element.items.push(item);
         }
-
-        // eof encountered - log a warning and set the length of the element based on the buffer size
-        byteStream.warnings.push('eof encountered before finding sequence delimitation item in sequence of undefined length');
         element.length = byteStream.byteArray.length - element.dataOffset;
     }
 

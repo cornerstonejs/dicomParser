@@ -40,6 +40,13 @@ var dicomParser = (function (dicomParser)
             var nextTag = dicomParser.readTag(byteStream);
             byteStream.seek(-4);
 
+            // zero length sequence
+            if (element.hadUndefinedLength && nextTag === 'xfffee0dd') {
+              element.length = 0;
+              byteStream.seek(8);
+              return element;
+            }
+
             if (nextTag === 'xfffee000') {
                 // parse the sequence
                 dicomParser.readSequenceItemsImplicit(byteStream, element);

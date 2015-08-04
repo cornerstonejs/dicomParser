@@ -56,21 +56,20 @@ var dicomParser = (function (dicomParser)
     {
         while(byteStream.position < byteStream.byteArray.length)
         {
+          // end reading this sequence if the next tag is the sequence delimitation item
+          var nextTag = dicomParser.readTag(byteStream);
+          byteStream.seek(-4);
+          if (nextTag === 'xfffee0dd') {
+            // set the correct length
+            element.length = byteStream.position - element.dataOffset;
+            byteStream.seek(8);
+            return element;
+          }
+
             var item = readSequenceItemExplicit(byteStream, warnings);
             element.items.push(item);
-
-            // If this is the sequence delimitation item, return the offset of the next element
-            if(item.tag === 'xfffee0dd')
-            {
-                // sequence delimitation item, update attr data length and return
-                element.length = byteStream.position - element.dataOffset;
-                return;
-            }
         }
-
-        // eof encountered - log a warning and set the length of the element based on the buffer size
-        byteStream.warnings.push('eof encountered before finding sequence delimitation item in sequence element of undefined length with tag ' + element.tag);
-        element.length = byteStream.byteArray.length - element.dataOffset;
+        element.length = byteStream.position - element.dataOffset;
     }
 
     function readSQElementKnownLengthExplicit(byteStream, element, warnings)

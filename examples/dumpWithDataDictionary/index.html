@@ -230,7 +230,17 @@ function dumpDataSet(dataSet, output)
                 // and recursively call this function
                 var itemNumber = 0;
                 element.items.forEach(function (item) {
-                    output.push('<li>Item #' + itemNumber++ + ' ' + item.tag + '</li>')
+                    output.push('<li>Item #' + itemNumber++ + ' ' + item.tag);
+                    var lengthText = " length=" + item.length;
+                    if (item.hadUndefinedLength) {
+                        lengthText += " <strong>(-1)</strong>";
+                    }
+
+                    if(showLength === true) {
+                        text += lengthText + "; ";
+                        output.push(lengthText);
+                    }
+                    output.push('</li>');
                     output.push('<ul>');
                     dumpDataSet(item.dataSet, output);
                     output.push('</ul>');
@@ -381,6 +391,8 @@ function dumpDataSet(dataSet, output)
                             var element = dataSet.uint16(propertyName, 1);
                             var elementHexStr = ("0000" + element.toString(16)).substr(-4);
                             text += "x" + groupHexStr + elementHexStr;
+                        }
+                        else if(vr === 'SQ') {
                         }
                         else {
                             // If it is some other length and we have no string
