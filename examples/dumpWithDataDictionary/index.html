@@ -9,7 +9,7 @@
     <style>
 
         #dropZone {
-            height: 500px;
+            height: calc(100% - 250px);
             width: 100%;
             background-color: #F0F0F0;
             overflow: auto;
@@ -104,6 +104,8 @@
 <!-- include the data dictionary -->
 <script src="dataDictionary.js"></script>
 
+<!-- include the uids -->
+<script src="uids.js"></script>
 
 <script>
 
@@ -133,6 +135,14 @@ function dumpDataSet(dataSet, output)
         var tagIndex = ("("+group+","+element+")").toUpperCase();
         var attr = TAG_DICT[tagIndex];
         return attr;
+    }
+
+    function mapUid(str) {
+        var uid = uids[str];
+        if(uid) {
+            return ' [ ' + uid + ' ]';
+        }
+        return '';
     }
 
     try{
@@ -308,7 +318,7 @@ function dumpDataSet(dataSet, output)
                             // data.  Note that the length of the element will be 0 to indicate "no data"
                             // so we don't put anything here for the value in that case.
                             if (str !== undefined) {
-                                text += '"' + str + '"';
+                                text += '"' + str + '"' + mapUid(str);
                             }
                         }
                         else {
@@ -337,7 +347,6 @@ function dumpDataSet(dataSet, output)
                             }
                             return true;
                         }
-
                         if (isStringVr(vr)) {
                             // Next we ask the dataset to give us the element's data in string form.  Most elements are
                             // strings but some aren't so we do a quick check to make sure it actually has all ascii
@@ -351,7 +360,7 @@ function dumpDataSet(dataSet, output)
                                 // data.  Note that the length of the element will be 0 to indicate "no data"
                                 // so we don't put anything here for the value in that case.
                                 if (str !== undefined) {
-                                    text += '"' + str + '"';
+                                    text += '"' + str + '"' + mapUid(str);
                                 }
                             }
                             else {
