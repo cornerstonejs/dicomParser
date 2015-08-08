@@ -20,12 +20,18 @@ module.exports = function(grunt) {
             },
             meteor : {
                 src: [
-                    'meteor/package.js',
+                    'meteor/dicomParser/package.js',
                 ],
                 dest: 'dist',
                 expand: true,
                 flatten: true
             }
+        },
+        version: {
+          // options: {},
+          defaults: {
+            src: ['src/version.js', 'meteor/dicomParser/package.js', 'bower.json']
+          }
         },
         concat: {
             build: {
@@ -89,6 +95,7 @@ module.exports = function(grunt) {
 
 // Release process:
 //  1) Update version numbers in bower.json, package.json and meteor/package.js
+//      grunt version
 //  2) do a build (needed to update dist versions with correct build number)
 //      grunt
 //  3) commit changes

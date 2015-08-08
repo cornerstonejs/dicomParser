@@ -23,7 +23,7 @@
 <div class="container">
 
     <div>
-        <h1>DICOM Dump with Data Dictionary</h1>
+        <h1>DICOM Dump with Data Dictionary v<span id="version"></span></h1>
         <p class="lead">
             DICOM files dropped here are not uploaded anywhere, all processing
             is done inside your web browser in Javascript.
@@ -571,6 +571,7 @@ var dropZone = document.getElementById('dropZone');
 dropZone.addEventListener('dragover', handleDragOver, false);
 dropZone.addEventListener('drop', handleFileSelect, false);
 
+$('#version').text(dicomParser.version);
 
 </script>
 </html>
