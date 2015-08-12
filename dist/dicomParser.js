@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.1.4 - 2015-08-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.1.5 - 2015-08-12 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -312,7 +312,7 @@ var dicomParser = (function (dicomParser) {
         }
         else if(vr == 'FD')
         {
-            textResult = multiElementToString(element.length / 8, dataSet.int32);
+            textResult = multiElementToString(element.length / 8, dataSet.double);
         }
         else if(vr == 'FL')
         {
@@ -322,6 +322,134 @@ var dicomParser = (function (dicomParser) {
         return textResult;
     };
     return dicomParser;
+}(dicomParser));
+/**
+ * Utility functions for dealing with DICOM
+ */
+
+var dicomParser = (function (dicomParser)
+{
+  "use strict";
+
+  if(dicomParser === undefined)
+  {
+    dicomParser = {};
+  }
+
+  // algorithm based on http://stackoverflow.com/questions/1433030/validate-number-of-days-in-a-given-month
+  function daysInMonth(m, y) { // m is 0 indexed: 0-11
+    switch (m) {
+      case 2 :
+        return (y % 4 == 0 && y % 100) || y % 400 == 0 ? 29 : 28;
+      case 9 : case 4 : case 6 : case 11 :
+      return 30;
+      default :
+        return 31
+    }
+  }
+
+  function isValidDate(d, m, y) {
+    // make year is a number
+    if(isNaN(y)) {
+      return false;
+    }
+    return m > 0 && m <= 12 && d > 0 && d <= daysInMonth(m, y);
+  }
+
+
+  /**
+   * Parses a DA formatted string into a Javascript object
+   * @param {string} date a string in the DA VR format
+   * @param {boolean} [validate] - true if an exception should be thrown if the date is invalid
+   * @returns {*} Javascript object with properties year, month and day or undefined if not present or not 8 bytes long
+   */
+  dicomParser.parseDA = function(date, validate)
+  {
+    if(date && date.length === 8)
+    {
+      var yyyy = parseInt(date.substring(0, 4), 10);
+      var mm = parseInt(date.substring(4, 6), 10);
+      var dd = parseInt(date.substring(6, 8), 10);
+
+      if(validate) {
+        if (isValidDate(dd, mm, yyyy) !== true) {
+          throw "invalid DA '" + date + "'";
+        }
+      }
+      return {
+        year: yyyy,
+        month: mm,
+        day: dd
+      };
+    }
+    if(validate) {
+      throw "invalid DA '" + date + "'";
+    }
+    return undefined;
+  };
+
+  return dicomParser;
+}(dicomParser));
+/**
+ * Utility functions for dealing with DICOM
+ */
+
+var dicomParser = (function (dicomParser)
+{
+  "use strict";
+
+  if(dicomParser === undefined)
+  {
+    dicomParser = {};
+  }
+
+  /**
+   * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and fractionalSeconds
+   * @param {string} time - a string in the TM VR format
+   * @param {boolean} [validate] - true if an exception should be thrown if the date is invalid
+   * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data.  Missing fields are set to undefined
+   */
+  dicomParser.parseTM = function(time, validate) {
+
+    if (time.length >= 2) // must at least have HH
+    {
+      // 0123456789
+      // HHMMSS.FFFFFF
+      var hh = parseInt(time.substring(0, 2), 10);
+      var mm = time.length >= 4 ? parseInt(time.substring(2, 4), 10) : undefined;
+      var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : undefined;
+      var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : undefined;
+
+      if(validate) {
+        if((isNaN(hh)) ||
+          (mm !== undefined && isNaN(mm)) ||
+          (ss !== undefined && isNaN(ss)) ||
+          (ffffff !== undefined && isNaN(ffffff)) ||
+          (hh < 0 || hh > 23) ||
+          (mm && (mm <0 || mm > 59))  ||
+          (ss && (ss <0 || ss > 59))  ||
+          (ffffff && (ffffff <0 || ffffff > 999999)))
+        {
+          throw "invalid TM '" + time + "'";
+        }
+      }
+
+      return {
+        hours: hh,
+        minutes: mm,
+        seconds: ss,
+        fractionalSeconds: ffffff
+      };
+    }
+
+    if(validate) {
+      throw "invalid TM '" + time + "'";
+    }
+
+    return undefined;
+  };
+
+  return dicomParser;
 }(dicomParser));
 /**
  * Utility functions for dealing with DICOM
@@ -410,53 +538,7 @@ var dicomParser = (function (dicomParser)
         };
     };
 
-    /**
-     * Parses a DA formatted string into a Javascript object
-     * @param date a string in the DA VR format
-     * @returns {*} Javascript object with properties year, month and day or undefined if not present or not 8 bytes long
-     */
-    dicomParser.parseDA = function(date)
-    {
-        if(date && date.length === 8)
-        {
-            var yyyy = parseInt(date.substring(0, 4), 10);
-            var mm = parseInt(date.substring(4, 6), 10);
-            var dd = parseInt(date.substring(6, 8), 10);
 
-            return {
-                year: yyyy,
-                month: mm,
-                day: dd
-            };
-        }
-        return undefined;
-    };
-
-    /**
-     * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and fractionalSeconds
-     * @param time a string in the TM VR format
-     * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data.  Missing fields are set to undefined
-     */
-    dicomParser.parseTM = function(time) {
-
-        if (time.length >= 2) // must at least have HH
-        {
-            // 0123456789
-            // HHMMSS.FFFFFF
-            var hh = parseInt(time.substring(0, 2), 10);
-            var mm = time.length >= 4 ? parseInt(time.substring(2, 4), 10) : undefined;
-            var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : undefined;
-            var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : undefined;
-
-            return {
-                hours: hh,
-                minutes: mm,
-                seconds: ss,
-                fractionalSeconds: ffffff
-            };
-        }
-        return undefined;
-    };
 
     return dicomParser;
 }(dicomParser));
@@ -2122,7 +2204,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.1.4";
+  dicomParser.version = "1.1.5";
 
   return dicomParser;
 }(dicomParser));

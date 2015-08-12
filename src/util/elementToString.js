@@ -70,7 +70,7 @@ var dicomParser = (function (dicomParser) {
         }
         else if(vr == 'FD')
         {
-            textResult = multiElementToString(element.length / 8, dataSet.int32);
+            textResult = multiElementToString(element.length / 8, dataSet.double);
         }
         else if(vr == 'FL')
         {
