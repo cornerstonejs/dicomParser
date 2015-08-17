@@ -4,8 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by dicomParser -->
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="../bootstrap.min.css" rel="stylesheet">
     <style>
 
         #dropZone {
@@ -146,6 +145,11 @@ function dumpDataSet(dataSet, output)
     }
 
     try{
+        var keys = [];
+        for(var propertyName in dataSet.elements) {
+            keys.push(propertyName);
+        }
+        keys.sort();
 
 
         // the dataSet.elements object contains properties for each element parsed.  The name of the property
@@ -153,7 +157,8 @@ function dumpDataSet(dataSet, output)
         // element number both with lowercase hexadecimal letters.  For example, the Series Description DICOM element 0008,103E would
         // be named 'x0008103e'.  Here we iterate over each property (element) so we can build a string describing its
         // contents to add to the output array
-        for(var propertyName in dataSet.elements) {
+        for(var k=0; k < keys.length; k++) {
+            var propertyName = keys[k];
             var element = dataSet.elements[propertyName];
 
             if(showP10Header === false && element.tag <= "x0002ffff") {
@@ -175,13 +180,14 @@ function dumpDataSet(dataSet, output)
             // implicit transfer syntaxes
             if (tag === undefined) {
                 text += element.tag;
+                text += " : ";
 
                 var lengthText = "length=" + element.length;
                 if (element.hadUndefinedLength) {
                     lengthText += " <strong>(-1)</strong>";
                 }
                 if(showLength === true) {
-                    text += "; " + lengthText;
+                    text += lengthText + "; ";
                 }
 
                 title += lengthText;
@@ -192,10 +198,11 @@ function dumpDataSet(dataSet, output)
                 }
 
                 if(showVR) {
-                    text += "; " + vrText;
+                    text += vrText + "; ";
                 }
                 title += "; " + vrText;
 
+                title += "; dataOffset=" + element.dataOffset;
                 // make text lighter since this is an unknown attribute
                 color = '#C8C8C8';
             }
@@ -227,6 +234,9 @@ function dumpDataSet(dataSet, output)
                     text += vrText + "; ";
                 }
                 title +="; " + vrText;
+
+                title += "; dataOffset=" + element.dataOffset;
+
             }
 
             // Here we check for Sequence items and iterate over them if present.  items will not be set in the
@@ -392,7 +402,13 @@ function dumpDataSet(dataSet, output)
                         else if (vr === 'OB' || vr === 'OW' || vr === 'UN' || vr === 'OF' || vr === 'UT') {
                             color = '#C8C8C8';
                             // If it is some other length and we have no string
-                            text += "<i>binary data of length " + element.length + " and VR " + vr + "</i>";
+                            if(element.length === 2) {
+                                text += "<i>binary data of length " + element.length + " as uint16: " +dataSet.uint16(propertyName);
+                            } else if(element.length === 4) {
+                                text += "<i>binary data of length " + element.length + " as uint32: " +dataSet.uint32(propertyName);
+                            } else {
+                                text += "<i>binary data of length " + element.length + " and VR " + vr + "</i>";
+                            }
                         }
                         else if(vr === 'AT') {
                             var group = dataSet.uint16(propertyName, 0);
