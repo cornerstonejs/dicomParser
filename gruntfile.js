@@ -79,13 +79,16 @@ module.exports = function(grunt) {
                     destination: 'docs'
                 }
             }
-        },
+        }
+        /* Commented out due to security vulnerabilities in the qs dependency of grunt-contrib-watch 0.6.1. Comment back in (you'll also need to install grunt-contrib-watch) at your own risk!
+        ,
         watch: {
             scripts: {
                 files: ['src/*.js', 'test/*.js', 'src/util/*.js'],
                 tasks: ['concat:build', 'concat:dist', 'jshint', 'qunit']
             }
         }
+        */
     });
 
     require('load-grunt-tasks')(grunt);
