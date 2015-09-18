@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.1.5 - 2015-08-12 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.1.6 - 2015-09-18 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -604,12 +604,15 @@ var dicomParser = (function (dicomParser)
 
         // move to the start of this frame
         var frameOffset = pixelDataElement.basicOffsetTable[frame];
+        var firstFragment = byteStream.position;
         byteStream.seek(frameOffset);
 
         // Find the end of this frame
         var endOfFrameOffset = pixelDataElement.basicOffsetTable[frame + 1];
         if(endOfFrameOffset === undefined) { // special case for last frame
             endOfFrameOffset = byteStream.position + pixelDataElement.length;
+        } else {
+          endOfFrameOffset += firstFragment;
         }
 
         // read this frame
@@ -2204,7 +2207,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.1.5";
+  dicomParser.version = "1.1.6";
 
   return dicomParser;
 }(dicomParser));

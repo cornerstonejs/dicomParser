@@ -60,12 +60,15 @@ var dicomParser = (function (dicomParser)
 
         // move to the start of this frame
         var frameOffset = pixelDataElement.basicOffsetTable[frame];
+        var firstFragment = byteStream.position;
         byteStream.seek(frameOffset);
 
         // Find the end of this frame
         var endOfFrameOffset = pixelDataElement.basicOffsetTable[frame + 1];
         if(endOfFrameOffset === undefined) { // special case for last frame
             endOfFrameOffset = byteStream.position + pixelDataElement.length;
+        } else {
+          endOfFrameOffset += firstFragment;
         }
 
         // read this frame
