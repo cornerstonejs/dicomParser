@@ -11,7 +11,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.1.6";
+  dicomParser.version = "1.1.7";
 
   return dicomParser;
 }(dicomParser));

@@ -1,7 +1,7 @@
 Package.describe({
   name: 'chafey:dicom-parser',
   summary: 'Javascript parser for DICOM Part 10 data',
-  version: '1.1.6',
+  version: '1.1.7',
   git: 'https://github.com/chafey/dicomParser.git/',
   documentation: null
 });
