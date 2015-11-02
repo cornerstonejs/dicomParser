@@ -2,7 +2,9 @@ dicomParser
 ===========
 
 dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+),  Node.js
-and Meteor.  dicomParser is fast, easy to use and has no external dependencies.
+and Meteor.  dicomParser is fast, easy to use and has no required external dependencies
+([pako](https://github.com/nodeca/pako) is required if you support for the Deflated Explicit VR Little Endian
+ transfer syntax)
 
 Live Examples
 ---------------
@@ -10,6 +12,8 @@ Live Examples
 The best way to see the power of this library is to actually see it in use.  A number of live examples are
 included that are not only useful but also show how to use dicomParser.
 [Click here for a list of all live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
+Make sure you try out the [DICOM Dump with Data Dictionary](https://rawgit.com/chafey/dicomParser/master/examples/dumpWithDataDictionary/index.html)
+which is a very useful tool and excellent example of most features.
 
 Community
 ---------
@@ -36,6 +40,9 @@ Or install via [Bower](http://bower.io/):
 Or install via atmosphere for [Meteor](https://www.meteor.com/) applications
 
 > meteor add chafey:dicom-parser
+
+* Note - make sure you install [pako](https://github.com/nodeca/pako) if you need to support
+the Deflated Explicit VR Little Endian transfer syntax
 
 Usage
 -----
@@ -83,6 +90,7 @@ Key Features
 * Parses DICOM Part 10 byte arrays in all encodings
   * Explicit and implicit
   * Little endian and big endian
+  * Deflated Explicit VR Little Endian transfer syntax
 * Supports all VR's including sequences
 * Supports elements with undefined length
 * Supports sequence items with undefined length
@@ -152,6 +160,7 @@ Future:
   * dataSet creation logic could filter out unwanted tags to improve performance of parse
   * dataSet creation logic could defer creation of sequence dataSets to improve performance of parse
 * Function to parse non P10 byte streams given the byte stream and the transfer syntax
+* Support for encrypted dicom
 
 Contributors
 ============================================

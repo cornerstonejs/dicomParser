@@ -88,6 +88,7 @@
                 <div class="text-center" style="margin-top:225px;"><h3>Drag and drop a DICOM P10 file here to dump its elements</h3></div>
 
             </div>
+
         </div>
     </div>
 
@@ -99,6 +100,9 @@
 
 <!-- jquery - included to make things easier to demo, not needed by dicomParser -->
 <script src="../jquery.min.js"></script>
+
+<!-- pako - needed to support deflated transfer syntax -->
+<script src="../pako.min.js"></script>
 
 <!-- include the data dictionary -->
 <script src="dataDictionary.js"></script>
@@ -269,7 +273,8 @@ function dumpDataSet(dataSet, output)
             }
             else if (element.fragments) {
                 text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " + element.fragments.length + " fragments";
-                output.push('<li>' + text + '</li>');
+                title += "; dataOffset=" + element.dataOffset;
+                output.push("<li title='" + title + "'=>" + text + '</li>');
                 /*
                 output.push('<ul>');
 
