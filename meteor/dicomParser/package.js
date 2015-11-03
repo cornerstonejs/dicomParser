@@ -8,7 +8,7 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('1.0.2.1');
-  api.addFiles('../../dist/dicomParser.js');
+  api.addFiles('dicomParser.js');
   api.export('dicomParser');
 });
 

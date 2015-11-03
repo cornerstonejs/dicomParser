@@ -108,7 +108,8 @@ module.exports = function(grunt) {
 //      git tag -a 0.1.0 -m "Version 0.1.0"
 //  5) push to github
 //      git push origin master --tags
-//  6) Update atmosphere
+//  6) Update atmosphere (meteor package manager)
+//      cd dist
 //      meteor publish
 //  7) Update npm
 //      npm publish
