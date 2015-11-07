@@ -28,6 +28,22 @@ var dicomParser = (function (dicomParser)
         }
     }
 
+    function tagIsPhillipsPrivateStackSequence(tag)
+    {
+        var privateTags = ["x2001105f",
+                           "x20019000",
+                           "x20051080",
+                           "x20051083",
+                           "x20051084",
+                           "x20051085",
+                           "x2005109e",
+                           "x20051371",
+                           "x20051402",
+                           "x2005140e",
+                           "x2005140f"];
+        return privateTags.indexOf(tag) !== -1;
+    }
+
     dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag)
     {
         if(byteStream === undefined)
@@ -41,6 +57,14 @@ var dicomParser = (function (dicomParser)
             // length set below based on VR
             // dataOffset set below based on VR and size of length
         };
+
+        if(element.vr == 'UN')
+        {
+            if(tagIsPhillipsPrivateStackSequence(element.tag))
+            {
+                element.vr = "SQ";
+            }
+        }
 
         var dataLengthSizeBytes = getDataLengthSizeInBytesForVR(element.vr);
         if(dataLengthSizeBytes === 2)
@@ -61,6 +85,12 @@ var dicomParser = (function (dicomParser)
         }
 
         if(element.tag === untilTag) {
+            return element;
+        }
+
+        if(tagIsPhillipsPrivateStackSequence(element.tag))
+        {
+            dicomParser.readSequenceItemsImplicit(byteStream, element);
             return element;
         }
 
