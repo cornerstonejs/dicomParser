@@ -59,7 +59,7 @@ try
     var dataSet = dicomParser.parseDicom(byteArray);
 
     // access a string element
-    var sopInstanceUid = dataSet.string('x0020000d');
+    var studyInstanceUid = dataSet.string('x0020000d');
 
     // get the pixel data element (contains the offset and length of the data)
     var pixelDataElement = dataSet.elements.x7fe00010;
