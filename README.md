@@ -48,7 +48,7 @@ Usage
 -----
 
 ```
-// create a Uint8Array with the contents of the DICOM P10 byte stream
+// create a Uint8Array or node.js Buffer with the contents of the DICOM P10 byte stream
 // you want to parse (e.g. XMLHttpRequest to a WADO server)
 var arrayBuffer = new ArrayBuffer(bufferSize);
 var byteArray = new Uint8Array(arrayBuffer);
@@ -108,6 +108,7 @@ Key Features
   * By specifying a tag to stop reading at (e.g. parseDicom(byteArray, {untilTag: "x7fe00010"}); )
   * By returning the elements parsed so far in the exception thrown during a parse error (the elements parsed will be
     in the dataSet property of the exception)
+* Supports reading from Uint8Arrays and Node.js Buffers
 
 Build System
 ============

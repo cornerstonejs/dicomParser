@@ -5,9 +5,9 @@ var dicomParser = require('../../dist/dicomParser');
 var fs = require('fs');
 var filePath = 'ctimage.dcm';
 var dicomFileAsBuffer = fs.readFileSync(filePath);
-var dicomFileAsByteArray = new Uint8Array(dicomFileAsBuffer);
+//var dicomFileAsByteArray = new Uint8Array(dicomFileAsBuffer);
 
  // Now that we have the Uint8array, parse it and extract the patient name
-var dataSet = dicomParser.parseDicom(dicomFileAsByteArray);
+var dataSet = dicomParser.parseDicom(dicomFileAsBuffer);
 var patientName = dataSet.string('x00100010');
 console.log('Patient Name = '+ patientName);

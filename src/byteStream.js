@@ -35,8 +35,9 @@ var dicomParser = (function (dicomParser)
         {
             throw "dicomParser.ByteStream: missing required parameter 'byteArray'";
         }
-        if((byteArray instanceof Uint8Array) === false) {
-            throw 'dicomParser.ByteStream: parameter byteArray is not of type Uint8Array';
+        if((byteArray instanceof Uint8Array) === false &&
+          (byteArray instanceof Buffer) === false ) {
+            throw 'dicomParser.ByteStream: parameter byteArray is not of type Uint8Array or Buffer';
         }
         if(position < 0)
         {
