@@ -31,7 +31,7 @@ var dicomParser = (function (dicomParser) {
                 if(i !== 0) {
                     result += '/';
                 }
-                result += func.call(dataSet, tag).toString();
+                result += func.call(dataSet, tag, i).toString();
             }
             return result;
         }
