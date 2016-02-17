@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.2.0 - 2015-11-02 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.2.1 - 2016-02-17 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -66,6 +66,7 @@ var dicomParser = (function(dicomParser) {
         function getDataSetByteStream(transferSyntax, position) {
             if(transferSyntax === '1.2.840.10008.1.2.1.99')
             {
+              // https://github.com/nodeca/pako
               if(typeof(pako) === "undefined") {
                 throw 'dicomParser.parseDicom: deflated transfer syntax encountered but pako not loaded';
               }

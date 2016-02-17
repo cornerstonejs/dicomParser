@@ -46,7 +46,7 @@ module.exports = function(grunt) {
                     stripBanners: true,
                     banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
                         '<%= grunt.template.today("yyyy-mm-dd") %> ' +
-                        '| (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */\n'
+                        '| (c) 2016 Chris Hafey | https://github.com/chafey/dicomParser */\n'
                 },
                 src : ['build/built.js'],
                 dest: 'dist/dicomParser.js'
@@ -61,7 +61,7 @@ module.exports = function(grunt) {
             options: {
                 banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
                     '<%= grunt.template.today("yyyy-mm-dd") %> ' +
-                    '| (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */\n'
+                    '| (c) 2016 Chris Hafey | https://github.com/chafey/dicomParser */\n'
             }
         },
         jshint: {
