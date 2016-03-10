@@ -79,9 +79,6 @@
       // (0008,0100)                               2   "A"
       0x08, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00, 0x41, 0x20,
     ];
-    //var callback = function(tag) {
-    //  return (tag === 'x00080006') ? 'SQ' : undefined;
-    //};
     var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, convertToByteArray(bytes));
 
     // Act
@@ -106,9 +103,6 @@
       // (0008,0100)                               2   "A"
       0x08, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00, 0x41, 0x20,
     ];
-    //var callback = function(tag) {
-    //  return (tag === 'x00080006') ? 'SQ' : undefined;
-    //};
     var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, convertToByteArray(bytes));
 
     // Act
@@ -126,9 +120,6 @@
       // Looks like an item tag, but isn't since it's within pixel data
       0xfe, 0xff, 0x00, 0xe0, 0x0A, 0x00, 0x00, 0x00,
     ];
-    //var callback = function(tag) {
-    //  return (tag === 'x00080006') ? 'SQ' : undefined;
-    //};
     var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, convertToByteArray(bytes));
 
     // Act/Assert
@@ -164,9 +155,6 @@
       0xfe, 0xff, 0xdd, 0xe0, 0x0A, 0x00, 0x00, 0x00,
       0x12, 0x43, 0x98,
     ];
-    //var callback = function(tag) {
-    //  return (tag === 'x00080006') ? 'SQ' : undefined;
-    //};
     var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, convertToByteArray(bytes));
 
     // Act/Assert
@@ -194,9 +182,5 @@
     assert.strictEqual(element.items, undefined);
     assert.strictEqual(element.length, 11);
   });
-
-  // Tests:
-  // Passing callback down another level works
-  // (bytePosition + 4) changes
 
 })(dicomParser);
