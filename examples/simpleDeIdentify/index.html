@@ -1,0 +1,386 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by dicomParser -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        #dropZone {
+            border-style: solid;
+            border-width: 1px;
+            border-color: lightgray;
+        }
+
+
+    </style>
+
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>Simple De-identify</h1>
+        <p class="lead">
+            Drag and drop a DICOM Part 10 file into the region below.
+        </p>
+        <p>
+            This example illustrates how to perform a simple de-identification on top level DICOM
+            attributes by overwriting the data/values of the elements with random data of the exact
+            same length.
+            <br>
+            <br>
+        <strong>Use of this example require IE10+ or any other modern browser.</strong>
+        <br>
+            <br>
+        <strong>WARNING - This example is meant to demonstrate one very simple way to de-identify.  It does
+            not remove all PHI and should not be used for any real world de-identification needs!  Take a look at
+            David Clunie's <a href="http://www.dclunie.com/pixelmed/software/webstart/DicomCleanerUsage.html">DicomCleaner</a></strong>
+
+    </div>
+
+    <div id="dropZone" class="container-fluid">
+
+        <br>
+
+        <div id="status" class="alert alert-success">
+            <div id="statusText">
+                Status: Ready (no file loaded)
+            </div>
+            <ul id="warnings">
+
+            </ul>
+        </div>
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <td>
+                        Attribute
+                    </td>
+                    <td>
+                        Original
+                    </td>
+                    <td>
+                        De-identified <button id="download">Download</button>
+
+                    </td>
+                </tr>
+
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="col-sm-4">Patient Name</td>
+                    <td class="col-sm-4"><span class='contenteditable' data-dicom="x00100010"></span></td>
+                    <td class="col-sm-4"><input data-vr="PN" class="col-sm-12" type="text" data-dicom="x00100010"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Patient ID</td>
+                    <td class="col-sm-4"><span data-dicom="x00100020"></span></td>
+                    <td class="col-sm-4"><input data-vr="LO" class="col-sm-12" type="text" data-dicom="x00100020"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Patient Birth Date</td>
+                    <td class="col-sm-4"><span data-dicom="x00100030"></span></td>
+                    <td class="col-sm-4"><input data-vr="DA" class="col-sm-12" type="text" data-dicom="x00100030"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Study Description</td>
+                    <td class="col-sm-4"><span data-dicom="x00081030"></span></td>
+                    <td class="col-sm-4"><input data-vr="LO" class="col-sm-12" type="text" data-dicom="x00081030"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Protocol Name</td>
+                    <td class="col-sm-4"><span data-dicom="x00181030"></span></td>
+                    <td class="col-sm-4"><input data-vr="LO" class="col-sm-12" type="text" data-dicom="x00181030"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Accession #</td>
+                    <td class="col-sm-4"><span data-dicom="x00080050"></span></td>
+                    <td class="col-sm-4"><input data-vr="SH" class="col-sm-12" type="text" data-dicom="x00080050"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Study Id</td>
+                    <td class="col-sm-4"><span data-dicom="x00200010"></span></td>
+                    <td class="col-sm-4"><input data-vr="SH" class="col-sm-12" type="text" data-dicom="x00200010"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Study Date</td>
+                    <td class="col-sm-4"><span data-dicom="x00080020"></span></td>
+                    <td class="col-sm-4"><input data-vr="DA" class="col-sm-12" type="text" data-dicom="x00080020"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Study Time</td>
+                    <td class="col-sm-4"><span data-dicom="x00080030"></span></td>
+                    <td class="col-sm-4"><input data-vr="TM" class="col-sm-12" type="text" data-dicom="x00080030"/></td>
+                </tr>
+
+                <tr>
+                    <td class="col-sm-4">Series Description</td>
+                    <td class="col-sm-4"><span data-dicom="x0008103e"></span></td>
+                    <td class="col-sm-4"><input data-vr="LO" class="col-sm-12" type="text" data-dicom="x0008103e"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Series Date</td>
+                    <td class="col-sm-4"><span data-dicom="x00080021"></span></td>
+                    <td class="col-sm-4"><input data-vr="DA" class="col-sm-12" type="text" data-dicom="x00080021"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Series Time</td>
+                    <td class="col-sm-4"><span data-dicom="x00080031"></span></td>
+                    <td class="col-sm-4"><input data-vr="TM"class="col-sm-12" type="text" data-dicom="x00080031"/></td>
+                </tr>
+
+                <tr>
+                    <td class="col-sm-4">Acquisition Date</td>
+                    <td class="col-sm-4"><span data-dicom="x00080022"></span></td>
+                    <td class="col-sm-4"><input data-vr="DA" class="col-sm-12" type="text" data-dicom="x00080022"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Acquisition Time</td>
+                    <td class="col-sm-4"><span data-dicom="x00080032"></span></td>
+                    <td class="col-sm-4"><input data-vr="TM" class="col-sm-12" type="text" data-dicom="x00080032"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Content Date</td>
+                    <td class="col-sm-4"><span data-dicom="x00080023"></span></td>
+                    <td class="col-sm-4"><input data-vr="DA" class="col-sm-12" type="text" data-dicom="x00080023"/></td>
+                </tr>
+                <tr>
+                    <td class="col-sm-4">Content Time</td>
+                    <td class="col-sm-4"><span data-dicom="x00080033"></span></td>
+                    <td class="col-sm-4"><input data-vr="TM" class="col-sm-12" type="text" data-dicom="x00080033"/></td>
+                </tr>
+
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+
+<!-- include the dicomParser library -->
+<script src="../../dist/dicomParser.js"></script>
+
+<!-- jquery - included to make things easier to demo, not needed by dicomParser -->
+<script src="../jquery.min.js"></script>
+
+<script>
+
+    function dumpDataSet(dataSet)
+    {
+        $('span[data-dicom]').each(function(index, value)
+        {
+            var attr = $(value).attr('data-dicom');
+            var element = dataSet.elements[attr];
+            var text = "";
+            if(element !== undefined)
+            {
+                var str = dataSet.string(attr);
+                if(str !== undefined) {
+                    text = str;
+                }
+            }
+            $(value).text(text);
+        });
+
+        $('span[data-dicomUint]').each(function(index, value)
+        {
+            var attr = $(value).attr('data-dicomUint');
+            var element = dataSet.elements[attr];
+            var text = "";
+            if(element !== undefined)
+            {
+                if(element.length === 2)
+                {
+                    text += dataSet.uint16(attr);
+                }
+                else if(element.length === 4)
+                {
+                    text += dataSet.uint32(attr);
+                }
+            }
+
+            $(value).text(text);
+        });
+
+    }
+    // from http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
+    function makeRandomString(length)
+    {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for( var i=0; i < length; i++ )
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        return text;
+    }
+
+    function pad(num, size) {
+        var s = num+"";
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
+
+
+    function makeDeIdentifiedValue(length, vr) {
+        if(vr === 'LO' || vr === "SH" || vr === "PN") {
+            return makeRandomString(length);
+        }
+        else if(vr === 'DA') {
+            var now = new Date();
+            return now.getYear() + 1900 + pad(now.getMonth() + 1, 2) + pad(now.getDate(), 2);
+        } else if(vr === 'TM') {
+            var now = new Date();
+            return pad(now.getHours(), 2) + pad(now.getMinutes(), 2) + pad(now.getSeconds(), 2);
+        }
+        console.log('unknown VR:' + vr);
+    }
+
+
+    var dataSet;
+
+    // This function will read the file into memory and then start dumping it
+    function dumpFile(file)
+    {
+        $('#status').removeClass('alert-warning alert-success alert-danger').addClass('alert-info');
+        $('#warnings').empty();
+        document.getElementById('statusText').innerHTML = 'Status: Loading file, please wait..';
+
+        var reader = new FileReader();
+        reader.onload = function(file) {
+            var arrayBuffer = reader.result;
+
+            // Here we have the file data as an ArrayBuffer.  dicomParser requires as input a
+            // Uint8Array so we create that here
+            var byteArray = new Uint8Array(arrayBuffer);
+
+            var kb = byteArray.length / 1024;
+            var mb = kb / 1024;
+            var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
+            document.getElementById('statusText').innerHTML = '<span class="glyphicon glyphicon-cog"></span>Status: Parsing ' + byteStr + ' bytes, please wait..';
+
+            // set a short timeout to do the parse so the DOM has time to update itself with the above message
+            setTimeout(function() {
+
+                // Invoke the paresDicom function and get back a DataSet object with the contents
+                try {
+                    var start = new Date().getTime();
+
+                    dataSet = dicomParser.parseDicom(byteArray);
+                    // Here we call dumpDataSet to update the DOM with the contents of the dataSet
+                    dumpDataSet(dataSet);
+
+                    var end = new Date().getTime();
+                    var time = end - start;
+                    if(dataSet.warnings.length > 0)
+                    {
+                        $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
+                        $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+
+                        dataSet.warnings.forEach(function(warning) {
+                            $("#warnings").append('<li>' + warning +'</li>');
+                        });
+                    }
+                    else
+                    {
+                        var pixelData = dataSet.elements.x7fe00010;
+                        if(pixelData) {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                        }
+                        else
+                        {
+                            $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
+                            $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
+                        }
+                    }
+
+                    // Create de-identified values for each element
+                    $('input').each(function(index, input) {
+                        var attr = $(input).attr('data-dicom');
+                        var element = dataSet.elements[attr];
+                        var text = "";
+                        var vr = $(input).attr('data-vr');
+                        if(element !== undefined)
+                        {
+                            var str = dataSet.string(attr);
+                            if(str !== undefined) {
+                                text = str;
+                            }
+                        }
+                        var deIdentifiedValue = makeDeIdentifiedValue(text.length, vr);
+                        $(input).val(deIdentifiedValue);
+                        $(input).prop('readonly', true);
+
+                    });
+
+
+                }
+                catch(err)
+                {
+                    $('#status').removeClass('alert-success alert-info alert-warning').addClass('alert-danger');
+                    document.getElementById('statusText').innerHTML = 'Status: Error - ' + err + ' (file of size ' + byteStr + ' )';
+                }
+
+            }, 30);
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+
+    // this function gets called once the user drops the file onto the div
+    function handleFileSelect(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        // Get the FileList object that contains the list of files that were dropped
+        var files = evt.dataTransfer.files;
+
+        // this UI is only built for a single file so just dump the first one
+        dumpFile(files[0]);
+    }
+
+    function handleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+    }
+
+    // Setup the dnd listeners.
+    var dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', handleDragOver, false);
+    dropZone.addEventListener('drop', handleFileSelect, false);
+
+    $('#download').click(function() {
+        console.log(dataSet);
+        // iterate through each input field and replace the original value with the de-identified value.
+        // Note that the deidentified value must be <= length of the original value - longer values
+        // will require resizing the Uint8Array and updating the length of the element and I don't feel
+        // like doing that right now :)
+        $('input').each(function(index, input) {
+            var attr = $(input).attr('data-dicom');
+            var element = dataSet.elements[attr];
+            var newValue = $(input).val();
+            for(var i=0; i < element.length; i++) {
+                var char = (newValue.length > i) ? newValue.charCodeAt(i) : 32;
+                console.log(char);
+                dataSet.byteArray[element.dataOffset + i] = char;
+            }
+        });
+
+        // download the de-identified DICOM P10 bytestream
+        var blob = new Blob([dataSet.byteArray], {type: "application/dicom"});
+        var url = window.URL.createObjectURL(blob);
+        window.open(url);
+        window.URL.revokeObjectURL(url);
+    });
+
+
+</script>
+</html>

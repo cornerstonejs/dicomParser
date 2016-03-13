@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.2.1 - 2016-03-09 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.3.0 - 2016-03-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -2266,7 +2266,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.2.1";
+  dicomParser.version = "1.3.0";
 
   return dicomParser;
 }(dicomParser));
