@@ -11,7 +11,25 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
-    dicomParser.readDicomElementImplicit = function(byteStream, untilTag)
+    function isSequence(element, byteStream, vrCallback) {
+        // if a data dictionary callback was provided, use that to verify that the element is a sequence.
+        if (typeof vrCallback !== 'undefined') {
+            return (vrCallback(element.tag) === 'SQ');
+        }
+        if ((byteStream.position + 4) <= byteStream.byteArray.length) {
+            var nextTag = dicomParser.readTag(byteStream);
+            byteStream.seek(-4);
+            // Item start tag (fffe,e000) or sequence delimiter (i.e. end of sequence) tag (0fffe,e0dd)
+            // These are the tags that could potentially be found directly after a sequence start tag (the delimiter
+            // is found in the case of an empty sequence). This is not 100% safe because a non-sequence item
+            // could have data that has these bytes, but this is how to do it without a data dictionary.
+            return (nextTag === 'xfffee000') || (nextTag === 'xfffee0dd');
+        }
+        byteStream.warnings.push('eof encountered before finding sequence item tag or sequence delimiter tag in peeking to determine VR');
+        return false;
+    }
+
+    dicomParser.readDicomElementImplicit = function(byteStream, untilTag, vrCallback)
     {
         if(byteStream === undefined)
         {
@@ -24,8 +42,7 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
-        if(element.length === 4294967295)
-        {
+        if(element.length === 4294967295) {
             element.hadUndefinedLength = true;
         }
 
@@ -33,31 +50,15 @@ var dicomParser = (function (dicomParser)
             return element;
         }
 
-        // peek ahead at the next tag to see if it looks like a sequence.  This is not 100%
-        // safe because a non sequence item could have data that has these bytes, but this
-        // is how to do it without a data dictionary.
-        if ((byteStream.position + 4) <= byteStream.byteArray.length) {
-            var nextTag = dicomParser.readTag(byteStream);
-            byteStream.seek(-4);
-
-            // zero length sequence
-            if (element.hadUndefinedLength && nextTag === 'xfffee0dd') {
-              element.length = 0;
-              byteStream.seek(8);
-              return element;
-            }
-
-            if (nextTag === 'xfffee000') {
-                // parse the sequence
-                dicomParser.readSequenceItemsImplicit(byteStream, element);
-                //element.length = byteStream.byteArray.length - element.dataOffset;
-                return element;
-            }
+        if (isSequence(element, byteStream, vrCallback)) {
+            // parse the sequence
+            dicomParser.readSequenceItemsImplicit(byteStream, element);
+            return element;
         }
 
         // if element is not a sequence and has undefined length, we have to
         // scan the data for a magic number to figure out when it ends.
-        if(element.length === 4294967295)
+        if(element.hadUndefinedLength)
         {
             dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
             return element;

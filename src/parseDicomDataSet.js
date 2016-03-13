@@ -67,7 +67,7 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag);
+            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;

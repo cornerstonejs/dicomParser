@@ -56,7 +56,7 @@ var byteArray = new Uint8Array(arrayBuffer);
 try
 {
    // Parse the byte array to get a DataSet object that has the parsed contents
-    var dataSet = dicomParser.parseDicom(byteArray);
+    var dataSet = dicomParser.parseDicom(byteArray/*, options */);
 
     // access a string element
     var studyInstanceUid = dataSet.string('x0020000d');
@@ -83,6 +83,22 @@ library to extract the pixel data from DICOM files and display the images with
 [cornerstone library](https://github.com/chafey/cornerstone).
 You can find the actual code that extracts grayscale pixel data using this library
 [here](https://github.com/chafey/cornerstoneWADOImageLoader/blob/master/src/makeGrayscaleImage.js).
+
+Options
+-------
+
+```dicomParser.parseDicom``` accepts an optional second argument that is an options object. The accepted properties are:
+
+#### untilTag
+
+A tag in the form xggggeeee (where gggg is the hexadecimal group number and eeee is the hexadecimal element number,
+e.g. 'x7fe00010') that specifies the final tag to parse. Any tags occurring after this in the file will be ignored.
+Useful for partial reading of byte streams.
+
+#### vrCallback
+
+A callback that, given a tag, will return the two-character Value Representation associated with that tag (see PS 3.5
+of the DICOM standard for more information). It may return undefined to indicate that the VR was not provided.
 
 Key Features
 ------------
@@ -168,7 +184,7 @@ Contributors
 
 * @neandrake for help with getting Node.js support
 * @ggerade for implementing support for floats/doubles with VM > 1
-* @bryan-cool for bug fix related to parsing implicit little endian files and big endian support
+* @yagni for bug fix related to parsing implicit little endian files and big endian support
 * @snagytx, @doncharkowsky - for bug fix related to reading encapsulated frames
 * @bbunderson, @jpambrun - bug fix for reading encapsulated frames
 * @henryqdineen, adil.tiadi@gmail.com - bug report for sequences with undefined lengths and zero items

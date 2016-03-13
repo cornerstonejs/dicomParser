@@ -11,13 +11,13 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
-    function readDicomDataSetImplicitUndefinedLength(byteStream)
+    function readDicomDataSetImplicitUndefinedLength(byteStream, vrCallback)
     {
         var elements = {};
 
         while(byteStream.position < byteStream.byteArray.length)
         {
-            var element = dicomParser.readDicomElementImplicit(byteStream);
+            var element = dicomParser.readDicomElementImplicit(byteStream, undefined, vrCallback);
             elements[element.tag] = element;
 
             // we hit an item delimiter tag, return the current offset to mark
@@ -32,27 +32,27 @@ var dicomParser = (function (dicomParser)
         return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     }
 
-    function readSequenceItemImplicit(byteStream)
+    function readSequenceItemImplicit(byteStream, vrCallback)
     {
         var item = dicomParser.readSequenceItem(byteStream);
 
         if(item.length === 4294967295)
         {
             item.hadUndefinedLength = true;
-            item.dataSet = readDicomDataSetImplicitUndefinedLength(byteStream);
+            item.dataSet = readDicomDataSetImplicitUndefinedLength(byteStream, vrCallback);
             item.length = byteStream.position - item.dataOffset;
         }
         else
         {
             item.dataSet = new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, {});
-            dicomParser.parseDicomDataSetImplicit(item.dataSet, byteStream, byteStream.position + item.length);
+            dicomParser.parseDicomDataSetImplicit(item.dataSet, byteStream, byteStream.position + item.length, {vrCallback: vrCallback});
         }
         return item;
     }
 
-    function readSQElementUndefinedLengthImplicit(byteStream, element)
+    function readSQElementUndefinedLengthImplicit(byteStream, element, vrCallback)
     {
-        while(byteStream.position < byteStream.byteArray.length)
+        while((byteStream.position + 4) <= byteStream.byteArray.length)
         {
           // end reading this sequence if the next tag is the sequence delimitation item
           var nextTag = dicomParser.readTag(byteStream);
@@ -64,18 +64,19 @@ var dicomParser = (function (dicomParser)
             return element;
           }
 
-          var item = readSequenceItemImplicit(byteStream);
+          var item = readSequenceItemImplicit(byteStream, vrCallback);
           element.items.push(item);
         }
+        byteStream.warnings.push('eof encountered before finding sequence delimiter in sequence of undefined length');
         element.length = byteStream.byteArray.length - element.dataOffset;
     }
 
-    function readSQElementKnownLengthImplicit(byteStream, element)
+    function readSQElementKnownLengthImplicit(byteStream, element, vrCallback)
     {
         var maxPosition = element.dataOffset + element.length;
         while(byteStream.position < maxPosition)
         {
-            var item = readSequenceItemImplicit(byteStream);
+            var item = readSequenceItemImplicit(byteStream, vrCallback);
             element.items.push(item);
         }
     }
@@ -84,8 +85,9 @@ var dicomParser = (function (dicomParser)
      * Reads sequence items for an element in an implicit little endian byte stream
      * @param byteStream the implicit little endian byte stream
      * @param element the element to read the sequence items for
+     * @param vrCallback an optional method that returns a VR string given a tag
      */
-    dicomParser.readSequenceItemsImplicit = function(byteStream, element)
+    dicomParser.readSequenceItemsImplicit = function(byteStream, element, vrCallback)
     {
         if(byteStream === undefined)
         {
@@ -100,11 +102,11 @@ var dicomParser = (function (dicomParser)
 
         if(element.length === 4294967295)
         {
-            readSQElementUndefinedLengthImplicit(byteStream, element);
+            readSQElementUndefinedLengthImplicit(byteStream, element, vrCallback);
         }
         else
         {
-            readSQElementKnownLengthImplicit(byteStream, element);
+            readSQElementKnownLengthImplicit(byteStream, element, vrCallback);
         }
     };
 

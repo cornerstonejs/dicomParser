@@ -30,7 +30,7 @@ var dicomParser = (function (dicomParser)
         }
 
         // eof encountered - log a warning and return what we have for the element
-        byteStream.warnings.push('eof encountered before finding sequence delimitation item while reading sequence item of undefined length');
+        warnings.push('eof encountered before finding item delimiter tag while reading sequence item of undefined length');
         return new dicomParser.DataSet(byteStream.byteArrayParser, byteStream.byteArray, elements);
     }
 
@@ -54,7 +54,7 @@ var dicomParser = (function (dicomParser)
 
     function readSQElementUndefinedLengthExplicit(byteStream, element, warnings)
     {
-        while(byteStream.position < byteStream.byteArray.length)
+        while((byteStream.position + 4) <= byteStream.byteArray.length)
         {
           // end reading this sequence if the next tag is the sequence delimitation item
           var nextTag = dicomParser.readTag(byteStream);
@@ -69,6 +69,7 @@ var dicomParser = (function (dicomParser)
             var item = readSequenceItemExplicit(byteStream, warnings);
             element.items.push(item);
         }
+        warnings.push('eof encountered before finding sequence delimitation tag while reading sequence of undefined length');
         element.length = byteStream.position - element.dataOffset;
     }
 
@@ -97,7 +98,7 @@ var dicomParser = (function (dicomParser)
 
         if(element.length === 4294967295)
         {
-            readSQElementUndefinedLengthExplicit(byteStream, element);
+            readSQElementUndefinedLengthExplicit(byteStream, element, warnings);
         }
         else
         {
