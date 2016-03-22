@@ -35,9 +35,10 @@ var dicomParser = (function (dicomParser)
         }
 
         var result = "";
+        var byte;
         for(var i=0; i < length; i++)
         {
-            var byte = byteArray[position + i];
+            byte = byteArray[position + i];
             if(byte === 0) {
                 position +=  length;
                 return result;
