@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.3.0 - 2016-03-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.3.0 - 2016-03-31 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -995,6 +995,21 @@ var dicomParser = (function (dicomParser)
      * @returns {*} the parsed unsigned int 16
      * @throws error if buffer overread would occur
      */
+    dicomParser.ByteStream.prototype.readUint8 = function()
+    {
+        var result = this.byteArrayParser.readUint8(this.byteArray, this.position);
+        this.position += 1;
+        return result;
+    };
+
+    /**
+     *
+     * Parses an unsigned int 16 from a byte array and advances
+     * the position by 2 bytes
+     *
+     * @returns {*} the parsed unsigned int 16
+     * @throws error if buffer overread would occur
+     */
     dicomParser.ByteStream.prototype.readUint16 = function()
     {
         var result = this.byteArrayParser.readUint16(this.byteArray, this.position);
@@ -1033,6 +1048,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  *
  * The DataSet class encapsulates a collection of DICOM Elements and provides various functions
@@ -1079,6 +1095,40 @@ var dicomParser = (function (dicomParser)
         this.byteArrayParser = byteArrayParser;
         this.byteArray = byteArray;
         this.elements = elements;
+    };
+
+    /**
+     * Finds the element for tag and returns an unsigned int 16 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
+     * @returns {*} unsigned int 16 or undefined if the attribute is not present or has data of length 0
+     */
+    dicomParser.DataSet.prototype.uint8 = function(tag, index)
+    {
+        var element = this.elements[tag];
+        index = (index !== undefined) ? index : 0;
+        if(element && element.length !== 0)
+        {
+            return getByteArrayParser(element, this.byteArrayParser).readUint8(this.byteArray, element.dataOffset + index);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns an signed int 8 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
+     * @returns {*} signed int 8 or undefined if the attribute is not present or has data of length 0
+     */
+    dicomParser.DataSet.prototype.int8 = function(tag, index)
+    {
+        var element = this.elements[tag];
+        index = (index !== undefined) ? index : 0;
+        if(element && element.length !== 0)
+        {
+            return getByteArrayParser(element, this.byteArrayParser).readInt8(this.byteArray, element.dataOffset + index);
+        }
+        return undefined;
     };
 
     /**
@@ -1309,6 +1359,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Internal helper functions for parsing DICOM elements
  */

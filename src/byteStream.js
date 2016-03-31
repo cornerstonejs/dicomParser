@@ -93,6 +93,21 @@ var dicomParser = (function (dicomParser)
      * @returns {*} the parsed unsigned int 16
      * @throws error if buffer overread would occur
      */
+    dicomParser.ByteStream.prototype.readUint8 = function()
+    {
+        var result = this.byteArrayParser.readUint8(this.byteArray, this.position);
+        this.position += 1;
+        return result;
+    };
+
+    /**
+     *
+     * Parses an unsigned int 16 from a byte array and advances
+     * the position by 2 bytes
+     *
+     * @returns {*} the parsed unsigned int 16
+     * @throws error if buffer overread would occur
+     */
     dicomParser.ByteStream.prototype.readUint16 = function()
     {
         var result = this.byteArrayParser.readUint16(this.byteArray, this.position);
