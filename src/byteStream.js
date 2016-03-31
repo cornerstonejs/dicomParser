@@ -87,10 +87,10 @@ var dicomParser = (function (dicomParser)
 
     /**
      *
-     * Parses an unsigned int 16 from a byte array and advances
-     * the position by 2 bytes
+     * Parses an unsigned int 8 from a byte array and advances
+     * the position by a bytes
      *
-     * @returns {*} the parsed unsigned int 16
+     * @returns {*} the parsed unsigned int 8
      * @throws error if buffer overread would occur
      */
     dicomParser.ByteStream.prototype.readUint8 = function()
