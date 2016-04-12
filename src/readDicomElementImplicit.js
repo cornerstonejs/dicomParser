@@ -29,15 +29,19 @@ var dicomParser = (function (dicomParser)
         return false;
     }
 
-    dicomParser.readDicomElementImplicit = function(byteStream, untilTag, vrCallback)
+    dicomParser.readDicomElementImplicit = function(byteStream, untilTag, vrCallback, exclude)
     {
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementImplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        if (tag === untilTag && exclude) {
+            return false;
+        }
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             length: byteStream.readUint32(),
             dataOffset :  byteStream.position
         };

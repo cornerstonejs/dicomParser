@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.3.0 - 2016-03-31 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.3.0 - 2016-04-12 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1721,7 +1721,10 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
+            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag, options.exclude);
+            if (element === false) {
+                return;
+            }
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;
@@ -1755,7 +1758,10 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
+            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback, options.exclude);
+            if (element === false) {
+                return;
+            }
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;
@@ -1796,15 +1802,20 @@ var dicomParser = (function (dicomParser)
         }
     }
 
-    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag)
+    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag, exclude)
     {
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        if (tag === untilTag && exclude) {
+            return false;
+        }
+
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             vr : byteStream.readFixedString(2)
             // length set below based on VR
             // dataOffset set below based on VR and size of length
@@ -1855,6 +1866,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Internal helper functions for for parsing DICOM elements
  */
@@ -1886,15 +1898,19 @@ var dicomParser = (function (dicomParser)
         return false;
     }
 
-    dicomParser.readDicomElementImplicit = function(byteStream, untilTag, vrCallback)
+    dicomParser.readDicomElementImplicit = function(byteStream, untilTag, vrCallback, exclude)
     {
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementImplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        if (tag === untilTag && exclude) {
+            return false;
+        }
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             length: byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
@@ -1929,6 +1945,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
  * argument is supplied and it contains the untilTag property, parsing will stop once that

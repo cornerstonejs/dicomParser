@@ -28,15 +28,20 @@ var dicomParser = (function (dicomParser)
         }
     }
 
-    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag)
+    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag, exclude)
     {
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        if (tag === untilTag && exclude) {
+            return false;
+        }
+
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             vr : byteStream.readFixedString(2)
             // length set below based on VR
             // dataOffset set below based on VR and size of length

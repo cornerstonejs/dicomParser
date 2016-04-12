@@ -33,7 +33,10 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
+            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag, options.exclude);
+            if (element === false) {
+                return;
+            }
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;
@@ -67,7 +70,10 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
+            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback, options.exclude);
+            if (element === false) {
+                return;
+            }
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;
