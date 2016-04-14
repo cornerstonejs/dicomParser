@@ -33,7 +33,7 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag, options.exclude);
+            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options);
             if (element === false) {
                 return;
             }
@@ -52,8 +52,8 @@ var dicomParser = (function (dicomParser)
      * @param byteStream the byte stream to read from
      * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
      */
-    dicomParser.parseDicomDataSetImplicit = function(dataSet, byteStream, maxPosition, options)
-    {
+    dicomParser.parseDicomDataSetImplicit = function(dataSet, byteStream, maxPosition, options) {
+
         maxPosition = (maxPosition === undefined) ? dataSet.byteArray.length : maxPosition ;
         options = options || {};
 

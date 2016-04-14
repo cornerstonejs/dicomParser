@@ -28,15 +28,32 @@ var dicomParser = (function (dicomParser)
         }
     }
 
-    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag, exclude)
-    {
+    dicomParser.readDicomElementExplicit = function(byteStream, warnings, options) {
+
+        options = options || {};
+        var untilTag = options.untilTag;
+        var untilGroup = options.untilGroup;
+        var exclude = options.exclude;
+
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
+        // untilTag + exclude
         var tag = dicomParser.readTag(byteStream);
         if (tag === untilTag && exclude) {
+            return false;
+        }
+
+        // untilGroup + exclude
+        var group = parseInt("0" + tag.substring(0, 5));
+        untilGroup = untilGroup ? parseInt("0x" + untilGroup) : untilGroup;
+        if (untilGroup && group && exclude && group >= untilGroup) {
+            return false;
+        }
+        // untilGroup
+        if (untilGroup && group && group > untilGroup) {
             return false;
         }
 

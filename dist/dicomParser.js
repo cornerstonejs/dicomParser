@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.3.0 - 2016-04-12 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.3.0 - 2016-04-14 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1721,7 +1721,7 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag, options.exclude);
+            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options);
             if (element === false) {
                 return;
             }
@@ -1740,8 +1740,8 @@ var dicomParser = (function (dicomParser)
      * @param byteStream the byte stream to read from
      * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
      */
-    dicomParser.parseDicomDataSetImplicit = function(dataSet, byteStream, maxPosition, options)
-    {
+    dicomParser.parseDicomDataSetImplicit = function(dataSet, byteStream, maxPosition, options) {
+
         maxPosition = (maxPosition === undefined) ? dataSet.byteArray.length : maxPosition ;
         options = options || {};
 
@@ -1802,15 +1802,32 @@ var dicomParser = (function (dicomParser)
         }
     }
 
-    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag, exclude)
-    {
+    dicomParser.readDicomElementExplicit = function(byteStream, warnings, options) {
+
+        options = options || {};
+        var untilTag = options.untilTag;
+        var untilGroup = options.untilGroup;
+        var exclude = options.exclude;
+
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
+        // untilTag + exclude
         var tag = dicomParser.readTag(byteStream);
         if (tag === untilTag && exclude) {
+            return false;
+        }
+
+        // untilGroup + exclude
+        var group = parseInt("0" + tag.substring(0, 5));
+        untilGroup = untilGroup ? parseInt("0x" + untilGroup) : untilGroup;
+        if (untilGroup && group && exclude && group >= untilGroup) {
+            return false;
+        }
+        // untilGroup
+        if (untilGroup && group && group > untilGroup) {
             return false;
         }
 
