@@ -47,6 +47,40 @@ var dicomParser = (function (dicomParser)
     };
 
     /**
+     * Finds the element for tag and returns an unsigned int 8 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
+     * @returns {*} unsigned int 8 or undefined if the attribute is not present or has data of length 0
+     */
+    dicomParser.DataSet.prototype.uint8 = function(tag, index)
+    {
+        var element = this.elements[tag];
+        index = (index !== undefined) ? index : 0;
+        if(element && element.length !== 0)
+        {
+            return getByteArrayParser(element, this.byteArrayParser).readUint8(this.byteArray, element.dataOffset + index);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns a signed int 8 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
+     * @returns {*} signed int 8 or undefined if the attribute is not present or has data of length 0
+     */
+    dicomParser.DataSet.prototype.int8 = function(tag, index)
+    {
+        var element = this.elements[tag];
+        index = (index !== undefined) ? index : 0;
+        if(element && element.length !== 0)
+        {
+            return getByteArrayParser(element, this.byteArrayParser).readInt8(this.byteArray, element.dataOffset + index);
+        }
+        return undefined;
+    };
+
+    /**
      * Finds the element for tag and returns an unsigned int 16 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -64,7 +98,7 @@ var dicomParser = (function (dicomParser)
     };
 
     /**
-     * Finds the element for tag and returns an signed int 16 if it exists and has data
+     * Finds the element for tag and returns a signed int 16 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} signed int 16 or undefined if the attribute is not present or has data of length 0

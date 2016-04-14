@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.3.0 - 2016-03-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.3.0 - 2016-04-14 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -989,6 +989,21 @@ var dicomParser = (function (dicomParser)
 
     /**
      *
+     * Parses an unsigned int 8 from a byte array and advances
+     * the position by a bytes
+     *
+     * @returns {*} the parsed unsigned int 8
+     * @throws error if buffer overread would occur
+     */
+    dicomParser.ByteStream.prototype.readUint8 = function()
+    {
+        var result = this.byteArrayParser.readUint8(this.byteArray, this.position);
+        this.position += 1;
+        return result;
+    };
+
+    /**
+     *
      * Parses an unsigned int 16 from a byte array and advances
      * the position by 2 bytes
      *
@@ -1033,6 +1048,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  *
  * The DataSet class encapsulates a collection of DICOM Elements and provides various functions
@@ -1082,6 +1098,40 @@ var dicomParser = (function (dicomParser)
     };
 
     /**
+     * Finds the element for tag and returns an unsigned int 8 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
+     * @returns {*} unsigned int 8 or undefined if the attribute is not present or has data of length 0
+     */
+    dicomParser.DataSet.prototype.uint8 = function(tag, index)
+    {
+        var element = this.elements[tag];
+        index = (index !== undefined) ? index : 0;
+        if(element && element.length !== 0)
+        {
+            return getByteArrayParser(element, this.byteArrayParser).readUint8(this.byteArray, element.dataOffset + index);
+        }
+        return undefined;
+    };
+
+    /**
+     * Finds the element for tag and returns a signed int 8 if it exists and has data
+     * @param tag The DICOM tag in the format xGGGGEEEE
+     * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
+     * @returns {*} signed int 8 or undefined if the attribute is not present or has data of length 0
+     */
+    dicomParser.DataSet.prototype.int8 = function(tag, index)
+    {
+        var element = this.elements[tag];
+        index = (index !== undefined) ? index : 0;
+        if(element && element.length !== 0)
+        {
+            return getByteArrayParser(element, this.byteArrayParser).readInt8(this.byteArray, element.dataOffset + index);
+        }
+        return undefined;
+    };
+
+    /**
      * Finds the element for tag and returns an unsigned int 16 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -1099,7 +1149,7 @@ var dicomParser = (function (dicomParser)
     };
 
     /**
-     * Finds the element for tag and returns an signed int 16 if it exists and has data
+     * Finds the element for tag and returns a signed int 16 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} signed int 16 or undefined if the attribute is not present or has data of length 0
@@ -1309,6 +1359,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Internal helper functions for parsing DICOM elements
  */
@@ -1670,7 +1721,10 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
+            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options);
+            if (element === false) {
+                return;
+            }
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;
@@ -1686,8 +1740,8 @@ var dicomParser = (function (dicomParser)
      * @param byteStream the byte stream to read from
      * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
      */
-    dicomParser.parseDicomDataSetImplicit = function(dataSet, byteStream, maxPosition, options)
-    {
+    dicomParser.parseDicomDataSetImplicit = function(dataSet, byteStream, maxPosition, options) {
+
         maxPosition = (maxPosition === undefined) ? dataSet.byteArray.length : maxPosition ;
         options = options || {};
 
@@ -1704,7 +1758,10 @@ var dicomParser = (function (dicomParser)
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
+            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback, options.exclude);
+            if (element === false) {
+                return;
+            }
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
                 return;
@@ -1745,15 +1802,37 @@ var dicomParser = (function (dicomParser)
         }
     }
 
-    dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag)
-    {
+    dicomParser.readDicomElementExplicit = function(byteStream, warnings, options) {
+
+        options = options || {};
+        var untilTag = options.untilTag;
+        var untilGroup = options.untilGroup;
+        var exclude = options.exclude;
+
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
+        // untilTag + exclude
+        var tag = dicomParser.readTag(byteStream);
+        if (tag === untilTag && exclude) {
+            return false;
+        }
+
+        // untilGroup + exclude
+        var group = parseInt("0" + tag.substring(0, 5));
+        untilGroup = untilGroup ? parseInt("0x" + untilGroup) : untilGroup;
+        if (untilGroup && group && exclude && group >= untilGroup) {
+            return false;
+        }
+        // untilGroup
+        if (untilGroup && group && group > untilGroup) {
+            return false;
+        }
+
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             vr : byteStream.readFixedString(2)
             // length set below based on VR
             // dataOffset set below based on VR and size of length
@@ -1804,6 +1883,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Internal helper functions for for parsing DICOM elements
  */
@@ -1835,15 +1915,19 @@ var dicomParser = (function (dicomParser)
         return false;
     }
 
-    dicomParser.readDicomElementImplicit = function(byteStream, untilTag, vrCallback)
+    dicomParser.readDicomElementImplicit = function(byteStream, untilTag, vrCallback, exclude)
     {
         if(byteStream === undefined)
         {
             throw "dicomParser.readDicomElementImplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        if (tag === untilTag && exclude) {
+            return false;
+        }
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             length: byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
@@ -1878,6 +1962,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
  * argument is supplied and it contains the untilTag property, parsing will stop once that
