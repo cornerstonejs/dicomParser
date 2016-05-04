@@ -32,6 +32,11 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
+        if (element.tag !== 'xfffee000') {
+            var startPosition = byteStream.position;
+            throw "dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset " + startPosition;
+        }
+
         return element;
     };
 

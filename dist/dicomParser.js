@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.4.0 - 2016-05-03 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.4.1 - 2016-05-04 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -558,14 +558,21 @@ var dicomParser = (function (dicomParser)
         var fragments = [];
         var bufferSize = 0;
         while(byteStream.position < endOfFrame && byteStream.position < byteStream.byteArray.length) {
-            var fragment = dicomParser.readSequenceItem(byteStream);
-            // NOTE: we only encounter this for the sequence delimiter tag when extracting the last frame
-            if(fragment.tag === 'xfffee0dd') {
+
+            // read the fragment
+            var item = {
+                tag : dicomParser.readTag(byteStream),
+                length : byteStream.readUint32(),
+                dataOffset :  byteStream.position
+            };
+
+            // NOTE: we only encounter this for the sequence delimiter item when extracting the last frame
+            if(item.tag === 'xfffee0dd') {
                 break;
             }
-            fragments.push(fragment);
-            byteStream.seek(fragment.length);
-            bufferSize += fragment.length;
+            fragments.push(item);
+            byteStream.seek(item.length);
+            bufferSize += item.length;
         }
 
         // Convert the fragments into a single pixelData buffer
@@ -702,7 +709,7 @@ var dicomParser = (function (dicomParser)
     else if(byteArray instanceof Uint8Array) {
       return new Uint8Array(byteArray.buffer, byteOffset, length);
     } else {
-      throw 'unknown buffer type';
+      throw 'dicomParser.from: unknown type for byteArray';
     }
   };
 
@@ -719,7 +726,7 @@ var dicomParser = (function (dicomParser)
     else if(byteArray instanceof Uint8Array) {
       return new Uint8Array(length);
     } else {
-      throw 'unknown buffer type';
+      throw 'dicomParser.alloc: unknown type for byteArray';
     }
   };
 
@@ -928,7 +935,7 @@ var dicomParser = (function (dicomParser)
     {
         if(length < 0)
         {
-            throw 'readFixedString - length cannot be less than 0';
+            throw 'dicomParser.readFixedString - length cannot be less than 0';
         }
 
         if(position + length > byteArray.length) {
@@ -1019,7 +1026,7 @@ var dicomParser = (function (dicomParser)
     {
         if(this.position + offset < 0)
         {
-            throw "cannot seek to position < 0";
+            throw "dicomParser.ByteStream.prototype.seek: cannot seek to position < 0";
         }
         this.position += offset;
     };
@@ -1033,7 +1040,7 @@ var dicomParser = (function (dicomParser)
     dicomParser.ByteStream.prototype.readByteStream = function(numBytes)
     {
         if(this.position + numBytes > this.byteArray.length) {
-            throw 'readByteStream - buffer overread';
+            throw 'dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread';
         }
         var byteArrayView = dicomParser.from(this.byteArray, this.position, numBytes);
         this.position += numBytes;
@@ -1963,7 +1970,7 @@ var dicomParser = (function(dicomParser) {
       var prefix = littleEndianByteStream.readFixedString(4);
       if(prefix !== "DICM")
       {
-        throw "dicomParser.readPart10Header: DICM prefix not found at location 132";
+        throw "dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.";
       }
     }
 
@@ -2259,6 +2266,11 @@ var dicomParser = (function (dicomParser)
             dataOffset :  byteStream.position
         };
 
+        if (element.tag !== 'xfffee000') {
+            var startPosition = byteStream.position;
+            throw "dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset " + startPosition;
+        }
+
         return element;
     };
 
@@ -2312,7 +2324,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.4.0";
+  dicomParser.version = "1.4.1";
 
   return dicomParser;
 }(dicomParser));

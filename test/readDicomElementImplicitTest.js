@@ -158,8 +158,7 @@
     var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, convertToByteArray(bytes));
 
     // Act/Assert
-    assert.throws(function() { dicomParser.readDicomElementImplicit(byteStream, undefined); }, /invalid value for parameter 'maxPosition'/);
-
+    assert.throws(function() { dicomParser.readDicomElementImplicit(byteStream, undefined); }, 'dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset 8');
   });
 
   test("bytes resembling an end-of-sequence tag are not treated like an SQ item when using a callback", function(assert) {

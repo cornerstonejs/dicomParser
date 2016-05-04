@@ -27,7 +27,7 @@ var dicomParser = (function (dicomParser)
     else if(byteArray instanceof Uint8Array) {
       return new Uint8Array(byteArray.buffer, byteOffset, length);
     } else {
-      throw 'unknown buffer type';
+      throw 'dicomParser.from: unknown type for byteArray';
     }
   };
 
@@ -44,7 +44,7 @@ var dicomParser = (function (dicomParser)
     else if(byteArray instanceof Uint8Array) {
       return new Uint8Array(length);
     } else {
-      throw 'unknown buffer type';
+      throw 'dicomParser.alloc: unknown type for byteArray';
     }
   };
 

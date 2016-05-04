@@ -36,14 +36,21 @@ var dicomParser = (function (dicomParser)
         var fragments = [];
         var bufferSize = 0;
         while(byteStream.position < endOfFrame && byteStream.position < byteStream.byteArray.length) {
-            var fragment = dicomParser.readSequenceItem(byteStream);
-            // NOTE: we only encounter this for the sequence delimiter tag when extracting the last frame
-            if(fragment.tag === 'xfffee0dd') {
+
+            // read the fragment
+            var item = {
+                tag : dicomParser.readTag(byteStream),
+                length : byteStream.readUint32(),
+                dataOffset :  byteStream.position
+            };
+
+            // NOTE: we only encounter this for the sequence delimiter item when extracting the last frame
+            if(item.tag === 'xfffee0dd') {
                 break;
             }
-            fragments.push(fragment);
-            byteStream.seek(fragment.length);
-            bufferSize += fragment.length;
+            fragments.push(item);
+            byteStream.seek(item.length);
+            bufferSize += item.length;
         }
 
         // Convert the fragments into a single pixelData buffer
