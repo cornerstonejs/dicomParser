@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.3.0 - 2016-03-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.4.0 - 2016-05-03 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -74,7 +74,7 @@ var dicomParser = (function(dicomParser) {
               var inflated = pako.inflateRaw(deflated);
 
               // create a single byte array with the full header bytes and the inflated bytes
-              var fullByteArray = new Uint8Array(inflated.length + position);
+              var fullByteArray = dicomParser.alloc(byteArray, inflated.length + position);
               fullByteArray.set(byteArray.slice(0, position), 0);
               fullByteArray.set(inflated, position);
               return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArray, 0);
@@ -537,11 +537,11 @@ var dicomParser = (function (dicomParser)
     {
         // if there is only one fragment, return a view on this array to avoid copying
         if(fragments.length === 1) {
-            return new Uint8Array(byteStream.byteArray.buffer, fragments[0].dataOffset, fragments[0].length);
+            return dicomParser.from(byteStream.byteArray, fragments[0].dataOffset, fragments[0].length);
         }
 
         // more than one fragment, combine all of the fragments into one buffer
-        var pixelData = new Uint8Array(bufferSize);
+        var pixelData = dicomParser.alloc(byteStream.byteArray, bufferSize);
         var pixelDataIndex = 0;
         for(var i=0; i < fragments.length; i++) {
             var fragmentOffset = fragments[i].dataOffset;
@@ -673,6 +673,58 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 
+/**
+ *
+ * Internal helper functions to assist with allocating buffers.
+ *
+ */
+var dicomParser = (function (dicomParser)
+{
+  "use strict";
+
+  if(dicomParser === undefined)
+  {
+    dicomParser = {};
+  }
+
+  /**
+   * Creates a view of the underlying byteArray.  The view is of the same type as the byteArray (e.g.
+   * Uint8Array or Buffer) and shares the same underlying memory (changing one changes the other)
+   * @param byteArray the underlying byteArray (either Uint8Array or Buffer)
+   * @param byteOffset offset into the underlying byteArray to create the view of
+   * @param length number of bytes in the view
+   * @returns {object} Uint8Array or Buffer depending on the type of byteArray
+   */
+  dicomParser.from = function(byteArray, byteOffset, length) {
+    if (typeof Buffer !== 'undefined' && byteArray instanceof Buffer) {
+      return Buffer.from(byteArray, byteOffset, length);
+    }
+    else if(byteArray instanceof Uint8Array) {
+      return new Uint8Array(byteArray.buffer, byteOffset, length);
+    } else {
+      throw 'unknown buffer type';
+    }
+  };
+
+  /**
+   * Creates a new byteArray of the same type (Uint8Array or Buffer) of the specified length.
+   * @param byteArray the underlying byteArray (either Uint8Array or Buffer)
+   * @param length number of bytes of the Byte Array
+   * @returns {object} Uint8Array or Buffer depending on the type of byteArray
+   */
+  dicomParser.alloc = function(byteArray, length) {
+    if (typeof Buffer !== 'undefined' && byteArray instanceof Buffer) {
+      return Buffer.alloc(length);
+    }
+    else if(byteArray instanceof Uint8Array) {
+      return new Uint8Array(length);
+    } else {
+      throw 'unknown buffer type';
+    }
+  };
+
+  return dicomParser;
+}(dicomParser));
 /**
  * Internal helper functions for parsing different types from a big-endian byte array
  */
@@ -884,9 +936,10 @@ var dicomParser = (function (dicomParser)
         }
 
         var result = "";
+        var byte;
         for(var i=0; i < length; i++)
         {
-            var byte = byteArray[position + i];
+            byte = byteArray[position + i];
             if(byte === 0) {
                 position +=  length;
                 return result;
@@ -982,7 +1035,7 @@ var dicomParser = (function (dicomParser)
         if(this.position + numBytes > this.byteArray.length) {
             throw 'readByteStream - buffer overread';
         }
-        var byteArrayView = new Uint8Array(this.byteArray.buffer, this.position, numBytes);
+        var byteArrayView = dicomParser.from(this.byteArray, this.position, numBytes);
         this.position += numBytes;
         return new dicomParser.ByteStream(this.byteArrayParser, byteArrayView);
     };
@@ -2200,18 +2253,11 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.readSequenceItem: missing required parameter 'byteStream'";
         }
 
-        var startPosition = byteStream.position;
-
         var element = {
             tag : dicomParser.readTag(byteStream),
             length : byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
-
-        if (element.tag !== 'xfffee000')
-        {
-            throw "dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset " + startPosition;
-        }
 
         return element;
     };
@@ -2266,7 +2312,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.3.0";
+  dicomParser.version = "1.4.0";
 
   return dicomParser;
 }(dicomParser));

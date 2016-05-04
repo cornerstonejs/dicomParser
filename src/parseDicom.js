@@ -50,7 +50,7 @@ var dicomParser = (function(dicomParser) {
               var inflated = pako.inflateRaw(deflated);
 
               // create a single byte array with the full header bytes and the inflated bytes
-              var fullByteArray = new Uint8Array(inflated.length + position);
+              var fullByteArray = dicomParser.alloc(byteArray, inflated.length + position);
               fullByteArray.set(byteArray.slice(0, position), 0);
               fullByteArray.set(inflated, position);
               return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArray, 0);
