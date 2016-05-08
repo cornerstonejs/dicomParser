@@ -25,7 +25,7 @@ var dicomParser = (function (dicomParser)
       return byteArray.slice(byteOffset, byteOffset + length);
     }
     else if(byteArray instanceof Uint8Array) {
-      return new Uint8Array(byteArray.buffer, byteOffset, length);
+      return new Uint8Array(byteArray.buffer, byteArray.byteOffset + byteOffset, length);
     } else {
       throw 'dicomParser.from: unknown type for byteArray';
     }

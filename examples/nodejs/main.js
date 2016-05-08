@@ -1,63 +1,43 @@
+// Print
+console.log('');
+console.log('-----------------------------------------');
+
 // Reference the dicomParser module
 var dicomParser = require('../../dist/dicomParser');
+
+// Load in Rusha so we can calculate sha1 hashes
 var Rusha = require('../../node_modules/rusha');
-var rusha = new Rusha();
 
-function bufferToUint8Array(buffer) {
-  var view = new Uint8Array(buffer.length);
-  for (var i = 0; i < buffer.length; ++i) {
-    view[i] = buffer[i];
-  }
-  return view;
-}
-
+// Function to calculate the SHA1 Hash for a buffer with a given offset and length
 function sha1(buffer, offset, length) {
   offset = offset || 0;
   length = length || buffer.length;
-  var result = new Buffer(length);
-  for(var i=0; i < length; i++) {
-    result[i] = buffer[offset + i];
-  }
-  return rusha.digestFromBuffer(result);
+  var subArray = dicomParser.sharedCopy(buffer, offset, length);
+  var rusha = new Rusha();
+  return rusha.digest(subArray);
 }
 
-
-// This code reads a DICOM P10 file from disk and creates a UInt8Array from it
+// Read the DICOM P10 file from disk into a Buffer
 var fs = require('fs');
-var filePath = 'ctimage.dcm';
+var filePath = process.argv[2] || 'ctimage.dcm';
+console.log('File Path = ', filePath);
 var dicomFileAsBuffer = fs.readFileSync(filePath);
-var dicomFileAsUint8Array = bufferToUint8Array(dicomFileAsBuffer);
 
-console.log('sha1=' + sha1(dicomFileAsBuffer));
-console.log('sha1=' + sha1(dicomFileAsUint8Array));
+// Print the sha1 hash for the overall file
+console.log('File SHA1 hash = ' + sha1(dicomFileAsBuffer));
 
- // Now that we have the Uint8array, parse it and extract the patient name
+ // Parse the dicom file
 var dataSet = dicomParser.parseDicom(dicomFileAsBuffer);
+
+// print the patient's name
 var patientName = dataSet.string('x00100010');
 console.log('Patient Name = '+ patientName);
 
-var dataSet2 = dicomParser.parseDicom(dicomFileAsUint8Array);
-var patientName = dataSet2.string('x00100010');
-console.log('Patient Name = '+ patientName);
-
+// Get the pixel data element and calculate the SHA1 hash for its data
 var pixelData = dataSet.elements.x7fe00010;
 var pixelDataBuffer = dicomParser.sharedCopy(dicomFileAsBuffer, pixelData.dataOffset, pixelData.length);
-console.log("pixel data = " + pixelDataBuffer.length + " sha1=" + sha1(pixelDataBuffer));
+console.log('Pixel Data length = ', pixelDataBuffer.length);
+console.log("Pixel Data SHA1 hash = ", sha1(pixelDataBuffer));
 
-var pixelData2 = dataSet2.elements.x7fe00010;
-var pixelDataBuffer2 = dicomParser.sharedCopy(dicomFileAsUint8Array, pixelData2.dataOffset, pixelData2.length );
-console.log(pixelDataBuffer2.length);
-console.log("pixel data = " + pixelDataBuffer2.length + " sha1=" + sha1(pixelDataBuffer2));
-
-/*
-console.log(pixelDataBuffer.length);
-console.log("pixel data hash =" + rusha.digest(pixelDataBuffer));
-var fragment = pixelData.fragments[0];
-console.log(fragment);
-//var copy = dicomParser.sharedCopy(dataSet.byteArray, fragment.position, fragment.length);
-//var copy = new Uint8Array(dataSet.byteArray.buffer, fragment.position, fragment.length);
-var copy = dicomParser.sharedCopy(ab, fragment.position, fragment.length);
-
-//var imageFrame = dicomParser.readEncapsulatedPixelData(dataSet, pixelData, 0);
-console.log("fragment 0 size = " + copy.length + " bytes sha1=" + rusha.digest(copy));
-  */
+console.log('-----------------------------------------');
+console.log('');

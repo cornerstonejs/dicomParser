@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.4.2 - 2016-05-07 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.4.3 - 2016-05-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -2318,7 +2318,7 @@ var dicomParser = (function (dicomParser)
       return byteArray.slice(byteOffset, byteOffset + length);
     }
     else if(byteArray instanceof Uint8Array) {
-      return new Uint8Array(byteArray.buffer, byteOffset, length);
+      return new Uint8Array(byteArray.buffer, byteArray.byteOffset + byteOffset, length);
     } else {
       throw 'dicomParser.from: unknown type for byteArray';
     }
@@ -2339,7 +2339,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.4.2";
+  dicomParser.version = "1.4.3";
 
   return dicomParser;
 }(dicomParser));

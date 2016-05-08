@@ -140,13 +140,20 @@ function isASCII(str) {
 }
 
 function sha1(byteArray, position, length) {
-
-    var subArray = new Uint8Array(length);
-    for(var i=0; i < length; i++) {
-        subArray[i] = byteArray[position + i];
-    }
-    return rusha.digest(subArray.buffer);
+    position = position || 0;
+    length = length || byteArray.length;
+    var subArray = dicomParser.sharedCopy(byteArray, position, length);
+    return rusha.digest(subArray);
 }
+
+function mapUid(str) {
+    var uid = uids[str];
+    if(uid) {
+        return ' [ ' + uid + ' ]';
+    }
+    return '';
+}
+
 
 
 // This function iterates through dataSet recursively and adds new HTML strings
@@ -164,13 +171,6 @@ function dumpDataSet(dataSet, output)
         return attr;
     }
 
-    function mapUid(str) {
-        var uid = uids[str];
-        if(uid) {
-            return ' [ ' + uid + ' ]';
-        }
-        return '';
-    }
 
     try{
         var keys = [];
@@ -302,7 +302,7 @@ function dumpDataSet(dataSet, output)
             else if (element.fragments) {
                 text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " +
                         element.fragments.length + " fragments";
-                text += " sha1=" + sha1(dataSet.byteArray, element.dataOffset, element.length);
+                text += " SHA1 " + sha1(dataSet.byteArray, element.dataOffset, element.length);
 
                 output.push("<li title='" + title + "'=>" + text + '</li>');
                 output.push('<ul>');
@@ -314,7 +314,7 @@ function dumpDataSet(dataSet, output)
                     element.fragments.forEach(function (fragment) {
                         var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
                         str += '; length = ' + fragment.length ;
-                        str += " sha1=" + sha1(dataSet.byteArray, fragment.position, fragment.length);
+                        str += "; SHA1 " + sha1(dataSet.byteArray, fragment.position, fragment.length);
                         str += '</li>'
 
                         output.push(str);
@@ -472,7 +472,7 @@ function dumpDataSet(dataSet, output)
 
                     // Add text saying the data is too long to show...
                     text += "<i>data of length " + element.length + " for VR " + vr + " too long to show</i>";
-                    text += " sha1=" + sha1(dataSet.byteArray, element.dataOffset, element.length);
+                    text += " SHA1 " + sha1(dataSet.byteArray, element.dataOffset, element.length);
                 }
                 // finally we add the string to our output array surrounded by li elements so it shows up in the
                 // DOM as a list
@@ -558,10 +558,11 @@ function dumpFile()
 
                 var end = new Date().getTime();
                 var time = end - start;
+                var statusText = 'Status:';
                 if(dataSet.warnings.length > 0)
                 {
                     $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
-                    $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms) sha1=' +sha1Hash);
+                    statusText += 'Warnings encountered while parsing file';
 
                     dataSet.warnings.forEach(function(warning) {
                         $("#warnings").append('<li>' + warning +'</li>');
@@ -572,14 +573,23 @@ function dumpFile()
                     var pixelData = dataSet.elements.x7fe00010;
                     if(pixelData) {
                         $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms) sha1=' + sha1Hash);
+                        statusText += 'Ready';
                     }
                     else
                     {
                         $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms) sha1=' + sha1Hash);
+                        statusText += 'Ready - no pixel data found';
                     }
                 }
+                statusText += '; file size ' + byteStr;
+                statusText += '; parse time ' + time + 'ms';
+                statusText += '; SHA1 = ' + sha1Hash;
+                statusText += '<br>';
+                statusText += uids[(dataSet.string('x00020002'))];
+                statusText += '; ' + uids[(dataSet.string('x00020010'))];
+
+                $('#statusText').html(statusText);
+
             }
             catch(err)
             {

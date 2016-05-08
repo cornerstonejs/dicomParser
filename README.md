@@ -1,8 +1,8 @@
 dicomParser
 ===========
 
-dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+),  Node.js
-and Meteor.  dicomParser is fast, easy to use and has no required external dependencies
+dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern HTML5 based web browsers (IE10+),
+Node.js and Meteor.  dicomParser is fast, easy to use and has no required external dependencies
 ([pako](https://github.com/nodeca/pako) is required if you support for the Deflated Explicit VR Little Endian
  transfer syntax)
 
