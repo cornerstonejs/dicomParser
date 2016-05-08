@@ -27,17 +27,23 @@ var dicomFileAsBuffer = fs.readFileSync(filePath);
 console.log('File SHA1 hash = ' + sha1(dicomFileAsBuffer));
 
  // Parse the dicom file
-var dataSet = dicomParser.parseDicom(dicomFileAsBuffer);
+try {
+  var dataSet = dicomParser.parseDicom(dicomFileAsBuffer);
 
 // print the patient's name
-var patientName = dataSet.string('x00100010');
-console.log('Patient Name = '+ patientName);
+  var patientName = dataSet.string('x00100010');
+  console.log('Patient Name = '+ patientName);
 
 // Get the pixel data element and calculate the SHA1 hash for its data
-var pixelData = dataSet.elements.x7fe00010;
-var pixelDataBuffer = dicomParser.sharedCopy(dicomFileAsBuffer, pixelData.dataOffset, pixelData.length);
-console.log('Pixel Data length = ', pixelDataBuffer.length);
-console.log("Pixel Data SHA1 hash = ", sha1(pixelDataBuffer));
+  var pixelData = dataSet.elements.x7fe00010;
+  var pixelDataBuffer = dicomParser.sharedCopy(dicomFileAsBuffer, pixelData.dataOffset, pixelData.length);
+  console.log('Pixel Data length = ', pixelDataBuffer.length);
+  console.log("Pixel Data SHA1 hash = ", sha1(pixelDataBuffer));
+
+}
+catch(ex) {
+  console.log(ex);
+}
 
 console.log('-----------------------------------------');
 console.log('');

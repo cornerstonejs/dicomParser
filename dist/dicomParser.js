@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.4.3 - 2016-05-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.5.0 - 2016-05-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -22,17 +22,17 @@
     }
 }(this, function () {
 
-    /**
-     * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
-     * argument is supplied and it contains the untilTag property, parsing will stop once that
-     * tag is encoutered.  This can be used to parse partial byte streams.
-     *
-     * @param byteArray the byte array
-     * @param options object to control parsing behavior (optional)
-     * @returns {DataSet}
-     * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
-     *         elements successfully parsed before the error.
-     */
+/**
+ * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
+ * argument is supplied and it contains the untilTag property, parsing will stop once that
+ * tag is encoutered.  This can be used to parse partial byte streams.
+ *
+ * @param byteArray the byte array
+ * @param options object to control parsing behavior (optional)
+ * @returns {DataSet}
+ * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
+ *         elements successfully parsed before the error.
+ */
 var dicomParser = (function(dicomParser) {
     if(dicomParser === undefined)
     {
@@ -66,18 +66,42 @@ var dicomParser = (function(dicomParser) {
         function getDataSetByteStream(transferSyntax, position) {
             if(transferSyntax === '1.2.840.10008.1.2.1.99')
             {
-              // https://github.com/nodeca/pako
-              if(typeof(pako) === "undefined") {
-                throw 'dicomParser.parseDicom: deflated transfer syntax encountered but pako not loaded';
-              }
-              var deflated = byteArray.slice(position);
-              var inflated = pako.inflateRaw(deflated);
+                // if an infalter callback is registered, use it
+                if (options && options.inflater) {
+                    var fullByteArrayCallback = options.inflater(byteArray, position);
+                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArrayCallback, 0);
+                }
+                // if running on node, use the zlib library to inflate
+                // http://stackoverflow.com/questions/4224606/how-to-check-whether-a-script-is-running-under-node-js
+                else if (typeof module !== 'undefined' && this.module !== module) {
+                    // inflate it
+                    var zlib = require('zlib');
+                    var deflatedBuffer = dicomParser.sharedCopy(byteArray, position, byteArray.length - position);
+                    var inflatedBuffer = zlib.inflateRawSync(deflatedBuffer);
 
-              // create a single byte array with the full header bytes and the inflated bytes
-              var fullByteArray = dicomParser.alloc(byteArray, inflated.length + position);
-              fullByteArray.set(byteArray.slice(0, position), 0);
-              fullByteArray.set(inflated, position);
-              return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArray, 0);
+                    // create a single byte array with the full header bytes and the inflated bytes
+                    var fullByteArrayBuffer = dicomParser.alloc(byteArray, inflatedBuffer.length + position);
+                    byteArray.copy(fullByteArrayBuffer, 0, 0, position);
+                    inflatedBuffer.copy(fullByteArrayBuffer, position);
+                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArrayBuffer, 0);
+                }
+                // if pako is defined - use it.  This is the web browser path
+                // https://github.com/nodeca/pako
+                else if(typeof pako !== "undefined") {
+                    // inflate it
+                    var deflated = byteArray.slice(position);
+                    var inflated = pako.inflateRaw(deflated);
+
+                    // create a single byte array with the full header bytes and the inflated bytes
+                    var fullByteArray = dicomParser.alloc(byteArray, inflated.length + position);
+                    fullByteArray.set(byteArray.slice(0, position), 0);
+                    fullByteArray.set(inflated, position);
+                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArray, 0);
+                }
+                // throw exception since no inflater is available
+                else {
+                    throw 'dicomParser.parseDicom: no inflater available to handle deflate transfer syntax';
+                }
             }
             if(transferSyntax === '1.2.840.10008.1.2.2') // explicit big endian
             {
@@ -2339,7 +2363,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.4.3";
+  dicomParser.version = "1.5.0";
 
   return dicomParser;
 }(dicomParser));

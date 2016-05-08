@@ -2,9 +2,10 @@ dicomParser
 ===========
 
 dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern HTML5 based web browsers (IE10+),
-Node.js and Meteor.  dicomParser is fast, easy to use and has no required external dependencies
-([pako](https://github.com/nodeca/pako) is required if you support for the Deflated Explicit VR Little Endian
- transfer syntax)
+Node.js and Meteor.  dicomParser is fast, easy to use and has no required external dependencies.
+
+
+()
 
 Live Examples
 ---------------
@@ -100,13 +101,21 @@ Useful for partial reading of byte streams.
 A callback that, given a tag, will return the two-character Value Representation associated with that tag (see PS 3.5
 of the DICOM standard for more information). It may return undefined to indicate that the VR was not provided.
 
+#### inflater
+
+A callback that given the underlying byteArray and position of the deflated buffer returns a byteArray containing the
+DICOM P10 header and inflated data set concatenated together.
+
 Key Features
 ------------
 
-* Parses DICOM Part 10 byte arrays in all encodings
+* Parses all known valid DICOM Part 10 byte arrays
   * Explicit and implicit
   * Little endian and big endian
   * Deflated Explicit VR Little Endian transfer syntax
+    * Uses zlib when running node.js
+    * requires [pako](https://github.com/nodeca/pako) in web browsers
+    * has callback to support use of other inflate libraries
 * Supports all VR's including sequences
 * Supports elements with undefined length
 * Supports sequence items with undefined length
