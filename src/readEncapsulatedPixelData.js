@@ -15,7 +15,7 @@ var dicomParser = (function (dicomParser)
     {
         // if there is only one fragment, return a view on this array to avoid copying
         if(fragments.length === 1) {
-            return dicomParser.from(byteStream.byteArray, fragments[0].dataOffset, fragments[0].length);
+            return dicomParser.sharedCopy(byteStream.byteArray, fragments[0].dataOffset, fragments[0].length);
         }
 
         // more than one fragment, combine all of the fragments into one buffer

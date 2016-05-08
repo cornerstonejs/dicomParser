@@ -14,6 +14,7 @@ module.exports = function(grunt) {
                     'bower_components/jquery/dist/jquery.min.js',
                     'bower_components/jquery/dist/jquery.min.map',
                     'bower_components/bootstrap/dist/css/bootstrap.min.css',
+                    'bower_components/Rusha/rusha.min.js'
                 ],
                 dest: 'examples',
                 expand: true,

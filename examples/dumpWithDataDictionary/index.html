@@ -66,6 +66,11 @@
                     <input id="groupElement" type="checkbox"> Group/Element
                 </label>
             </div>
+            <div class="checkbox">
+                <label>
+                    <input id="fragments" type="checkbox"> Fragments
+                </label>
+            </div>
         </form>
         <div id="status" class="alert alert-success">
             <div id="statusText">
@@ -110,6 +115,10 @@
 <!-- include the uids -->
 <script src="uids.js"></script>
 
+<!-- include Rusha for SHA1 hashing -->
+<script src="../rusha.min.js"></script>
+
+
 <script>
 
 var maxLength = 128;
@@ -120,17 +129,32 @@ var showEmptyValues = false;
 var showLength = false;
 var showVR = false;
 var showGroupElement = false;
+var showFragments = false;
 var file = undefined;
+var sha1Hash = "";
+var rusha = new Rusha();
 
 // helper function to see if a string only has ascii characters in it
 function isASCII(str) {
     return /^[\x00-\x7F]*$/.test(str);
 }
 
+function sha1(byteArray, position, length) {
+
+    var subArray = new Uint8Array(length);
+    for(var i=0; i < length; i++) {
+        subArray[i] = byteArray[position + i];
+    }
+    return rusha.digest(subArray.buffer);
+}
+
+
 // This function iterates through dataSet recursively and adds new HTML strings
 // to the output array passed into it
 function dumpDataSet(dataSet, output)
 {
+
+
     function getTag(tag)
     {
         var group = tag.substring(1,5);
@@ -188,7 +212,7 @@ function dumpDataSet(dataSet, output)
 
                 var lengthText = "length=" + element.length;
                 if (element.hadUndefinedLength) {
-                    lengthText += " <strong>(-1)</strong>";
+                    lengthText += " (-1)";
                 }
                 if(showLength === true) {
                     text += lengthText + "; ";
@@ -204,7 +228,9 @@ function dumpDataSet(dataSet, output)
                 if(showVR) {
                     text += vrText + "; ";
                 }
-                title += "; " + vrText;
+                if(vrText) {
+                    title += "; " + vrText;
+                }
 
                 title += "; dataOffset=" + element.dataOffset;
                 // make text lighter since this is an unknown attribute
@@ -221,7 +247,7 @@ function dumpDataSet(dataSet, output)
 
                 var lengthText = " length=" + element.length;
                 if (element.hadUndefinedLength) {
-                    lengthText += " <strong>(-1)</strong>";
+                    lengthText += " (-1)";
                 }
 
                 if(showLength === true) {
@@ -237,7 +263,9 @@ function dumpDataSet(dataSet, output)
                 if(showVR) {
                     text += vrText + "; ";
                 }
-                title +="; " + vrText;
+                if(vrText) {
+                    title +="; " + vrText;
+                }
 
                 title += "; dataOffset=" + element.dataOffset;
 
@@ -257,7 +285,7 @@ function dumpDataSet(dataSet, output)
                     output.push('<li>Item #' + itemNumber++ + ' ' + item.tag);
                     var lengthText = " length=" + item.length;
                     if (item.hadUndefinedLength) {
-                        lengthText += " <strong>(-1)</strong>";
+                        lengthText += " (-1)";
                     }
 
                     if(showLength === true) {
@@ -272,22 +300,27 @@ function dumpDataSet(dataSet, output)
                 output.push('</ul>');
             }
             else if (element.fragments) {
-                text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " + element.fragments.length + " fragments";
-                title += "; dataOffset=" + element.dataOffset;
+                text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " +
+                        element.fragments.length + " fragments";
+                text += " sha1=" + sha1(dataSet.byteArray, element.dataOffset, element.length);
+
                 output.push("<li title='" + title + "'=>" + text + '</li>');
-                /*
                 output.push('<ul>');
 
                 // each item contains its own data set so we iterate over the items
                 // and recursively call this function
-                var itemNumber = 0;
-                element.fragments.forEach(function (fragment) {
-                    var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
-                    str += '; length = ' + fragment.length + '</li>';
-                    output.push(str);
-                });
-                output.push('</ul>');
-                */
+                if(showFragments) {
+                    var itemNumber = 0;
+                    element.fragments.forEach(function (fragment) {
+                        var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
+                        str += '; length = ' + fragment.length ;
+                        str += " sha1=" + sha1(dataSet.byteArray, fragment.position, fragment.length);
+                        str += '</li>'
+
+                        output.push(str);
+                    });
+                    output.push('</ul>');
+                }
             }
             else {
                 // use VR to display the right value
@@ -438,7 +471,8 @@ function dumpDataSet(dataSet, output)
                     color = '#C8C8C8';
 
                     // Add text saying the data is too long to show...
-                    text += "<i>data of length " + element.length + " for VR + " + vr + " too long to show</i>";
+                    text += "<i>data of length " + element.length + " for VR " + vr + " too long to show</i>";
+                    text += " sha1=" + sha1(dataSet.byteArray, element.dataOffset, element.length);
                 }
                 // finally we add the string to our output array surrounded by li elements so it shows up in the
                 // DOM as a list
@@ -465,6 +499,7 @@ function updateFilter() {
     showLength = $('#length').prop('checked');
     showVR = $('#vr').prop('checked');
     showGroupElement = $('#groupElement').prop('checked');
+    showFragments = $('#fragments').prop('checked');
     dumpFile();
 }
 
@@ -476,6 +511,7 @@ $('#emptyValues').change(updateFilter);
 $('#length').change(updateFilter);
 $('#vr').change(updateFilter);
 $('#groupElement').change(updateFilter);
+$('#fragments').change(updateFilter);
 
 // This function will read the file into memory and then start dumping it
 function dumpFile()
@@ -501,6 +537,7 @@ function dumpFile()
         document.getElementById('statusText').innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
         // set a short timeout to do the parse so the DOM has time to update itself with the above message
         setTimeout(function() {
+            var sha1Hash = sha1(byteArray, 0, byteArray.length);
 
             // Invoke the paresDicom function and get back a DataSet object with the contents
             var dataSet;
@@ -509,6 +546,7 @@ function dumpFile()
                 var options = {
                     untilTag: untilTag
                 };
+
                 dataSet = dicomParser.parseDicom(byteArray, options);
                 // Here we call dumpDataSet to recursively iterate through the DataSet and create an array
                 // of strings of the contents.
@@ -523,7 +561,7 @@ function dumpFile()
                 if(dataSet.warnings.length > 0)
                 {
                     $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
-                    $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                    $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms) sha1=' +sha1Hash);
 
                     dataSet.warnings.forEach(function(warning) {
                         $("#warnings").append('<li>' + warning +'</li>');
@@ -534,12 +572,12 @@ function dumpFile()
                     var pixelData = dataSet.elements.x7fe00010;
                     if(pixelData) {
                         $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                        $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms) sha1=' + sha1Hash);
                     }
                     else
                     {
                         $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
+                        $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms) sha1=' + sha1Hash);
                     }
                 }
             }

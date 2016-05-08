@@ -80,7 +80,7 @@ var dicomParser = (function (dicomParser)
         if(this.position + numBytes > this.byteArray.length) {
             throw 'dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread';
         }
-        var byteArrayView = dicomParser.from(this.byteArray, this.position, numBytes);
+        var byteArrayView = dicomParser.sharedCopy(this.byteArray, this.position, numBytes);
         this.position += numBytes;
         return new dicomParser.ByteStream(this.byteArrayParser, byteArrayView);
     };

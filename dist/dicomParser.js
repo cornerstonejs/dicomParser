@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.4.1 - 2016-05-04 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.4.2 - 2016-05-07 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -537,7 +537,7 @@ var dicomParser = (function (dicomParser)
     {
         // if there is only one fragment, return a view on this array to avoid copying
         if(fragments.length === 1) {
-            return dicomParser.from(byteStream.byteArray, fragments[0].dataOffset, fragments[0].length);
+            return dicomParser.sharedCopy(byteStream.byteArray, fragments[0].dataOffset, fragments[0].length);
         }
 
         // more than one fragment, combine all of the fragments into one buffer
@@ -682,8 +682,7 @@ var dicomParser = (function (dicomParser)
 
 /**
  *
- * Internal helper functions to assist with allocating buffers.
- *
+ * Internal helper function to allocate new byteArray buffers
  */
 var dicomParser = (function (dicomParser)
 {
@@ -693,25 +692,6 @@ var dicomParser = (function (dicomParser)
   {
     dicomParser = {};
   }
-
-  /**
-   * Creates a view of the underlying byteArray.  The view is of the same type as the byteArray (e.g.
-   * Uint8Array or Buffer) and shares the same underlying memory (changing one changes the other)
-   * @param byteArray the underlying byteArray (either Uint8Array or Buffer)
-   * @param byteOffset offset into the underlying byteArray to create the view of
-   * @param length number of bytes in the view
-   * @returns {object} Uint8Array or Buffer depending on the type of byteArray
-   */
-  dicomParser.from = function(byteArray, byteOffset, length) {
-    if (typeof Buffer !== 'undefined' && byteArray instanceof Buffer) {
-      return Buffer.from(byteArray, byteOffset, length);
-    }
-    else if(byteArray instanceof Uint8Array) {
-      return new Uint8Array(byteArray.buffer, byteOffset, length);
-    } else {
-      throw 'dicomParser.from: unknown type for byteArray';
-    }
-  };
 
   /**
    * Creates a new byteArray of the same type (Uint8Array or Buffer) of the specified length.
@@ -1042,7 +1022,7 @@ var dicomParser = (function (dicomParser)
         if(this.position + numBytes > this.byteArray.length) {
             throw 'dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread';
         }
-        var byteArrayView = dicomParser.from(this.byteArray, this.position, numBytes);
+        var byteArrayView = dicomParser.sharedCopy(this.byteArray, this.position, numBytes);
         this.position += numBytes;
         return new dicomParser.ByteStream(this.byteArrayParser, byteArrayView);
     };
@@ -2312,6 +2292,41 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
+ *
+ * Internal helper function to create a shared copy of a byteArray
+ *
+ */
+var dicomParser = (function (dicomParser)
+{
+  "use strict";
+
+  if(dicomParser === undefined)
+  {
+    dicomParser = {};
+  }
+
+  /**
+   * Creates a view of the underlying byteArray.  The view is of the same type as the byteArray (e.g.
+   * Uint8Array or Buffer) and shares the same underlying memory (changing one changes the other)
+   * @param byteArray the underlying byteArray (either Uint8Array or Buffer)
+   * @param byteOffset offset into the underlying byteArray to create the view of
+   * @param length number of bytes in the view
+   * @returns {object} Uint8Array or Buffer depending on the type of byteArray
+   */
+  dicomParser.sharedCopy = function(byteArray, byteOffset, length) {
+    if (typeof Buffer !== 'undefined' && byteArray instanceof Buffer) {
+      return byteArray.slice(byteOffset, byteOffset + length);
+    }
+    else if(byteArray instanceof Uint8Array) {
+      return new Uint8Array(byteArray.buffer, byteOffset, length);
+    } else {
+      throw 'dicomParser.from: unknown type for byteArray';
+    }
+  };
+
+  return dicomParser;
+}(dicomParser));
+/**
  * Version
  */
 
@@ -2324,7 +2339,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.4.1";
+  dicomParser.version = "1.4.2";
 
   return dicomParser;
 }(dicomParser));
