@@ -12,8 +12,8 @@ Live Examples
 
 The best way to see the power of this library is to actually see it in use.  A number of live examples are
 included that are not only useful but also show how to use dicomParser.
-[Click here for a list of all live examples](https://cdn.rawgit.com/chafey/dicomParser/master/examples/index.html)
-Make sure you try out the [DICOM Dump with Data Dictionary](https://cdn.rawgit.com/chafey/dicomParser/master/examples/dumpWithDataDictionary/index.html)
+[Click here for a list of all live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
+Make sure you try out the [DICOM Dump with Data Dictionary](https://rawgit.com/chafey/dicomParser/master/examples/dumpWithDataDictionary/index.html)
 which is a very useful tool and excellent example of most features.
 
 Community
@@ -74,7 +74,7 @@ catch(ex)
 }
 ```
 
-[See the live examples for more in depth usage of the library](https://cdn.rawgit.com/chafey/dicomParser/master/examples/index.html)
+[See the live examples for more in depth usage of the library](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
 
 Note that actually displaying DICOM images is quite complex due to the variety of pixel formats and compression
 algorithms that DICOM supports.  If you are interested in displaying images, please take a look at the
