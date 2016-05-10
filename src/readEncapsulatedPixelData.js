@@ -31,7 +31,7 @@ var dicomParser = (function (dicomParser)
         return pixelData;
     }
 
-    function readFragmentsUntil(byteStream, endOfFrame, onlyOne) {
+    function readFragmentsUntil(byteStream, endOfFrame) {
         // Read fragments until we reach endOfFrame
         var fragments = [];
         var bufferSize = 0;
@@ -51,15 +51,26 @@ var dicomParser = (function (dicomParser)
             fragments.push(item);
             byteStream.seek(item.length);
             bufferSize += item.length;
-            
-            if(onlyOne === true){
-              break;
-            }            
         }
 
         // Convert the fragments into a single pixelData buffer
         var pixelData = getPixelDataFromFragments(byteStream, fragments, bufferSize);
         return pixelData;
+    }
+    
+    function getFragmentOffset(byteStream) {
+        // read the fragment
+        var item = {
+            tag : dicomParser.readTag(byteStream),
+            length : byteStream.readUint32(),
+            dataOffset :  byteStream.position
+        };
+
+        // NOTE: we only encounter this for the sequence delimiter item when extracting the last frame
+        if(item.tag === 'xfffee0dd') {
+            return;
+        }
+        byteStream.seek(item.length);
     }
 
     function readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame) {
@@ -146,7 +157,7 @@ var dicomParser = (function (dicomParser)
             var firstFragment = byteStream2.position;
             pixelDataElement.basicOffsetTable[0] = 0;
             for(var k=0; k< dataSet.intString('x00280008') - 1; k++){
-                readFragmentsUntil(byteStream2, endOfFrame, true);
+                getFragmentOffset(byteStream2);
                 pixelDataElement.basicOffsetTable[k + 1] = byteStream2.position - firstFragment;
             }
         }
