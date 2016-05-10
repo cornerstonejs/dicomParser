@@ -31,7 +31,7 @@ var dicomParser = (function (dicomParser)
         return pixelData;
     }
 
-    function readFragmentsUntil(byteStream, endOfFrame) {
+    function readFragmentsUntil(byteStream, endOfFrame, onlyOne) {
         // Read fragments until we reach endOfFrame
         var fragments = [];
         var bufferSize = 0;
@@ -51,6 +51,10 @@ var dicomParser = (function (dicomParser)
             fragments.push(item);
             byteStream.seek(item.length);
             bufferSize += item.length;
+            
+            if(onlyOne === true){
+              break;
+            }            
         }
 
         // Convert the fragments into a single pixelData buffer
@@ -132,6 +136,19 @@ var dicomParser = (function (dicomParser)
         }
         if(frame < 0) {
             throw "dicomParser.readEncapsulatedPixelData: parameter 'frame' must be >= 0";
+        }
+
+        if(pixelDataElement.basicOffsetTable.length === 0 && dataSet.intString('x00280008') && dataSet.intString('x00280008') > 1){
+            var byteStream2 = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelDataElement.dataOffset);
+            var basicOffsetTable2 = dicomParser.readSequenceItem(byteStream2);
+            byteStream2.seek(basicOffsetTable2.length);
+            var endOfFrame = byteStream2.position + pixelDataElement.length;
+            var firstFragment = byteStream2.position;
+            pixelDataElement.basicOffsetTable[0] = 0;
+            for(var k=0; k< dataSet.intString('x00280008') - 1; k++){
+                readFragmentsUntil(byteStream2, endOfFrame, true);
+                pixelDataElement.basicOffsetTable[k + 1] = byteStream2.position - firstFragment;
+            }
         }
 
         // seek past the basic offset table (no need to parse it again since we already have)
