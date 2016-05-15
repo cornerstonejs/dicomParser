@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.5.0 - 2016-05-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.5.0 - 2016-05-15 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -603,6 +603,21 @@ var dicomParser = (function (dicomParser)
         var pixelData = getPixelDataFromFragments(byteStream, fragments, bufferSize);
         return pixelData;
     }
+    
+    function getFragmentOffset(byteStream) {
+        // read the fragment
+        var item = {
+            tag : dicomParser.readTag(byteStream),
+            length : byteStream.readUint32(),
+            dataOffset :  byteStream.position
+        };
+
+        // NOTE: we only encounter this for the sequence delimiter item when extracting the last frame
+        if(item.tag === 'xfffee0dd') {
+            return;
+        }
+        byteStream.seek(item.length);
+    }
 
     function readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame) {
         //  validate that we have an offset for this frame
@@ -678,6 +693,19 @@ var dicomParser = (function (dicomParser)
         }
         if(frame < 0) {
             throw "dicomParser.readEncapsulatedPixelData: parameter 'frame' must be >= 0";
+        }
+
+        if(pixelDataElement.basicOffsetTable.length === 0 && dataSet.intString('x00280008') && dataSet.intString('x00280008') > 1){
+            var byteStream2 = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelDataElement.dataOffset);
+            var basicOffsetTable2 = dicomParser.readSequenceItem(byteStream2);
+            byteStream2.seek(basicOffsetTable2.length);
+            var endOfFrame = byteStream2.position + pixelDataElement.length;
+            var firstFragment = byteStream2.position;
+            pixelDataElement.basicOffsetTable[0] = 0;
+            for(var k=0; k< dataSet.intString('x00280008') - 1; k++){
+                getFragmentOffset(byteStream2);
+                pixelDataElement.basicOffsetTable[k + 1] = byteStream2.position - firstFragment;
+            }
         }
 
         // seek past the basic offset table (no need to parse it again since we already have)
