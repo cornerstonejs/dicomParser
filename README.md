@@ -4,9 +4,6 @@ dicomParser
 dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern HTML5 based web browsers (IE10+),
 Node.js and Meteor.  dicomParser is fast, easy to use and has no required external dependencies.
 
-
-()
-
 Live Examples
 ---------------
 
@@ -126,6 +123,8 @@ Key Features
 * Packaged using the module pattern, as an AMD module and as a CommonJS module for Node.js
 * No external dependencies
 * Supports extraction of encapsulated pixel data frames
+  * NOTE - does not support fragmented frames with no basic offset table as that requires special logic
+    to determine which fragments are part of each image frame and this library does not include decoders
 * Convenient utility functions to parse strings formatted in DA, TM and PN VRs and return JavaScript objects
 * Convenient utility function to create a string version of an explicit element
 * Convenient utility function to convert a parsed explicit dataSet into a javascript object
@@ -199,6 +198,7 @@ Contributors
 * @henryqdineen, adil.tiadi@gmail.com - bug report for sequences with undefined lengths and zero items
 * @swederik - bug fixes on sequences with undefined lengths and zero items
 * @jkrot - performance enhancement in byteArrayParser
+* @cancan101 - issue related to multi-frame with multiple fragments and no basic offset table
 
 Why another Javascript DICOM parsing library?
 ============================================

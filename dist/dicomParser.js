@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.5.0 - 2016-05-08 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.5.1 - 2016-05-20 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -630,20 +630,23 @@ var dicomParser = (function (dicomParser)
     }
 
     function readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        // if the basic offset table is empty, this is a single frame so make sure the requested
-        // frame is 0
-        if(frame !== 0) {
-            throw 'dicomParser.readEncapsulatedPixelData: non zero frame specified for single frame encapsulated pixel data';
+        // make sure we have a fragment for this frame
+        if(frame > pixelDataElement.fragments.length) {
+            throw 'dicomParser:readEncapsulatedDataNoBasicOffsetTable - frame must be < number of fragments';
         }
 
-        // read this frame
-        var endOfFrame = byteStream.position + pixelDataElement.length;
-        var pixelData = readFragmentsUntil(byteStream, endOfFrame);
+        // NOTE: We assume one fragment per frame here.  This may not be the case for JPEG2000 and JPEG-LS
+        // but dealing with that requires actually decoding the fragments which this library does not do
+        var fragment = pixelDataElement.fragments[frame];
+        var pixelData = dicomParser.sharedCopy(byteStream.byteArray, fragment.position, fragment.length);
         return pixelData;
     }
 
     /**
-     * Returns the pixel data for the specified frame in an encapsulated pixel data element
+     * Returns the pixel data for the specified frame in an encapsulated pixel data element.  Note that
+     * this does not work for fragmented frames when no basic offset table is present as that requires
+     * special logic to deal with determining which fragments are part of each image frame and this
+     * library doesn't deal with decoding
      *
      * @param dataSet - the dataSet containing the encapsulated pixel data
      * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
@@ -2363,7 +2366,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.5.0";
+  dicomParser.version = "1.5.1";
 
   return dicomParser;
 }(dicomParser));
