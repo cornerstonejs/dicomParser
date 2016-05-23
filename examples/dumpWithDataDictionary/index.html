@@ -304,8 +304,6 @@ function dumpDataSet(dataSet, output)
                         element.fragments.length + " fragments";
                 if(element.basicOffsetTable) {
                     text += "; Basic Offset Table with " + element.basicOffsetTable.length + " frames";
-                } else {
-                    text += "; No Basic Offset Table";
                 }
                 text += "; SHA1 " + sha1(dataSet.byteArray, element.dataOffset, element.length);
 
@@ -318,6 +316,7 @@ function dumpDataSet(dataSet, output)
                     var itemNumber = 0;
                     element.fragments.forEach(function (fragment) {
                         var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
+                        str += '; position = ' + fragment.position;
                         str += '; length = ' + fragment.length ;
                         str += "; SHA1 " + sha1(dataSet.byteArray, fragment.position, fragment.length);
                         str += '</li>'

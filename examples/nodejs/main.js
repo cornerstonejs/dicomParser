@@ -40,6 +40,23 @@ try {
   console.log('Pixel Data length = ', pixelDataBuffer.length);
   console.log("Pixel Data SHA1 hash = ", sha1(pixelDataBuffer));
 
+
+  if(pixelData.encapsulatedPixelData) {
+    var imageFrame = dicomParser.readEncapsulatedPixelData(dataSet, pixelData, 0);
+    console.log('Old Image Frame length = ', imageFrame.length);
+    console.log('Old Image Frame SHA1 hash = ', sha1(imageFrame));
+
+    if(pixelData.basicOffsetTable.length) {
+      var imageFrame = dicomParser.readEncapsulatedImageFrame(dataSet, pixelData, 0);
+      console.log('Image Frame length = ', imageFrame.length);
+      console.log('Image Frame SHA1 hash = ', sha1(imageFrame));
+    } else {
+      var imageFrame = dicomParser.readEncapsulatedPixelDataFromFragments(dataSet, pixelData, 0, pixelData.fragments.length);
+      console.log('Image Frame length = ', imageFrame.length);
+      console.log('Image Frame SHA1 hash = ', sha1(imageFrame));
+    }
+  }
+
 }
 catch(ex) {
   console.log(ex);

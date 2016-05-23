@@ -11,104 +11,31 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
-    function getPixelDataFromFragments(byteStream, fragments, bufferSize)
-    {
-        // if there is only one fragment, return a view on this array to avoid copying
-        if(fragments.length === 1) {
-            return dicomParser.sharedCopy(byteStream.byteArray, fragments[0].dataOffset, fragments[0].length);
-        }
-
-        // more than one fragment, combine all of the fragments into one buffer
-        var pixelData = dicomParser.alloc(byteStream.byteArray, bufferSize);
-        var pixelDataIndex = 0;
-        for(var i=0; i < fragments.length; i++) {
-            var fragmentOffset = fragments[i].dataOffset;
-            for(var j=0; j < fragments[i].length; j++) {
-                pixelData[pixelDataIndex++] = byteStream.byteArray[fragmentOffset++];
-            }
-        }
-
-        return pixelData;
-    }
-
-    function readFragmentsUntil(byteStream, endOfFrame) {
-        // Read fragments until we reach endOfFrame
-        var fragments = [];
-        var bufferSize = 0;
-        while(byteStream.position < endOfFrame && byteStream.position < byteStream.byteArray.length) {
-
-            // read the fragment
-            var item = {
-                tag : dicomParser.readTag(byteStream),
-                length : byteStream.readUint32(),
-                dataOffset :  byteStream.position
-            };
-
-            // NOTE: we only encounter this for the sequence delimiter item when extracting the last frame
-            if(item.tag === 'xfffee0dd') {
-                break;
-            }
-            fragments.push(item);
-            byteStream.seek(item.length);
-            bufferSize += item.length;
-        }
-
-        // Convert the fragments into a single pixelData buffer
-        var pixelData = getPixelDataFromFragments(byteStream, fragments, bufferSize);
-        return pixelData;
-    }
-
-    function readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        //  validate that we have an offset for this frame
-        var numFrames = pixelDataElement.basicOffsetTable.length;
-        if(frame > numFrames) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter frame exceeds number of frames in basic offset table";
-        }
-
-        // move to the start of this frame
-        var frameOffset = pixelDataElement.basicOffsetTable[frame];
-        var firstFragment = byteStream.position;
-        byteStream.seek(frameOffset);
-
-        // Find the end of this frame
-        var endOfFrameOffset = pixelDataElement.basicOffsetTable[frame + 1];
-        if(endOfFrameOffset === undefined) { // special case for last frame
-            endOfFrameOffset = byteStream.position + pixelDataElement.length;
-        } else {
-          endOfFrameOffset += firstFragment;
-        }
-
-        // read this frame
-        var pixelData = readFragmentsUntil(byteStream, endOfFrameOffset);
-        return pixelData;
-    }
-
-    function readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        // if the basic offset table is empty, this is a single frame so make sure the requested
-        // frame is 0
-        if(frame !== 0) {
-            throw 'dicomParser.readEncapsulatedPixelData: non zero frame specified for single frame encapsulated pixel data';
-        }
-
-        // read this frame
-        var endOfFrame = byteStream.position + pixelDataElement.length;
-        var pixelData = readFragmentsUntil(byteStream, endOfFrame);
-        return pixelData;
-    }
+    var deprecatedNoticeLogged = false;
 
     /**
-     * Returns the pixel data for the specified frame in an encapsulated pixel data element.  Note that
-     * this does not work for fragmented frames when no basic offset table is present as that requires
-     * special logic to deal with determining which fragments are part of each image frame and this
-     * library doesn't deal with decoding
+     * Returns the pixel data for the specified frame in an encapsulated pixel data element.  If no basic offset
+     * table is present, it assumes that all fragments are for one frame.  Note that this assumption/logic is not
+     * valid for multi-frame instances so this function has been deprecated and will eventually be removed.  Code
+     * should be updated to use readEncapsulatedPixelDataFromFragments() or readEncapsulatedImageFrame()
      *
+     * @deprecated since version 1.6 - use readEncapsulatedPixelDataFromFragments() or readEncapsulatedImageFrame()
      * @param dataSet - the dataSet containing the encapsulated pixel data
      * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
      * @param frame - the zero based frame index
-     * @returns Uint8Array with the encapsulated pixel data
+     * @returns {object} with the encapsulated pixel data
      */
+
+
     dicomParser.readEncapsulatedPixelData = function(dataSet, pixelDataElement, frame)
     {
+        if(!deprecatedNoticeLogged) {
+            deprecatedNoticeLogged = true;
+            if(console && console.log) {
+                console.log("WARNING: dicomParser.readEncapsulatedPixelData() has been deprecated");
+            }
+        }
+
         if(dataSet === undefined) {
             throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'dataSet'";
         }
@@ -137,24 +64,16 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.readEncapsulatedPixelData: parameter 'frame' must be >= 0";
         }
 
-        // seek past the basic offset table (no need to parse it again since we already have)
-        var byteStream = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelDataElement.dataOffset);
-        var basicOffsetTable = dicomParser.readSequenceItem(byteStream);
-        if(basicOffsetTable.tag !== 'xfffee000')
-        {
-            throw "dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000";
-        }
-        byteStream.seek(basicOffsetTable.length);
-
-        // If the basic offset table is empty (no entries), it is a single frame.  If it is not empty,
-        // it has at least one frame so use the basic offset table to find the bytes
+        // If the basic offset table is not empty, we can extract the frame
         if(pixelDataElement.basicOffsetTable.length !== 0)
         {
-            return readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame);
+            return dicomParser.readEncapsulatedImageFrame(dataSet, pixelDataElement, frame);
         }
         else
         {
-            return readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame);
+            // No basic offset table, assume all fragments are for one frame - NOTE that this is NOT a valid
+            // assumption but is the original behavior so we are keeping it for now
+            return dicomParser.readEncapsulatedPixelDataFromFragments(dataSet, pixelDataElement, 0, pixelDataElement.fragments.length);
         }
     };
 

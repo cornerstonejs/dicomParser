@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.5.2 - 2016-05-23 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.6.0 - 2016-05-23 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -557,104 +557,31 @@ var dicomParser = (function (dicomParser)
         dicomParser = {};
     }
 
-    function getPixelDataFromFragments(byteStream, fragments, bufferSize)
-    {
-        // if there is only one fragment, return a view on this array to avoid copying
-        if(fragments.length === 1) {
-            return dicomParser.sharedCopy(byteStream.byteArray, fragments[0].dataOffset, fragments[0].length);
-        }
-
-        // more than one fragment, combine all of the fragments into one buffer
-        var pixelData = dicomParser.alloc(byteStream.byteArray, bufferSize);
-        var pixelDataIndex = 0;
-        for(var i=0; i < fragments.length; i++) {
-            var fragmentOffset = fragments[i].dataOffset;
-            for(var j=0; j < fragments[i].length; j++) {
-                pixelData[pixelDataIndex++] = byteStream.byteArray[fragmentOffset++];
-            }
-        }
-
-        return pixelData;
-    }
-
-    function readFragmentsUntil(byteStream, endOfFrame) {
-        // Read fragments until we reach endOfFrame
-        var fragments = [];
-        var bufferSize = 0;
-        while(byteStream.position < endOfFrame && byteStream.position < byteStream.byteArray.length) {
-
-            // read the fragment
-            var item = {
-                tag : dicomParser.readTag(byteStream),
-                length : byteStream.readUint32(),
-                dataOffset :  byteStream.position
-            };
-
-            // NOTE: we only encounter this for the sequence delimiter item when extracting the last frame
-            if(item.tag === 'xfffee0dd') {
-                break;
-            }
-            fragments.push(item);
-            byteStream.seek(item.length);
-            bufferSize += item.length;
-        }
-
-        // Convert the fragments into a single pixelData buffer
-        var pixelData = getPixelDataFromFragments(byteStream, fragments, bufferSize);
-        return pixelData;
-    }
-
-    function readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        //  validate that we have an offset for this frame
-        var numFrames = pixelDataElement.basicOffsetTable.length;
-        if(frame > numFrames) {
-            throw "dicomParser.readEncapsulatedPixelData: parameter frame exceeds number of frames in basic offset table";
-        }
-
-        // move to the start of this frame
-        var frameOffset = pixelDataElement.basicOffsetTable[frame];
-        var firstFragment = byteStream.position;
-        byteStream.seek(frameOffset);
-
-        // Find the end of this frame
-        var endOfFrameOffset = pixelDataElement.basicOffsetTable[frame + 1];
-        if(endOfFrameOffset === undefined) { // special case for last frame
-            endOfFrameOffset = byteStream.position + pixelDataElement.length;
-        } else {
-          endOfFrameOffset += firstFragment;
-        }
-
-        // read this frame
-        var pixelData = readFragmentsUntil(byteStream, endOfFrameOffset);
-        return pixelData;
-    }
-
-    function readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        // if the basic offset table is empty, this is a single frame so make sure the requested
-        // frame is 0
-        if(frame !== 0) {
-            throw 'dicomParser.readEncapsulatedPixelData: non zero frame specified for single frame encapsulated pixel data';
-        }
-
-        // read this frame
-        var endOfFrame = byteStream.position + pixelDataElement.length;
-        var pixelData = readFragmentsUntil(byteStream, endOfFrame);
-        return pixelData;
-    }
+    var deprecatedNoticeLogged = false;
 
     /**
-     * Returns the pixel data for the specified frame in an encapsulated pixel data element.  Note that
-     * this does not work for fragmented frames when no basic offset table is present as that requires
-     * special logic to deal with determining which fragments are part of each image frame and this
-     * library doesn't deal with decoding
+     * Returns the pixel data for the specified frame in an encapsulated pixel data element.  If no basic offset
+     * table is present, it assumes that all fragments are for one frame.  Note that this assumption/logic is not
+     * valid for multi-frame instances so this function has been deprecated and will eventually be removed.  Code
+     * should be updated to use readEncapsulatedPixelDataFromFragments() or readEncapsulatedImageFrame()
      *
+     * @deprecated since version 1.6 - use readEncapsulatedPixelDataFromFragments() or readEncapsulatedImageFrame()
      * @param dataSet - the dataSet containing the encapsulated pixel data
      * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
      * @param frame - the zero based frame index
-     * @returns Uint8Array with the encapsulated pixel data
+     * @returns {object} with the encapsulated pixel data
      */
+
+
     dicomParser.readEncapsulatedPixelData = function(dataSet, pixelDataElement, frame)
     {
+        if(!deprecatedNoticeLogged) {
+            deprecatedNoticeLogged = true;
+            if(console && console.log) {
+                console.log("WARNING: dicomParser.readEncapsulatedPixelData() has been deprecated");
+            }
+        }
+
         if(dataSet === undefined) {
             throw "dicomParser.readEncapsulatedPixelData: missing required parameter 'dataSet'";
         }
@@ -683,24 +610,16 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.readEncapsulatedPixelData: parameter 'frame' must be >= 0";
         }
 
-        // seek past the basic offset table (no need to parse it again since we already have)
-        var byteStream = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelDataElement.dataOffset);
-        var basicOffsetTable = dicomParser.readSequenceItem(byteStream);
-        if(basicOffsetTable.tag !== 'xfffee000')
-        {
-            throw "dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000";
-        }
-        byteStream.seek(basicOffsetTable.length);
-
-        // If the basic offset table is empty (no entries), it is a single frame.  If it is not empty,
-        // it has at least one frame so use the basic offset table to find the bytes
+        // If the basic offset table is not empty, we can extract the frame
         if(pixelDataElement.basicOffsetTable.length !== 0)
         {
-            return readEncapsulatedPixelDataWithBasicOffsetTable(pixelDataElement, byteStream, frame);
+            return dicomParser.readEncapsulatedImageFrame(dataSet, pixelDataElement, frame);
         }
         else
         {
-            return readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame);
+            // No basic offset table, assume all fragments are for one frame - NOTE that this is NOT a valid
+            // assumption but is the original behavior so we are keeping it for now
+            return dicomParser.readEncapsulatedPixelDataFromFragments(dataSet, pixelDataElement, 0, pixelDataElement.fragments.length);
         }
     };
 
@@ -1946,6 +1865,220 @@ var dicomParser = (function (dicomParser)
     return dicomParser;
 }(dicomParser));
 /**
+ * Functionality for extracting encapsulated pixel data
+ */
+
+var dicomParser = (function (dicomParser)
+{
+  "use strict";
+
+  if(dicomParser === undefined)
+  {
+    dicomParser = {};
+  }
+
+  function findFragmentIndexWithOffset(fragments, offset) {
+    for(var i=0; i < fragments.length; i++) {
+      if(fragments[i].offset === offset) {
+        return i;
+      }
+    }
+  }
+
+  function calculateNumberOfFragments(dataSet, pixelDataElement, frame, basicOffsetTable, fragments, startFragment) {
+
+
+    return 1;
+  }
+
+  /**
+   * Returns the pixel data for the specified frame in an encapsulated pixel data element that has a non
+   * empty basic offset table.  Note that this function will fail if the basic offset table is empty - in that
+   * case you need to determine which fragments map to which frames and read them using
+   * readEncapsulatedPixelDataFromFragments()
+   *
+   * @param dataSet - the dataSet containing the encapsulated pixel data
+   * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
+   * @param frame - the zero based frame index
+   * @param [basicOffsetTable] - optional array of starting offsets for frames
+   * @param [fragments] - optional array of objects describing each fragment (offset, position, length)
+   * @returns {object} with the encapsulated pixel data
+   */
+  dicomParser.readEncapsulatedImageFrame = function(dataSet, pixelDataElement, frame, basicOffsetTable, fragments)
+  {
+    // default parameters
+    basicOffsetTable = basicOffsetTable || pixelDataElement.basicOffsetTable;
+    fragments = pixelDataElement.fragments;
+
+    // Validate parameters
+    if(dataSet === undefined) {
+      throw "dicomParser.readEncapsulatedImageFrame: missing required parameter 'dataSet'";
+    }
+    if(pixelDataElement === undefined) {
+      throw "dicomParser.readEncapsulatedImageFrame: missing required parameter 'pixelDataElement'";
+    }
+    if(frame === undefined) {
+      throw "dicomParser.readEncapsulatedImageFrame: missing required parameter 'frame'";
+    }
+    if(basicOffsetTable === undefined) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'pixelDataElement' does not have basicOffsetTable";
+    }
+    if(pixelDataElement.tag !== 'x7fe00010') {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'pixelDataElement' refers to non pixel data tag (expected tag = x7fe00010'";
+    }
+    if(pixelDataElement.encapsulatedPixelData !== true) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.hadUndefinedLength !== true) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'pixelDataElement' refers to pixel data element that does not have undefined length";
+    }
+    if(pixelDataElement.fragments === undefined) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'pixelDataElement' refers to pixel data element that does not have fragments";
+    }
+    if(basicOffsetTable.length === 0) {
+      throw "dicomParser.readEncapsulatedImageFrame: basicOffsetTable has zero entries";
+    }
+    if(frame < 0) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'frame' must be >= 0";
+    }
+    if(frame >= basicOffsetTable.length) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'frame' must be < basicOffsetTable.length";
+    }
+
+    // find starting fragment based on basicOffsetTable
+    var startingOffset = basicOffsetTable[frame];
+    var startFragmentIndex = findFragmentIndexWithOffset(fragments, startingOffset);
+    if(startFragmentIndex === undefined) {
+      throw "dicomParser.readEncapsulatedImageFrame: unable to find fragment that matches basic offset table entry";
+    }
+    var numFragments = calculateNumberOfFragments(dataSet, pixelDataElement, frame, basicOffsetTable, fragments, startFragmentIndex);
+    return dicomParser.readEncapsulatedPixelDataFromFragments(dataSet, pixelDataElement, startFragmentIndex, numFragments, fragments);
+  };
+
+  return dicomParser;
+}(dicomParser));
+
+/**
+ * Functionality for extracting encapsulated pixel data
+ */
+
+var dicomParser = (function (dicomParser)
+{
+  "use strict";
+
+  if(dicomParser === undefined)
+  {
+    dicomParser = {};
+  }
+
+  function calculateBufferSize(fragments, startFragment, numFragments) {
+    var bufferSize = 0;
+    for(var i=startFragment; i < startFragment + numFragments; i++) {
+      bufferSize += fragments[i].length;
+    }
+    return bufferSize;
+  }
+
+  /**
+   * Returns the encapsulated pixel data from the specified fragments.  Some transfer syntaxes encode a single image
+   * frame in multiple fragments (specifica
+   *
+   * @param dataSet - the dataSet containing the encapsulated pixel data
+   * @param pixelDataElement - the pixel data element (x7fe00010) to extract the fragment data from
+   * @param startFragmentIndex - zero based index of the first fragment to extract from
+   * @param [numFragments] - the number of fragments to extract from, default is 1
+   * @param [fragments] - optional array of objects describing each fragment (offset, position, length)
+   * @returns {object} byte array with the encapsulated pixel data
+   */
+  dicomParser.readEncapsulatedPixelDataFromFragments = function(dataSet, pixelDataElement, startFragmentIndex, numFragments, fragments)
+  {
+    // default values
+    numFragments = numFragments || 1;
+    fragments = fragments || pixelDataElement.fragments;
+
+    // check parameters
+    if(dataSet === undefined) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter 'dataSet'";
+    }
+    if(pixelDataElement === undefined) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter 'pixelDataElement'";
+    }
+    if(startFragmentIndex === undefined) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter 'startFragmentIndex'";
+    }
+    if(numFragments === undefined) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter 'numFragments'";
+    }
+    if(pixelDataElement.tag !== 'x7fe00010') {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'pixelDataElement' refers to non pixel data tag (expected tag = x7fe00010'";
+    }
+    if(pixelDataElement.encapsulatedPixelData !== true) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.hadUndefinedLength !== true) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.basicOffsetTable === undefined) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.fragments === undefined) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.fragments.length <= 0) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(startFragmentIndex < 0) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'startFragmentIndex' must be >= 0";
+    }
+    if(startFragmentIndex >= pixelDataElement.fragments.length) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'startFragmentIndex' must be < number of fragments";
+    }
+    if(numFragments < 1) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'numFragments' must be > 0";
+    }
+    if(startFragmentIndex + numFragments > pixelDataElement.fragments.length) {
+      throw "dicomParser.readEncapsulatedPixelDataFromFragments: parameter 'startFragment' + 'numFragments' < number of fragments";
+    }
+
+    // create byte stream on the data for this pixel data element
+    var byteStream = new dicomParser.ByteStream(dataSet.byteArrayParser, dataSet.byteArray, pixelDataElement.dataOffset);
+
+    // seek past the basic offset table (no need to parse it again since we already have)
+    var basicOffsetTable = dicomParser.readSequenceItem(byteStream);
+    if(basicOffsetTable.tag !== 'xfffee000')
+    {
+      throw "dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000";
+    }
+    byteStream.seek(basicOffsetTable.length);
+
+    var fragmentZeroPosition = byteStream.position;
+    var fragmentHeaderSize = 8; // tag + length
+
+    // if there is only one fragment, return a view on this array to avoid copying
+    if(numFragments === 1) {
+      return dicomParser.sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
+    }
+
+    // more than one fragment, combine all of the fragments into one buffer
+    var bufferSize = calculateBufferSize(fragments, startFragmentIndex, numFragments);
+
+    var pixelData = dicomParser.alloc(byteStream.byteArray, bufferSize);
+
+    var pixelDataIndex = 0;
+    for(var i=startFragmentIndex; i < startFragmentIndex + numFragments; i++) {
+      var fragmentOffset = fragmentZeroPosition + fragments[i].offset + fragmentHeaderSize;
+      for(var j=0; j < fragments[i].length; j++) {
+        pixelData[pixelDataIndex++] = byteStream.byteArray[fragmentOffset++];
+      }
+    }
+
+    return pixelData;
+  };
+
+  return dicomParser;
+}(dicomParser));
+
+/**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
  * argument is supplied and it contains the untilTag property, parsing will stop once that
  * tag is encoutered.  This can be used to parse partial byte streams.
@@ -2366,7 +2499,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.5.2";
+  dicomParser.version = "1.6.0";
 
   return dicomParser;
 }(dicomParser));
