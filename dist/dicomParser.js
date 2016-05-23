@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.5.1 - 2016-05-20 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.5.2 - 2016-05-23 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -630,15 +630,15 @@ var dicomParser = (function (dicomParser)
     }
 
     function readEncapsulatedDataNoBasicOffsetTable(pixelDataElement, byteStream, frame) {
-        // make sure we have a fragment for this frame
-        if(frame > pixelDataElement.fragments.length) {
-            throw 'dicomParser:readEncapsulatedDataNoBasicOffsetTable - frame must be < number of fragments';
+        // if the basic offset table is empty, this is a single frame so make sure the requested
+        // frame is 0
+        if(frame !== 0) {
+            throw 'dicomParser.readEncapsulatedPixelData: non zero frame specified for single frame encapsulated pixel data';
         }
 
-        // NOTE: We assume one fragment per frame here.  This may not be the case for JPEG2000 and JPEG-LS
-        // but dealing with that requires actually decoding the fragments which this library does not do
-        var fragment = pixelDataElement.fragments[frame];
-        var pixelData = dicomParser.sharedCopy(byteStream.byteArray, fragment.position, fragment.length);
+        // read this frame
+        var endOfFrame = byteStream.position + pixelDataElement.length;
+        var pixelData = readFragmentsUntil(byteStream, endOfFrame);
         return pixelData;
     }
 
@@ -2366,7 +2366,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.5.1";
+  dicomParser.version = "1.5.2";
 
   return dicomParser;
 }(dicomParser));

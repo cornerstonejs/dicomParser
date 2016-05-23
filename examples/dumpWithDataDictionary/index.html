@@ -302,7 +302,12 @@ function dumpDataSet(dataSet, output)
             else if (element.fragments) {
                 text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " +
                         element.fragments.length + " fragments";
-                text += " SHA1 " + sha1(dataSet.byteArray, element.dataOffset, element.length);
+                if(element.basicOffsetTable) {
+                    text += "; Basic Offset Table with " + element.basicOffsetTable.length + " frames";
+                } else {
+                    text += "; No Basic Offset Table";
+                }
+                text += "; SHA1 " + sha1(dataSet.byteArray, element.dataOffset, element.length);
 
                 output.push("<li title='" + title + "'=>" + text + '</li>');
                 output.push('<ul>');
@@ -314,9 +319,7 @@ function dumpDataSet(dataSet, output)
                     element.fragments.forEach(function (fragment) {
                         var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
                         str += '; length = ' + fragment.length ;
-                        var pixelFrame = dicomParser.readEncapsulatedPixelData(dataSet, element, itemNumber-1);
                         str += "; SHA1 " + sha1(dataSet.byteArray, fragment.position, fragment.length);
-                        str += "; SHA1 " + sha1(pixelFrame, 0, pixelFrame.length);
                         str += '</li>'
 
                         output.push(str);
