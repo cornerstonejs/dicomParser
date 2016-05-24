@@ -422,21 +422,39 @@ function dumpDataSet(dataSet, output)
                         }
                         else if (vr === 'US') {
                             text += dataSet.uint16(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/2; i++) {
+                                text += '\\' + dataSet.uint16(propertyName, i);
+                            }
                         }
                         else if (vr === 'SS') {
                             text += dataSet.int16(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/2; i++) {
+                                text += '\\' + dataSet.int16(propertyName, i);
+                            }
                         }
                         else if (vr === 'UL') {
                             text += dataSet.uint32(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/4; i++) {
+                                text += '\\' + dataSet.uint32(propertyName, i);
+                            }
                         }
                         else if (vr === 'SL') {
                             text += dataSet.int32(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/4; i++) {
+                                text += '\\' + dataSet.int32(propertyName, i);
+                            }
                         }
                         else if (vr == 'FD') {
                             text += dataSet.double(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/8; i++) {
+                                text += '\\' + dataSet.double(propertyName, i);
+                            }
                         }
                         else if (vr == 'FL') {
                             text += dataSet.float(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/4; i++) {
+                                text += '\\' + dataSet.float(propertyName, i);
+                            }
                         }
                         else if (vr === 'OB' || vr === 'OW' || vr === 'UN' || vr === 'OF' || vr === 'UT') {
                             color = '#C8C8C8';
