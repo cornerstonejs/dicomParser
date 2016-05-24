@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.6.0 - 2016-05-23 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.6.1 - 2016-05-24 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1886,9 +1886,19 @@ var dicomParser = (function (dicomParser)
   }
 
   function calculateNumberOfFragments(dataSet, pixelDataElement, frame, basicOffsetTable, fragments, startFragment) {
+    // special case for last frame
+    if(frame === basicOffsetTable.length -1) {
+      return fragments.length - startFragment;
+    }
 
-
-    return 1;
+    // iterate through each fragment looking for the one matching the offset for the next frame
+    var nextFrameOffset = basicOffsetTable[frame + 1];
+    for(var i=startFragment + 1; i < fragments.length; i++) {
+      if(fragments[i].offset === nextFrameOffset) {
+        return i - startFragment;
+      }
+    }
+    throw "dicomParser.calculateNumberOfFragments: could not find fragment with offset matching basic offset table";
   }
 
   /**
@@ -2499,7 +2509,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.6.0";
+  dicomParser.version = "1.6.1";
 
   return dicomParser;
 }(dicomParser));

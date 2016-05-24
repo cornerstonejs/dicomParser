@@ -20,9 +20,19 @@ var dicomParser = (function (dicomParser)
   }
 
   function calculateNumberOfFragments(dataSet, pixelDataElement, frame, basicOffsetTable, fragments, startFragment) {
+    // special case for last frame
+    if(frame === basicOffsetTable.length -1) {
+      return fragments.length - startFragment;
+    }
 
-
-    return 1;
+    // iterate through each fragment looking for the one matching the offset for the next frame
+    var nextFrameOffset = basicOffsetTable[frame + 1];
+    for(var i=startFragment + 1; i < fragments.length; i++) {
+      if(fragments[i].offset === nextFrameOffset) {
+        return i - startFragment;
+      }
+    }
+    throw "dicomParser.calculateNumberOfFragments: could not find fragment with offset matching basic offset table";
   }
 
   /**

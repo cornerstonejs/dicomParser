@@ -302,9 +302,6 @@ function dumpDataSet(dataSet, output)
             else if (element.fragments) {
                 text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " +
                         element.fragments.length + " fragments";
-                if(element.basicOffsetTable) {
-                    text += "; Basic Offset Table with " + element.basicOffsetTable.length + " frames";
-                }
                 text += "; SHA1 " + sha1(dataSet.byteArray, element.dataOffset, element.length);
 
                 output.push("<li title='" + title + "'=>" + text + '</li>');
