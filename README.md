@@ -123,11 +123,14 @@ Key Features
 * Packaged using the module pattern, as an AMD module and as a CommonJS module for Node.js
 * No external dependencies
 * Supports extraction of encapsulated pixel data frames
-  * NOTE - does not support fragmented frames with no basic offset table as that requires special logic
-    to determine which fragments are part of each image frame and this library does not include decoders
+  * Basic Offset Table decoded
+  * Fragments decoded
+  * Function to extract image frame when basic offset table is present
+  * Function to extract image frame from fragments when no basic offset table is present
 * Convenient utility functions to parse strings formatted in DA, TM and PN VRs and return JavaScript objects
 * Convenient utility function to create a string version of an explicit element
 * Convenient utility function to convert a parsed explicit dataSet into a javascript object
+* Convenient utility function to generate a basic offset table for JPEG images
 * Supports reading incomplete/partial byte streams
   * By specifying a tag to stop reading at (e.g. parseDicom(byteArray, {untilTag: "x7fe00010"}); )
   * By returning the elements parsed so far in the exception thrown during a parse error (the elements parsed will be

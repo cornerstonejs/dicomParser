@@ -39,7 +39,8 @@ var dicomParser = (function (dicomParser)
    * Returns the pixel data for the specified frame in an encapsulated pixel data element that has a non
    * empty basic offset table.  Note that this function will fail if the basic offset table is empty - in that
    * case you need to determine which fragments map to which frames and read them using
-   * readEncapsulatedPixelDataFromFragments()
+   * readEncapsulatedPixelDataFromFragments().  Also see the function createJEPGBasicOffsetTable() to see
+   * how a basic offset table can be created for JPEG images
    *
    * @param dataSet - the dataSet containing the encapsulated pixel data
    * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from

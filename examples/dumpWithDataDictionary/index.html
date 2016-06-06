@@ -160,7 +160,18 @@ function mapUid(str) {
 // to the output array passed into it
 function dumpDataSet(dataSet, output)
 {
-
+    /*
+    // createJPEGBasicOffsetTable() testing
+    if(dataSet.elements.x7fe00010 && dataSet.elements.x7fe00010.encapsulatedPixelData) {
+        var bot = dicomParser.createJPEGBasicOffsetTable(dataSet, dataSet.elements.x7fe00010);
+        if(bot) {
+            console.log(dataSet.elements.x7fe00010.basicOffsetTable.length);
+            console.log(dataSet.elements.x7fe00010.basicOffsetTable);
+            console.log(bot.length);
+            console.log(bot);
+        }
+    }
+    */
 
     function getTag(tag)
     {

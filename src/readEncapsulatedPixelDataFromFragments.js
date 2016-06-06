@@ -20,8 +20,8 @@ var dicomParser = (function (dicomParser)
   }
 
   /**
-   * Returns the encapsulated pixel data from the specified fragments.  Some transfer syntaxes encode a single image
-   * frame in multiple fragments (specifica
+   * Returns the encapsulated pixel data from the specified fragments.  Use this function when you know
+   * the fragments you want to extract data from.  See
    *
    * @param dataSet - the dataSet containing the encapsulated pixel data
    * @param pixelDataElement - the pixel data element (x7fe00010) to extract the fragment data from

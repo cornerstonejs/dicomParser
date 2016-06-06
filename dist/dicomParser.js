@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.6.1 - 2016-05-24 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.7.0 - 2016-06-06 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -175,6 +175,124 @@ var dicomParser = (function(dicomParser) {
     return dicomParser;
 })(dicomParser);
 
+/**
+ * Utility function for creating a basic offset table for JPEG transfer syntaxes
+ */
+
+var dicomParser = (function (dicomParser)
+{
+  "use strict";
+
+  if(dicomParser === undefined)
+  {
+    dicomParser = {};
+  }
+
+  // Each JPEG image has an end of image marker 0xFFD9
+  function isEndOfImageMarker(dataSet, position) {
+    return (dataSet.byteArray[position] === 0xFF &&
+    dataSet.byteArray[position + 1] === 0xD9);
+  }
+
+  // Each JPEG image has a start of image marker
+  function isStartOfImageMarker(dataSet, position) {
+    return (dataSet.byteArray[position] === 0xFF &&
+    dataSet.byteArray[position + 1] === 0xD8);
+  }
+
+  function isFragmentStartOfImage(dataSet, pixelDataElement, fragmentIndex) {
+    var fragment = pixelDataElement.fragments[fragmentIndex];
+    if(isStartOfImageMarker(dataSet, fragment.position)) {
+      return true;
+    }
+    return false;
+  }
+
+  function isFragmentEndOfImage(dataSet, pixelDataElement, fragmentIndex) {
+    var fragment = pixelDataElement.fragments[fragmentIndex];
+    // Need to check the last two bytes and the last three bytes for marker since odd length
+    // fragments are zero padded
+    if(isEndOfImageMarker(dataSet, fragment.position + fragment.length - 2) ||
+      isEndOfImageMarker(dataSet, fragment.position + fragment.length - 3)) {
+      return true;
+    }
+    return false;
+  }
+
+  function findLastImageFrameFragmentIndex(dataSet, pixelDataElement, startFragment) {
+    for(var fragmentIndex=startFragment; fragmentIndex < pixelDataElement.fragments.length; fragmentIndex++) {
+      if(isFragmentEndOfImage(dataSet, pixelDataElement, fragmentIndex)) {
+        // if not last fragment, peek ahead to make sure the next fragment has a start of image marker just to
+        // be safe
+        if(fragmentIndex === pixelDataElement.fragments.length - 1 ||
+          isFragmentStartOfImage(dataSet, pixelDataElement, fragmentIndex+1)) {
+          return fragmentIndex;
+        }
+      }
+    }
+  }
+
+  /**
+   * Creates a basic offset table by scanning fragments for JPEG start of image and end Of Image markers
+   * @param {object} dataSet - the parsed dicom dataset
+   * @param {object} pixelDataElement - the pixel data element
+   * @param [fragments] - optional array of objects describing each fragment (offset, position, length)
+   * @returns {Array} basic offset table (array of offsets to beginning of each frame)
+   */
+  dicomParser.createJPEGBasicOffsetTable = function(dataSet, pixelDataElement, fragments) {
+    // Validate parameters
+    if(dataSet === undefined) {
+      throw 'dicomParser.createJPEGBasicOffsetTable: missing required parameter dataSet';
+    }
+    if(pixelDataElement === undefined) {
+      throw 'dicomParser.createJPEGBasicOffsetTable: missing required parameter pixelDataElement';
+    }
+    if(pixelDataElement.tag !== 'x7fe00010') {
+      throw "dicomParser.createJPEGBasicOffsetTable: parameter 'pixelDataElement' refers to non pixel data tag (expected tag = x7fe00010'";
+    }
+    if(pixelDataElement.encapsulatedPixelData !== true) {
+      throw "dicomParser.createJPEGBasicOffsetTable: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.hadUndefinedLength !== true) {
+      throw "dicomParser.createJPEGBasicOffsetTable: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.basicOffsetTable === undefined) {
+      throw "dicomParser.createJPEGBasicOffsetTable: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.fragments === undefined) {
+      throw "dicomParser.createJPEGBasicOffsetTable: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(pixelDataElement.fragments.length <= 0) {
+      throw "dicomParser.createJPEGBasicOffsetTable: parameter 'pixelDataElement' refers to pixel data element that does not have encapsulated pixel data";
+    }
+    if(fragments && fragments.length <=0) {
+      throw "dicomParser.createJPEGBasicOffsetTable: parameter 'fragments' must not be zero length";
+    }
+
+    // Default values
+    fragments = fragments || pixelDataElement.fragments;
+
+    var basicOffsetTable = [];
+
+    var startFragmentIndex = 0;
+    // sanity check first fragment has a JPEG start of image marker
+    if(!isFragmentStartOfImage(dataSet, pixelDataElement, startFragmentIndex)) {
+      throw 'first fragment does not have JPEG start of image marker';
+    }
+
+    while(true) {
+      // Add the offset for the start fragment
+      basicOffsetTable.push(pixelDataElement.fragments[startFragmentIndex].offset);
+      var endFragmentIndex = findLastImageFrameFragmentIndex(dataSet, pixelDataElement, startFragmentIndex);
+      if(endFragmentIndex === undefined || endFragmentIndex === pixelDataElement.fragments.length -1) {
+        return basicOffsetTable;
+      }
+      startFragmentIndex = endFragmentIndex + 1;
+    }
+  };
+
+  return dicomParser;
+}(dicomParser));
 var dicomParser = (function (dicomParser) {
     "use strict";
 
@@ -1905,7 +2023,8 @@ var dicomParser = (function (dicomParser)
    * Returns the pixel data for the specified frame in an encapsulated pixel data element that has a non
    * empty basic offset table.  Note that this function will fail if the basic offset table is empty - in that
    * case you need to determine which fragments map to which frames and read them using
-   * readEncapsulatedPixelDataFromFragments()
+   * readEncapsulatedPixelDataFromFragments().  Also see the function createJEPGBasicOffsetTable() to see
+   * how a basic offset table can be created for JPEG images
    *
    * @param dataSet - the dataSet containing the encapsulated pixel data
    * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
@@ -1990,8 +2109,8 @@ var dicomParser = (function (dicomParser)
   }
 
   /**
-   * Returns the encapsulated pixel data from the specified fragments.  Some transfer syntaxes encode a single image
-   * frame in multiple fragments (specifica
+   * Returns the encapsulated pixel data from the specified fragments.  Use this function when you know
+   * the fragments you want to extract data from.  See
    *
    * @param dataSet - the dataSet containing the encapsulated pixel data
    * @param pixelDataElement - the pixel data element (x7fe00010) to extract the fragment data from
@@ -2509,7 +2628,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.6.1";
+  dicomParser.version = "1.7.0";
 
   return dicomParser;
 }(dicomParser));
