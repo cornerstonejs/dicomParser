@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.7.0 - 2016-06-06 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.7.1 - 2016-06-09 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -2003,20 +2003,21 @@ var dicomParser = (function (dicomParser)
     }
   }
 
-  function calculateNumberOfFragments(dataSet, pixelDataElement, frame, basicOffsetTable, fragments, startFragment) {
+  function calculateNumberOfFragmentsForFrame(frameIndex, basicOffsetTable, fragments, startFragmentIndex) {
     // special case for last frame
-    if(frame === basicOffsetTable.length -1) {
-      return fragments.length - startFragment;
+    if(frameIndex === basicOffsetTable.length -1) {
+      return fragments.length - startFragmentIndex;
     }
 
     // iterate through each fragment looking for the one matching the offset for the next frame
-    var nextFrameOffset = basicOffsetTable[frame + 1];
-    for(var i=startFragment + 1; i < fragments.length; i++) {
+    var nextFrameOffset = basicOffsetTable[frameIndex + 1];
+    for(var i=startFragmentIndex + 1; i < fragments.length; i++) {
       if(fragments[i].offset === nextFrameOffset) {
-        return i - startFragment;
+        return i - startFragmentIndex;
       }
     }
-    throw "dicomParser.calculateNumberOfFragments: could not find fragment with offset matching basic offset table";
+
+    throw "dicomParser.calculateNumberOfFragmentsForFrame: could not find fragment with offset matching basic offset table";
   }
 
   /**
@@ -2028,16 +2029,16 @@ var dicomParser = (function (dicomParser)
    *
    * @param dataSet - the dataSet containing the encapsulated pixel data
    * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
-   * @param frame - the zero based frame index
+   * @param frameIndex - the zero based frame index
    * @param [basicOffsetTable] - optional array of starting offsets for frames
    * @param [fragments] - optional array of objects describing each fragment (offset, position, length)
    * @returns {object} with the encapsulated pixel data
    */
-  dicomParser.readEncapsulatedImageFrame = function(dataSet, pixelDataElement, frame, basicOffsetTable, fragments)
+  dicomParser.readEncapsulatedImageFrame = function(dataSet, pixelDataElement, frameIndex, basicOffsetTable, fragments)
   {
     // default parameters
     basicOffsetTable = basicOffsetTable || pixelDataElement.basicOffsetTable;
-    fragments = pixelDataElement.fragments;
+    fragments = fragments || pixelDataElement.fragments;
 
     // Validate parameters
     if(dataSet === undefined) {
@@ -2046,8 +2047,8 @@ var dicomParser = (function (dicomParser)
     if(pixelDataElement === undefined) {
       throw "dicomParser.readEncapsulatedImageFrame: missing required parameter 'pixelDataElement'";
     }
-    if(frame === undefined) {
-      throw "dicomParser.readEncapsulatedImageFrame: missing required parameter 'frame'";
+    if(frameIndex === undefined) {
+      throw "dicomParser.readEncapsulatedImageFrame: missing required parameter 'frameIndex'";
     }
     if(basicOffsetTable === undefined) {
       throw "dicomParser.readEncapsulatedImageFrame: parameter 'pixelDataElement' does not have basicOffsetTable";
@@ -2067,20 +2068,24 @@ var dicomParser = (function (dicomParser)
     if(basicOffsetTable.length === 0) {
       throw "dicomParser.readEncapsulatedImageFrame: basicOffsetTable has zero entries";
     }
-    if(frame < 0) {
-      throw "dicomParser.readEncapsulatedImageFrame: parameter 'frame' must be >= 0";
+    if(frameIndex < 0) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'frameIndex' must be >= 0";
     }
-    if(frame >= basicOffsetTable.length) {
-      throw "dicomParser.readEncapsulatedImageFrame: parameter 'frame' must be < basicOffsetTable.length";
+    if(frameIndex >= basicOffsetTable.length) {
+      throw "dicomParser.readEncapsulatedImageFrame: parameter 'frameIndex' must be < basicOffsetTable.length";
     }
 
-    // find starting fragment based on basicOffsetTable
-    var startingOffset = basicOffsetTable[frame];
-    var startFragmentIndex = findFragmentIndexWithOffset(fragments, startingOffset);
+    // find starting fragment based on the offset for the frame in the basic offset table
+    var offset = basicOffsetTable[frameIndex];
+    var startFragmentIndex = findFragmentIndexWithOffset(fragments, offset);
     if(startFragmentIndex === undefined) {
       throw "dicomParser.readEncapsulatedImageFrame: unable to find fragment that matches basic offset table entry";
     }
-    var numFragments = calculateNumberOfFragments(dataSet, pixelDataElement, frame, basicOffsetTable, fragments, startFragmentIndex);
+
+    // calculate the number of fragments for this frame
+    var numFragments = calculateNumberOfFragmentsForFrame(frameIndex, basicOffsetTable, fragments, startFragmentIndex);
+
+    // now extract the frame from the fragments
     return dicomParser.readEncapsulatedPixelDataFromFragments(dataSet, pixelDataElement, startFragmentIndex, numFragments, fragments);
   };
 
@@ -2628,7 +2633,7 @@ var dicomParser = (function (dicomParser)
     dicomParser = {};
   }
 
-  dicomParser.version = "1.7.0";
+  dicomParser.version = "1.7.1";
 
   return dicomParser;
 }(dicomParser));
