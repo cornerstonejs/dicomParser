@@ -6,9 +6,11 @@ Converted using DCMTK
 ```
 ## Not Fragmented with basic offset table
 dcmcjpls CT0012.explicit_little_endian.dcm CT0012.not_fragmented_bot_jpeg_ls.80.dcm
+dcmcrle CT0012.explicit_little_endian.dcm CT0012.not_fragmented_bot_rle.dcm
 
 ## Not Fragmented with empty basic offset table
-dcmcjpls CT0012.explicit_little_endian.dcm CT0012.not_fragmented_no_bot_jpeg_ls.80.dcm
+dcmcjpls -ot CT0012.explicit_little_endian.dcm CT0012.not_fragmented_no_bot_jpeg_ls.80.dcm
+dcmcrle -ot CT0012.explicit_little_endian.dcm CT0012.not_fragmented_no_bot_rle.dcm
 
 ## Fragments with empty basic offset table
 dcmcjpeg -ot +fs 8 +eb IM00001.implicit_little_endian.dcm IM00001.fragmented_no_bot_jpeg_baseline.50.dcm
