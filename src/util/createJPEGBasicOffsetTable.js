@@ -17,20 +17,6 @@ var dicomParser = (function (dicomParser)
     dataSet.byteArray[position + 1] === 0xD9);
   }
 
-  // Each JPEG image has a start of image marker
-  function isStartOfImageMarker(dataSet, position) {
-    return (dataSet.byteArray[position] === 0xFF &&
-    dataSet.byteArray[position + 1] === 0xD8);
-  }
-
-  function isFragmentStartOfImage(dataSet, pixelDataElement, fragmentIndex) {
-    var fragment = pixelDataElement.fragments[fragmentIndex];
-    if(isStartOfImageMarker(dataSet, fragment.position)) {
-      return true;
-    }
-    return false;
-  }
-
   function isFragmentEndOfImage(dataSet, pixelDataElement, fragmentIndex) {
     var fragment = pixelDataElement.fragments[fragmentIndex];
     // Need to check the last two bytes and the last three bytes for marker since odd length
@@ -45,12 +31,7 @@ var dicomParser = (function (dicomParser)
   function findLastImageFrameFragmentIndex(dataSet, pixelDataElement, startFragment) {
     for(var fragmentIndex=startFragment; fragmentIndex < pixelDataElement.fragments.length; fragmentIndex++) {
       if(isFragmentEndOfImage(dataSet, pixelDataElement, fragmentIndex)) {
-        // if not last fragment, peek ahead to make sure the next fragment has a start of image marker just to
-        // be safe
-        if(fragmentIndex === pixelDataElement.fragments.length - 1 ||
-          isFragmentStartOfImage(dataSet, pixelDataElement, fragmentIndex+1)) {
-          return fragmentIndex;
-        }
+        return fragmentIndex;
       }
     }
   }
@@ -98,10 +79,6 @@ var dicomParser = (function (dicomParser)
     var basicOffsetTable = [];
 
     var startFragmentIndex = 0;
-    // sanity check first fragment has a JPEG start of image marker
-    if(!isFragmentStartOfImage(dataSet, pixelDataElement, startFragmentIndex)) {
-      throw 'first fragment does not have JPEG start of image marker';
-    }
 
     while(true) {
       // Add the offset for the start fragment
