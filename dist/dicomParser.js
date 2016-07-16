@@ -1752,7 +1752,7 @@ var dicomParser = (function (dicomParser)
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
-            if (element) {
+            if (('vr' in element) || ('length') in element) {
               elements[element.tag] = element;
             }
             switch (typeof options.untilTag) {
@@ -1860,7 +1860,7 @@ var dicomParser = (function (dicomParser)
         var isUntilTag = false;
         if (typeof untilTag === 'object' && tag === untilTag.tag) {
           if (untilTag.include === false) {
-            return false;
+            return {tag: tag};
           } else {
             isUntilTag = true;
           }
@@ -1963,7 +1963,7 @@ var dicomParser = (function (dicomParser)
         var isUntilTag = false;
         if (typeof untilTag === 'object' && tag === untilTag.tag) {
           if (untilTag.include === false) {
-            return false;
+            return {tag: tag};
           } else {
             isUntilTag = true;
           }

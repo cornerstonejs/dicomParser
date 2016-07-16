@@ -39,7 +39,7 @@ var dicomParser = (function (dicomParser)
         var isUntilTag = false;
         if (typeof untilTag === 'object' && tag === untilTag.tag) {
           if (untilTag.include === false) {
-            return false;
+            return {tag: tag};
           } else {
             isUntilTag = true;
           }

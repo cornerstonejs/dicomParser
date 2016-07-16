@@ -34,7 +34,7 @@ var dicomParser = (function (dicomParser)
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
-            if (element) {
+            if (('vr' in element) || ('length') in element) {
               elements[element.tag] = element;
             }
             switch (typeof options.untilTag) {
