@@ -12,6 +12,7 @@ var dicomParser = (function (dicomParser)
     }
 
     dicomParser.bigEndianByteArrayParser = {
+        bigEndian: true,
         /**
          *
          * Parses an unsigned int 16 from a big-endian byte array
