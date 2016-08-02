@@ -34,9 +34,20 @@ var dicomParser = (function (dicomParser)
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
-            elements[element.tag] = element;
-            if(element.tag === options.untilTag) {
-                return;
+            if (('vr' in element) || ('length') in element) {
+              elements[element.tag] = element;
+            }
+            switch (typeof options.untilTag) {
+              case 'string':
+                if (element.tag === options.untilTag) {
+                    return;
+                }
+                break;
+              case 'object':
+                if ('tag' in options.untilTag && element.tag === options.untilTag.tag) {
+                    return;
+                }
+                break;
             }
         }
         if(byteStream.position > maxPosition) {
@@ -68,9 +79,21 @@ var dicomParser = (function (dicomParser)
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
-            elements[element.tag] = element;
-            if(element.tag === options.untilTag) {
-                return;
+            if (element) {
+              elements[element.tag] = element;
+            }
+
+            switch (typeof options.untilTag) {
+              case 'string':
+                if (element.tag === options.untilTag) {
+                    return;
+                }
+                break;
+              case 'object':
+                if ('tag' in options.untilTag && element.tag === options.untilTag.tag) {
+                    return;
+                }
+                break;
             }
         }
     };

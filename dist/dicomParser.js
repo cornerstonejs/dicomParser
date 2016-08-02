@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.7.2 - 2016-06-29 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.7.2 - 2016-07-16 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1752,9 +1752,20 @@ var dicomParser = (function (dicomParser)
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
-            elements[element.tag] = element;
-            if(element.tag === options.untilTag) {
-                return;
+            if (('vr' in element) || ('length') in element) {
+              elements[element.tag] = element;
+            }
+            switch (typeof options.untilTag) {
+              case 'string':
+                if (element.tag === options.untilTag) {
+                    return;
+                }
+                break;
+              case 'object':
+                if ('tag' in options.untilTag && element.tag === options.untilTag.tag) {
+                    return;
+                }
+                break;
             }
         }
         if(byteStream.position > maxPosition) {
@@ -1786,9 +1797,21 @@ var dicomParser = (function (dicomParser)
         while(byteStream.position < maxPosition)
         {
             var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
-            elements[element.tag] = element;
-            if(element.tag === options.untilTag) {
-                return;
+            if (element) {
+              elements[element.tag] = element;
+            }
+
+            switch (typeof options.untilTag) {
+              case 'string':
+                if (element.tag === options.untilTag) {
+                    return;
+                }
+                break;
+              case 'object':
+                if ('tag' in options.untilTag && element.tag === options.untilTag.tag) {
+                    return;
+                }
+                break;
             }
         }
     };
@@ -1833,8 +1856,20 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        var isUntilTag = false;
+        if (typeof untilTag === 'object' && tag === untilTag.tag) {
+          if (untilTag.include === false) {
+            return {tag: tag};
+          } else {
+            isUntilTag = true;
+          }
+        } else if (typeof untilTag === 'string' && tag === untilTag) {
+          isUntilTag = true;
+        }
+
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             vr : byteStream.readFixedString(2)
             // length set below based on VR
             // dataOffset set below based on VR and size of length
@@ -1858,7 +1893,7 @@ var dicomParser = (function (dicomParser)
             element.hadUndefinedLength = true;
         }
 
-        if(element.tag === untilTag) {
+        if(isUntilTag) {
             return element;
         }
 
@@ -1885,6 +1920,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Internal helper functions for for parsing DICOM elements
  */
@@ -1923,8 +1959,20 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.readDicomElementImplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        var isUntilTag = false;
+        if (typeof untilTag === 'object' && tag === untilTag.tag) {
+          if (untilTag.include === false) {
+            return {tag: tag};
+          } else {
+            isUntilTag = true;
+          }
+        } else if (typeof untilTag === 'string' && tag === untilTag) {
+          isUntilTag = true;
+        }
+
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             length: byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
@@ -1933,7 +1981,7 @@ var dicomParser = (function (dicomParser)
             element.hadUndefinedLength = true;
         }
 
-        if(element.tag === untilTag) {
+        if(isUntilTag) {
             return element;
         }
 
@@ -1959,6 +2007,7 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
+
 /**
  * Functionality for extracting encapsulated pixel data
  */

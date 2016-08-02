@@ -35,8 +35,20 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.readDicomElementExplicit: missing required parameter 'byteStream'";
         }
 
+        var tag = dicomParser.readTag(byteStream);
+        var isUntilTag = false;
+        if (typeof untilTag === 'object' && tag === untilTag.tag) {
+          if (untilTag.include === false) {
+            return {tag: tag};
+          } else {
+            isUntilTag = true;
+          }
+        } else if (typeof untilTag === 'string' && tag === untilTag) {
+          isUntilTag = true;
+        }
+
         var element = {
-            tag : dicomParser.readTag(byteStream),
+            tag : tag,
             vr : byteStream.readFixedString(2)
             // length set below based on VR
             // dataOffset set below based on VR and size of length
@@ -60,7 +72,7 @@ var dicomParser = (function (dicomParser)
             element.hadUndefinedLength = true;
         }
 
-        if(element.tag === untilTag) {
+        if(isUntilTag) {
             return element;
         }
 
