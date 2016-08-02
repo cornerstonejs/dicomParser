@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.7.2 - 2016-07-30 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.7.2 - 2016-07-16 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -767,7 +767,6 @@ var dicomParser = (function (dicomParser)
     }
 
     dicomParser.bigEndianByteArrayParser = {
-        bigEndian: true,
         /**
          *
          * Parses an unsigned int 16 from a big-endian byte array
@@ -928,7 +927,6 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
-
 /**
  * Internal helper functions common to parsing byte arrays of any type
  */
@@ -1556,7 +1554,6 @@ var dicomParser = (function (dicomParser)
     }
 
     dicomParser.littleEndianByteArrayParser = {
-        bigEndian: false,
         /**
          *
          * Parses an unsigned int 16 from a little-endian byte array
@@ -1719,7 +1716,6 @@ var dicomParser = (function (dicomParser)
 
     return dicomParser;
 }(dicomParser));
-
 /**
  * Internal helper functions for parsing implicit and explicit DICOM data sets
  */
