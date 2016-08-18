@@ -70,13 +70,19 @@ var dicomParser = (function (dicomParser)
             dicomParser.readSequenceItemsExplicit(byteStream, element, warnings);
             return element;
         }
+
+
         if(element.length === 4294967295)
         {
             if(element.tag === 'x7fe00010') {
                 dicomParser.findEndOfEncapsulatedElement(byteStream, element, warnings);
                 return element;
+            }   else if(element.vr === 'UN') {
+                dicomParser.findAndSetUNElementLength(byteStream, element);
+                return element;
             } else {
-                dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
+                dicomParser.readSequenceItemsImplicit(byteStream, element);
+                //dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
                 return element;
             }
         }
