@@ -81,8 +81,7 @@ var dicomParser = (function (dicomParser)
                 dicomParser.findAndSetUNElementLength(byteStream, element);
                 return element;
             } else {
-                dicomParser.readSequenceItemsImplicit(byteStream, element);
-                //dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
+                dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
                 return element;
             }
         }

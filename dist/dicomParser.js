@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.7.3 - 2016-08-18 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.7.4 - 2016-08-18 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -1938,8 +1938,7 @@ var dicomParser = (function (dicomParser)
                 dicomParser.findAndSetUNElementLength(byteStream, element);
                 return element;
             } else {
-                dicomParser.readSequenceItemsImplicit(byteStream, element);
-                //dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
+                dicomParser.findItemDelimitationItemAndSetElementLength(byteStream, element);
                 return element;
             }
         }
