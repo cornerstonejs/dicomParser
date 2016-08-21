@@ -26,16 +26,14 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.readSequenceItem: missing required parameter 'byteStream'";
         }
 
-        var startPosition = byteStream.position;
-
         var element = {
             tag : dicomParser.readTag(byteStream),
             length : byteStream.readUint32(),
             dataOffset :  byteStream.position
         };
 
-        if (element.tag !== 'xfffee000')
-        {
+        if (element.tag !== 'xfffee000') {
+            var startPosition = byteStream.position;
             throw "dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset " + startPosition;
         }
 

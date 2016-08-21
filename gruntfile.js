@@ -14,6 +14,7 @@ module.exports = function(grunt) {
                     'bower_components/jquery/dist/jquery.min.js',
                     'bower_components/jquery/dist/jquery.min.map',
                     'bower_components/bootstrap/dist/css/bootstrap.min.css',
+                    'bower_components/rusha/rusha.min.js'
                 ],
                 dest: 'examples',
                 expand: true,
@@ -109,8 +110,8 @@ module.exports = function(grunt) {
 //      git tag -a 0.1.0 -m "Version 0.1.0"
 //  6) push to github
 //      git push origin master --tags
-//  7) Update atmosphere (meteor package manager)
+//  7) Update npm
+//      npm publish
+//  8) Update atmosphere (meteor package manager)
 //      cd dist
 //      meteor publish
-//  8) Update npm
-//      npm publish

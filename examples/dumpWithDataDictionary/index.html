@@ -36,6 +36,7 @@
                 <label for="untilTag">Until Tag</label>
                 <input type="text" class="form-control" id="untilTag" placeholder="(e.g. x7fe00010)">
             </div>
+            <br>
             <div class="checkbox">
                 <label>
                     <input id="privateElements" type="checkbox"> Private Elements
@@ -66,6 +67,22 @@
                     <input id="groupElement" type="checkbox"> Group/Element
                 </label>
             </div>
+            <div class="checkbox">
+                <label>
+                    <input id="fragments" type="checkbox"> Fragments
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="frames" type="checkbox"> Frames
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input id="sha1" type="checkbox"> SHA1
+                </label>
+            </div>
+
         </form>
         <div id="status" class="alert alert-success">
             <div id="statusText">
@@ -110,7 +127,13 @@
 <!-- include the uids -->
 <script src="uids.js"></script>
 
+<!-- include Rusha for SHA1 hashing -->
+<script src="../rusha.min.js"></script>
+
+
 <script>
+
+var dataSet; // the parsed dataSet as global so we can interact with it from console
 
 var maxLength = 128;
 var untilTag = "";
@@ -120,12 +143,50 @@ var showEmptyValues = false;
 var showLength = false;
 var showVR = false;
 var showGroupElement = false;
+var showFragments = false;
+var showFrames = false;
+var showSHA1 = false;
 var file = undefined;
+var sha1Hash = "";
+var rusha = new Rusha();
 
 // helper function to see if a string only has ascii characters in it
 function isASCII(str) {
     return /^[\x00-\x7F]*$/.test(str);
 }
+
+function sha1(byteArray, position, length) {
+    position = position || 0;
+    length = length || byteArray.length;
+    var subArray = dicomParser.sharedCopy(byteArray, position, length);
+    return rusha.digest(subArray);
+}
+
+function sha1Text(byteArray, position, length) {
+    if(showSHA1 === false) {
+        return "";
+    }
+    var text = "; SHA1 " + sha1(byteArray, position, length);
+    return text;
+}
+
+function mapUid(str) {
+    var uid = uids[str];
+    if(uid) {
+        return ' [ ' + uid + ' ]';
+    }
+    return '';
+}
+
+
+function dataDownloadLink(element, text) {
+    var linkText = "<a class='dataDownload' href='#' data-tag='" + element.tag + "'";
+        linkText += " data-dataOffset='" + element.dataOffset + "'";
+        linkText += " data-length='" + element.length + "'";
+        linkText += ">" + text + "</a>";
+    return linkText;
+}
+
 
 // This function iterates through dataSet recursively and adds new HTML strings
 // to the output array passed into it
@@ -140,13 +201,6 @@ function dumpDataSet(dataSet, output)
         return attr;
     }
 
-    function mapUid(str) {
-        var uid = uids[str];
-        if(uid) {
-            return ' [ ' + uid + ' ]';
-        }
-        return '';
-    }
 
     try{
         var keys = [];
@@ -188,7 +242,7 @@ function dumpDataSet(dataSet, output)
 
                 var lengthText = "length=" + element.length;
                 if (element.hadUndefinedLength) {
-                    lengthText += " <strong>(-1)</strong>";
+                    lengthText += " (-1)";
                 }
                 if(showLength === true) {
                     text += lengthText + "; ";
@@ -204,7 +258,9 @@ function dumpDataSet(dataSet, output)
                 if(showVR) {
                     text += vrText + "; ";
                 }
-                title += "; " + vrText;
+                if(vrText) {
+                    title += "; " + vrText;
+                }
 
                 title += "; dataOffset=" + element.dataOffset;
                 // make text lighter since this is an unknown attribute
@@ -221,7 +277,7 @@ function dumpDataSet(dataSet, output)
 
                 var lengthText = " length=" + element.length;
                 if (element.hadUndefinedLength) {
-                    lengthText += " <strong>(-1)</strong>";
+                    lengthText += " (-1)";
                 }
 
                 if(showLength === true) {
@@ -237,7 +293,9 @@ function dumpDataSet(dataSet, output)
                 if(showVR) {
                     text += vrText + "; ";
                 }
-                title +="; " + vrText;
+                if(vrText) {
+                    title +="; " + vrText;
+                }
 
                 title += "; dataOffset=" + element.dataOffset;
 
@@ -257,7 +315,7 @@ function dumpDataSet(dataSet, output)
                     output.push('<li>Item #' + itemNumber++ + ' ' + item.tag);
                     var lengthText = " length=" + item.length;
                     if (item.hadUndefinedLength) {
-                        lengthText += " <strong>(-1)</strong>";
+                        lengthText += " (-1)";
                     }
 
                     if(showLength === true) {
@@ -272,22 +330,56 @@ function dumpDataSet(dataSet, output)
                 output.push('</ul>');
             }
             else if (element.fragments) {
-                text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " + element.fragments.length + " fragments";
-                title += "; dataOffset=" + element.dataOffset;
-                output.push("<li title='" + title + "'=>" + text + '</li>');
-                /*
-                output.push('<ul>');
+                text += "encapsulated pixel data with " + element.basicOffsetTable.length + " offsets and " +
+                        element.fragments.length + " fragments";
+                text += sha1Text(dataSet.byteArray, element.dataOffset, element.length);
 
-                // each item contains its own data set so we iterate over the items
-                // and recursively call this function
-                var itemNumber = 0;
-                element.fragments.forEach(function (fragment) {
-                    var str = '<li>Fragment #' + itemNumber++ + ' offset = ' + fragment.offset;
-                    str += '; length = ' + fragment.length + '</li>';
-                    output.push(str);
-                });
-                output.push('</ul>');
-                */
+                output.push("<li title='" + title + "'=>" + text + '</li>');
+
+                if(showFragments && element.encapsulatedPixelData) {
+                    output.push('Fragments:<br>');
+                    output.push('<ul>');
+                    var itemNumber = 0;
+                    element.fragments.forEach(function (fragment) {
+                        var str = '<li>Fragment #' + itemNumber++ + ' dataOffset = ' + fragment.position;
+                        str += '; offset = ' + fragment.offset;
+                        str += '; length = ' + fragment.length ;
+                        str += sha1Text(dataSet.byteArray, fragment.position, fragment.length);
+                        str += '</li>';
+
+                        output.push(str);
+                    });
+                    output.push('</ul>');
+                }
+                if(showFrames && element.encapsulatedPixelData) {
+                    output.push('Frames:<br>');
+                    output.push('<ul>');
+                    var bot = element.basicOffsetTable;
+                    // if empty bot and not RLE, calculate it
+                    if(bot.length === 0) {
+                        bot = dicomParser.createJPEGBasicOffsetTable(dataSet, element);
+                    }
+
+                    function imageFrameLink(frameIndex) {
+                        var linkText = "<a class='imageFrameDownload' ";
+                        linkText += "data-frameIndex='" + frameIndex + "'";
+                        linkText += " href='#'> Frame #" + frameIndex + "</a>";
+                        return linkText;
+                    }
+
+                    for(var frameIndex=0; frameIndex < bot.length; frameIndex++) {
+                        var str = "<li>";
+                        str += imageFrameLink(frameIndex, "Frame #" + frameIndex);
+                        str += ' dataOffset = ' + (element.fragments[0].position + bot[frameIndex]);
+                        str += '; offset = ' + (bot[frameIndex]);
+                        var imageFrame = dicomParser.readEncapsulatedImageFrame(dataSet, element, frameIndex, bot);
+                        str += '; length = ' + imageFrame.length ;
+                        str += sha1Text(imageFrame);
+                        str += '</li>';
+                        output.push(str);
+                    }
+                    output.push('</ul>');
+                }
             }
             else {
                 // use VR to display the right value
@@ -388,31 +480,49 @@ function dumpDataSet(dataSet, output)
                         }
                         else if (vr === 'US') {
                             text += dataSet.uint16(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/2; i++) {
+                                text += '\\' + dataSet.uint16(propertyName, i);
+                            }
                         }
                         else if (vr === 'SS') {
                             text += dataSet.int16(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/2; i++) {
+                                text += '\\' + dataSet.int16(propertyName, i);
+                            }
                         }
                         else if (vr === 'UL') {
                             text += dataSet.uint32(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/4; i++) {
+                                text += '\\' + dataSet.uint32(propertyName, i);
+                            }
                         }
                         else if (vr === 'SL') {
                             text += dataSet.int32(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/4; i++) {
+                                text += '\\' + dataSet.int32(propertyName, i);
+                            }
                         }
                         else if (vr == 'FD') {
                             text += dataSet.double(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/8; i++) {
+                                text += '\\' + dataSet.double(propertyName, i);
+                            }
                         }
                         else if (vr == 'FL') {
                             text += dataSet.float(propertyName);
+                            for(var i=1; i < dataSet.elements[propertyName].length/4; i++) {
+                                text += '\\' + dataSet.float(propertyName, i);
+                            }
                         }
                         else if (vr === 'OB' || vr === 'OW' || vr === 'UN' || vr === 'OF' || vr === 'UT') {
                             color = '#C8C8C8';
                             // If it is some other length and we have no string
                             if(element.length === 2) {
-                                text += "<i>binary data of length " + element.length + " as uint16: " +dataSet.uint16(propertyName);
+                                text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " as uint16: " +dataSet.uint16(propertyName);
                             } else if(element.length === 4) {
-                                text += "<i>binary data of length " + element.length + " as uint32: " +dataSet.uint32(propertyName);
+                                text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " as uint32: " +dataSet.uint32(propertyName);
                             } else {
-                                text += "<i>binary data of length " + element.length + " and VR " + vr + "</i>";
+                                text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " and VR " + vr + "</i>";
                             }
                         }
                         else if(vr === 'AT') {
@@ -438,7 +548,9 @@ function dumpDataSet(dataSet, output)
                     color = '#C8C8C8';
 
                     // Add text saying the data is too long to show...
-                    text += "<i>data of length " + element.length + " for VR + " + vr + " too long to show</i>";
+                    text += "<i>" + dataDownloadLink(element, "data");
+                    text += " of length " + element.length + " for VR " + vr + " too long to show</i>";
+                    text += sha1Text(dataSet.byteArray, element.dataOffset, element.length);
                 }
                 // finally we add the string to our output array surrounded by li elements so it shows up in the
                 // DOM as a list
@@ -465,6 +577,10 @@ function updateFilter() {
     showLength = $('#length').prop('checked');
     showVR = $('#vr').prop('checked');
     showGroupElement = $('#groupElement').prop('checked');
+    showFragments = $('#fragments').prop('checked');
+    showFrames = $('#frames').prop('checked');
+    showSHA1 = $('#sha1').prop('checked');
+
     dumpFile();
 }
 
@@ -476,6 +592,9 @@ $('#emptyValues').change(updateFilter);
 $('#length').change(updateFilter);
 $('#vr').change(updateFilter);
 $('#groupElement').change(updateFilter);
+$('#fragments').change(updateFilter);
+$('#frames').change(updateFilter);
+$('#sha1').change(updateFilter);
 
 // This function will read the file into memory and then start dumping it
 function dumpFile()
@@ -501,29 +620,87 @@ function dumpFile()
         document.getElementById('statusText').innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
         // set a short timeout to do the parse so the DOM has time to update itself with the above message
         setTimeout(function() {
+            var sha1Hash = sha1(byteArray, 0, byteArray.length);
 
             // Invoke the paresDicom function and get back a DataSet object with the contents
-            var dataSet;
             try {
                 var start = new Date().getTime();
                 var options = {
                     untilTag: untilTag
                 };
+
                 dataSet = dicomParser.parseDicom(byteArray, options);
+                // dump dataSet to console to aid debugging.
+                if(console) {
+                    console.log(dataSet);
+                }
                 // Here we call dumpDataSet to recursively iterate through the DataSet and create an array
                 // of strings of the contents.
                 var output = [];
                 dumpDataSet(dataSet, output);
-
                 // Combine the array of strings into one string and add it to the DOM
                 document.getElementById('dropZone').innerHTML = '<ul>' + output.join('') + '</ul>';
 
+                function downloadData(data, fileName) {
+                    var blob = new Blob([data], {type: 'application/octet-stream'});
+                    var objectURL = URL.createObjectURL(blob);
+                    var a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display: none";
+                    a.href = objectURL;
+                    a.download = fileName;
+                    a.click();
+                    window.URL.revokeObjectURL(objectURL);
+                    $(a).remove();
+                }
+
+                function extractEncapsulatedImageFrame(frameIndex) {
+                    var element = dataSet.elements.x7fe00010;
+                    var isRLE = dataSet.string('x00020010') === '1.2.840.10008.1.2.5';
+                    var imageFrame;
+                    if(isRLE) {
+                        // RLE cannot be fragmented so frameIndex = fragmentIndex
+                        imageFrame = dicomParser.readEncapsulatedPixelDataFromFragments(dataSet, element, frameIndex);
+                    } else {
+                        var bot = element.basicOffsetTable;
+                        // if basic offset table is empty, calculate it
+                        if(bot.length === 0) {
+                            bot = dicomParser.createJPEGBasicOffsetTable(dataSet, element);
+                        }
+                        imageFrame = dicomParser.readEncapsulatedImageFrame(dataSet, element, frameIndex, bot);
+                    }
+                    return imageFrame;
+                }
+
+                $('.imageFrameDownload').click(function(ev) {
+                    var frameIndex = parseInt($(ev.currentTarget).attr('data-frameIndex'));
+                    var imageFrame = extractEncapsulatedImageFrame(frameIndex);
+                    var sopInstanceUid = dataSet.string('x00080018');
+                    var fileName = sopInstanceUid + "-imageFrame-" + frameIndex + ".dat";
+                    downloadData(imageFrame,fileName);
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                });
+
+                $('.dataDownload').click(function(ev) {
+                    var tag = $(ev.currentTarget).attr('data-tag');
+                    var dataOffset = parseInt($(ev.currentTarget).attr('data-dataOffset'));
+                    var length = parseInt($(ev.currentTarget).attr('data-length'));
+                    var data = dicomParser.sharedCopy(dataSet.byteArray, dataOffset, length);
+                    var sopInstanceUid = dataSet.string('x00080018');
+                    var fileName = sopInstanceUid + "-" + tag + "-" + dataOffset + ":" + length + ".dat";
+                    downloadData(data,fileName);
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                });
+
                 var end = new Date().getTime();
                 var time = end - start;
+                var statusText = 'Status:';
                 if(dataSet.warnings.length > 0)
                 {
                     $('#status').removeClass('alert-success alert-info alert-danger').addClass('alert-warning');
-                    $('#statusText').html('Status: Warnings encountered while parsing file (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                    statusText += 'Warnings encountered while parsing file';
 
                     dataSet.warnings.forEach(function(warning) {
                         $("#warnings").append('<li>' + warning +'</li>');
@@ -534,14 +711,23 @@ function dumpFile()
                     var pixelData = dataSet.elements.x7fe00010;
                     if(pixelData) {
                         $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        $('#statusText').html('Status: Ready (file of size '+ byteStr + ' parsed in ' + time + 'ms)');
+                        statusText += 'Ready';
                     }
                     else
                     {
                         $('#status').removeClass('alert-warning alert-info alert-danger').addClass('alert-success');
-                        $('#statusText').html('Status: Ready - no pixel data found (file of size ' + byteStr + ' parsed in ' + time + 'ms)');
+                        statusText += 'Ready - no pixel data found';
                     }
                 }
+                statusText += '; file size ' + byteStr;
+                statusText += '; parse time ' + time + 'ms';
+                statusText += '; SHA1 = ' + sha1Hash;
+                statusText += '<br>';
+                statusText += uids[(dataSet.string('x00020002'))];
+                statusText += '; ' + uids[(dataSet.string('x00020010'))];
+
+                $('#statusText').html(statusText);
+
             }
             catch(err)
             {

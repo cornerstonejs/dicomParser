@@ -1,10 +1,8 @@
 dicomParser
 ===========
 
-dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern web browsers (IE10+),  Node.js
-and Meteor.  dicomParser is fast, easy to use and has no required external dependencies
-([pako](https://github.com/nodeca/pako) is required if you support for the Deflated Explicit VR Little Endian
- transfer syntax)
+dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern HTML5 based web browsers (IE10+),
+Node.js and Meteor.  dicomParser is fast, easy to use and has no required external dependencies.
 
 Live Examples
 ---------------
@@ -100,13 +98,21 @@ Useful for partial reading of byte streams.
 A callback that, given a tag, will return the two-character Value Representation associated with that tag (see PS 3.5
 of the DICOM standard for more information). It may return undefined to indicate that the VR was not provided.
 
+#### inflater
+
+A callback that given the underlying byteArray and position of the deflated buffer returns a byteArray containing the
+DICOM P10 header and inflated data set concatenated together.
+
 Key Features
 ------------
 
-* Parses DICOM Part 10 byte arrays in all encodings
+* Parses all known valid DICOM Part 10 byte arrays
   * Explicit and implicit
   * Little endian and big endian
   * Deflated Explicit VR Little Endian transfer syntax
+    * Uses zlib when running node.js
+    * requires [pako](https://github.com/nodeca/pako) in web browsers
+    * has callback to support use of other inflate libraries
 * Supports all VR's including sequences
 * Supports elements with undefined length
 * Supports sequence items with undefined length
@@ -117,9 +123,14 @@ Key Features
 * Packaged using the module pattern, as an AMD module and as a CommonJS module for Node.js
 * No external dependencies
 * Supports extraction of encapsulated pixel data frames
+  * Basic Offset Table decoded
+  * Fragments decoded
+  * Function to extract image frame when basic offset table is present
+  * Function to extract image frame from fragments when no basic offset table is present
 * Convenient utility functions to parse strings formatted in DA, TM and PN VRs and return JavaScript objects
 * Convenient utility function to create a string version of an explicit element
 * Convenient utility function to convert a parsed explicit dataSet into a javascript object
+* Convenient utility function to generate a basic offset table for JPEG images
 * Supports reading incomplete/partial byte streams
   * By specifying a tag to stop reading at (e.g. parseDicom(byteArray, {untilTag: "x7fe00010"}); )
   * By returning the elements parsed so far in the exception thrown during a parse error (the elements parsed will be
@@ -189,7 +200,8 @@ Contributors
 * @bbunderson, @jpambrun - bug fix for reading encapsulated frames
 * @henryqdineen, adil.tiadi@gmail.com - bug report for sequences with undefined lengths and zero items
 * @swederik - bug fixes on sequences with undefined lengths and zero items
-
+* @jkrot - performance enhancement in byteArrayParser
+* @cancan101 - issue related to multi-frame with multiple fragments and no basic offset table
 
 Why another Javascript DICOM parsing library?
 ============================================
@@ -346,4 +358,4 @@ You can find out more about this by googling for "self documenting code"
 
 Copyright
 ============
-Copyright 2015 Chris Hafey [chafey@gmail.com](mailto:chafey@gmail.com)
+Copyright 2016 Chris Hafey [chafey@gmail.com](mailto:chafey@gmail.com)

@@ -64,7 +64,7 @@ var dicomParser = (function (dicomParser)
     {
         if(this.position + offset < 0)
         {
-            throw "cannot seek to position < 0";
+            throw "dicomParser.ByteStream.prototype.seek: cannot seek to position < 0";
         }
         this.position += offset;
     };
@@ -78,9 +78,9 @@ var dicomParser = (function (dicomParser)
     dicomParser.ByteStream.prototype.readByteStream = function(numBytes)
     {
         if(this.position + numBytes > this.byteArray.length) {
-            throw 'readByteStream - buffer overread';
+            throw 'dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread';
         }
-        var byteArrayView = new Uint8Array(this.byteArray.buffer, this.position, numBytes);
+        var byteArrayView = dicomParser.sharedCopy(this.byteArray, this.position, numBytes);
         this.position += numBytes;
         return new dicomParser.ByteStream(this.byteArrayParser, byteArrayView);
     };

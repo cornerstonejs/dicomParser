@@ -30,7 +30,7 @@ var dicomParser = (function(dicomParser) {
       var prefix = littleEndianByteStream.readFixedString(4);
       if(prefix !== "DICM")
       {
-        throw "dicomParser.readPart10Header: DICM prefix not found at location 132";
+        throw "dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.";
       }
     }
 
