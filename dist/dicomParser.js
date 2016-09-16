@@ -1,4 +1,4 @@
-/*! dicom-parser - v1.7.4 - 2016-08-18 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - v1.7.4 - 2016-09-13 | (c) 2014 Chris Hafey | https://github.com/chafey/dicomParser */
 (function (root, factory) {
 
     // node.js
@@ -293,11 +293,10 @@ var dicomParser = (function (dicomParser) {
             maxElementLength : 128      // maximum element length to try and convert to string format
         };
 
-        var result = {
-
-        };
+        var result = {};
 
         for(var tag in dataSet.elements) {
+
             var element = dataSet.elements[tag];
 
             // skip this element if it a private element and our options specify that we should
@@ -314,21 +313,17 @@ var dicomParser = (function (dicomParser) {
                 }
                 result[tag] = sequenceItems;
             } else {
-                var asString;
-                asString = undefined;
                 if(element.length < options.maxElementLength) {
-                    asString = dicomParser.explicitElementToString(dataSet, element);
-                }
-
-                if(asString !== undefined) {
-                    result[tag] = asString;
-                }  else {
-                    result[tag] = {
-                        dataOffset: element.dataOffset,
-                        length : element.length
-                    };
+                    result[tag] = dicomParser.explicitElementToString(dataSet, element);
+                    if (result[tag] === undefined){
+                        result[tag] = {
+                            dataOffset: element.dataOffset,
+                            length : element.length
+                        };
+                    }
                 }
             }
+
         }
 
         return result;
@@ -359,8 +354,6 @@ var dicomParser = (function (dicomParser) {
         if(element.vr === undefined) {
             throw 'dicomParser.explicitElementToString: cannot convert implicit element to string';
         }
-        var vr = element.vr;
-        var tag = element.tag;
 
         var textResult;
 
@@ -370,17 +363,17 @@ var dicomParser = (function (dicomParser) {
                 if(i !== 0) {
                     result += '/';
                 }
-                result += func.call(dataSet, tag, i).toString();
+                result += func.call(dataSet, element.tag, i).toString();
             }
             return result;
         }
 
-        if(dicomParser.isStringVr(vr) === true)
+        if(dicomParser.isStringVr(element.vr) === true)
         {
-            textResult = dataSet.string(tag);
+            textResult = dataSet.string(element.tag);
         }
-        else if (vr == 'AT') {
-            var num = dataSet.uint32(tag);
+        else if (element.vr == 'AT') {
+            var num = dataSet.uint32(element.tag);
             if(num === undefined) {
                 return undefined;
             }
@@ -391,27 +384,27 @@ var dicomParser = (function (dicomParser) {
 
             return 'x' + num.toString(16).toUpperCase();
         }
-        else if (vr == 'US')
+        else if (element.vr == 'US')
         {
             textResult = multiElementToString(element.length / 2, dataSet.uint16);
         }
-        else if(vr === 'SS')
+        else if(element.vr === 'SS')
         {
             textResult = multiElementToString(element.length / 2, dataSet.int16);
         }
-        else if (vr == 'UL')
+        else if (element.vr == 'UL')
         {
             textResult = multiElementToString(element.length / 4, dataSet.uint32);
         }
-        else if(vr === 'SL')
+        else if(element.vr === 'SL')
         {
             textResult = multiElementToString(element.length / 4, dataSet.int32);
         }
-        else if(vr == 'FD')
+        else if(element.vr == 'FD')
         {
             textResult = multiElementToString(element.length / 8, dataSet.double);
         }
-        else if(vr == 'FL')
+        else if(element.vr == 'FL')
         {
             textResult = multiElementToString(element.length / 4, dataSet.float);
         }
@@ -1807,15 +1800,20 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.parseDicomDataSetExplicit: invalid value for parameter 'maxPosition'";
         }
         var elements = dataSet.elements;
+        var element;
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
+            element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
+                element = null;
                 return;
             }
         }
+
+        delete element.tag;
+
         if(byteStream.position > maxPosition) {
             throw "dicomParser:parseDicomDataSetExplicit: buffer overrun";
         }
@@ -1841,15 +1839,20 @@ var dicomParser = (function (dicomParser)
         }
 
         var elements = dataSet.elements;
+        var element;
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
+            element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
+                element = null;
                 return;
             }
         }
+
+        delete element.tag;
+
     };
 
     return dicomParser;

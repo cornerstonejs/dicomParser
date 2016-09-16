@@ -21,11 +21,10 @@ var dicomParser = (function (dicomParser) {
             maxElementLength : 128      // maximum element length to try and convert to string format
         };
 
-        var result = {
-
-        };
+        var result = {};
 
         for(var tag in dataSet.elements) {
+
             var element = dataSet.elements[tag];
 
             // skip this element if it a private element and our options specify that we should
@@ -42,21 +41,17 @@ var dicomParser = (function (dicomParser) {
                 }
                 result[tag] = sequenceItems;
             } else {
-                var asString;
-                asString = undefined;
                 if(element.length < options.maxElementLength) {
-                    asString = dicomParser.explicitElementToString(dataSet, element);
-                }
-
-                if(asString !== undefined) {
-                    result[tag] = asString;
-                }  else {
-                    result[tag] = {
-                        dataOffset: element.dataOffset,
-                        length : element.length
-                    };
+                    result[tag] = dicomParser.explicitElementToString(dataSet, element);
+                    if (result[tag] === undefined){
+                        result[tag] = {
+                            dataOffset: element.dataOffset,
+                            length : element.length
+                        };
+                    }
                 }
             }
+
         }
 
         return result;
