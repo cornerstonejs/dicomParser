@@ -270,6 +270,24 @@ var dicomParser = (function (dicomParser)
         return undefined;
     };
 
+    /**
+     * Parses an element tag according to the 'AT' VR definition (VR=AT).
+     * @param {String} A DICOM tag with in the format xGGGGEEEE.
+     * @returns {String} A string representation of a data element tag or undefined if the field is not present or data is not long enough.
+     */
+    dicomParser.DataSet.prototype.attributeTag = function(tag)
+    {
+        var parser, bytes, offset, element = this.elements[tag];
+        if (element && element.length === 4)
+        {
+            parser = getByteArrayParser(element, this.byteArrayParser).readUint16;
+            bytes = this.byteArray;
+            offset = element.dataOffset;
+            return 'x' + ('00000000' + (parser(bytes, offset) * 256 * 256 + parser(bytes, offset + 2)).toString(16)).substr(-8);
+        }
+        return undefined;
+    };
+
     //dicomParser.DataSet = DataSet;
 
     return dicomParser;
