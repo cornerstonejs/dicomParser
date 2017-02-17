@@ -45,7 +45,7 @@ var dicomParser = (function(dicomParser) {
                 // if an infalter callback is registered, use it
                 if (options && options.inflater) {
                     var fullByteArrayCallback = options.inflater(byteArray, position);
-                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArrayCallback, 0);
+                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArrayCallback, 0, transferSyntax);
                 }
                 // if running on node, use the zlib library to inflate
                 // http://stackoverflow.com/questions/4224606/how-to-check-whether-a-script-is-running-under-node-js
@@ -59,7 +59,7 @@ var dicomParser = (function(dicomParser) {
                     var fullByteArrayBuffer = dicomParser.alloc(byteArray, inflatedBuffer.length + position);
                     byteArray.copy(fullByteArrayBuffer, 0, 0, position);
                     inflatedBuffer.copy(fullByteArrayBuffer, position);
-                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArrayBuffer, 0);
+                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArrayBuffer, 0, transferSyntax);
                 }
                 // if pako is defined - use it.  This is the web browser path
                 // https://github.com/nodeca/pako
@@ -72,7 +72,7 @@ var dicomParser = (function(dicomParser) {
                     var fullByteArray = dicomParser.alloc(byteArray, inflated.length + position);
                     fullByteArray.set(byteArray.slice(0, position), 0);
                     fullByteArray.set(inflated, position);
-                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArray, 0);
+                    return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, fullByteArray, 0, transferSyntax);
                 }
                 // throw exception since no inflater is available
                 else {
@@ -81,13 +81,13 @@ var dicomParser = (function(dicomParser) {
             }
             if(transferSyntax === '1.2.840.10008.1.2.2') // explicit big endian
             {
-                return new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser, byteArray, position);
+                return new dicomParser.ByteStream(dicomParser.bigEndianByteArrayParser, byteArray, position, transferSyntax);
             }
             else
             {
                 // all other transfer syntaxes are little endian; only the pixel encoding differs
                 // make a new stream so the metaheader warnings don't come along for the ride
-                return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray, position);
+                return new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray, position, transferSyntax);
             }
         }
 
@@ -150,3 +150,4 @@ var dicomParser = (function(dicomParser) {
 
     return dicomParser;
 })(dicomParser);
+

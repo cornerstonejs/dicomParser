@@ -26,7 +26,7 @@ var dicomParser = (function (dicomParser)
      * @throws will throw an error if the byteArray parameter is not present or invalid
      * @throws will throw an error if the position parameter is not inside the byte array
      */
-    dicomParser.ByteStream = function(byteArrayParser, byteArray, position) {
+    dicomParser.ByteStream = function(byteArrayParser, byteArray, position, transferSyntax) {
         if(byteArrayParser === undefined)
         {
             throw "dicomParser.ByteStream: missing required parameter 'byteArrayParser'";
@@ -52,6 +52,7 @@ var dicomParser = (function (dicomParser)
         this.byteArray = byteArray;
         this.position = position ? position : 0;
         this.warnings = []; // array of string warnings encountered while parsing
+        this.transferSyntax = transferSyntax;
     };
 
     /**
