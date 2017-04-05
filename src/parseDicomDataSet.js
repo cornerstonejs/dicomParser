@@ -30,15 +30,20 @@ var dicomParser = (function (dicomParser)
             throw "dicomParser.parseDicomDataSetExplicit: invalid value for parameter 'maxPosition'";
         }
         var elements = dataSet.elements;
+        var element;
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
+            element = dicomParser.readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
+                element = null;
                 return;
             }
         }
+
+        delete element.tag;
+
         if(byteStream.position > maxPosition) {
             throw "dicomParser:parseDicomDataSetExplicit: buffer overrun";
         }
@@ -64,15 +69,20 @@ var dicomParser = (function (dicomParser)
         }
 
         var elements = dataSet.elements;
+        var element;
 
         while(byteStream.position < maxPosition)
         {
-            var element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
+            element = dicomParser.readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
             elements[element.tag] = element;
             if(element.tag === options.untilTag) {
+                element = null;
                 return;
             }
         }
+
+        delete element.tag;
+
     };
 
     return dicomParser;

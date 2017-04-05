@@ -20,8 +20,6 @@ var dicomParser = (function (dicomParser) {
         if(element.vr === undefined) {
             throw 'dicomParser.explicitElementToString: cannot convert implicit element to string';
         }
-        var vr = element.vr;
-        var tag = element.tag;
 
         var textResult;
 
@@ -31,17 +29,17 @@ var dicomParser = (function (dicomParser) {
                 if(i !== 0) {
                     result += '/';
                 }
-                result += func.call(dataSet, tag, i).toString();
+                result += func.call(dataSet, element.tag, i).toString();
             }
             return result;
         }
 
-        if(dicomParser.isStringVr(vr) === true)
+        if(dicomParser.isStringVr(element.vr) === true)
         {
-            textResult = dataSet.string(tag);
+            textResult = dataSet.string(element.tag);
         }
-        else if (vr == 'AT') {
-            var num = dataSet.uint32(tag);
+        else if (element.vr == 'AT') {
+            var num = dataSet.uint32(element.tag);
             if(num === undefined) {
                 return undefined;
             }
@@ -52,27 +50,27 @@ var dicomParser = (function (dicomParser) {
 
             return 'x' + num.toString(16).toUpperCase();
         }
-        else if (vr == 'US')
+        else if (element.vr == 'US')
         {
             textResult = multiElementToString(element.length / 2, dataSet.uint16);
         }
-        else if(vr === 'SS')
+        else if(element.vr === 'SS')
         {
             textResult = multiElementToString(element.length / 2, dataSet.int16);
         }
-        else if (vr == 'UL')
+        else if (element.vr == 'UL')
         {
             textResult = multiElementToString(element.length / 4, dataSet.uint32);
         }
-        else if(vr === 'SL')
+        else if(element.vr === 'SL')
         {
             textResult = multiElementToString(element.length / 4, dataSet.int32);
         }
-        else if(vr == 'FD')
+        else if(element.vr == 'FD')
         {
             textResult = multiElementToString(element.length / 8, dataSet.double);
         }
-        else if(vr == 'FL')
+        else if(element.vr == 'FL')
         {
             textResult = multiElementToString(element.length / 4, dataSet.float);
         }
