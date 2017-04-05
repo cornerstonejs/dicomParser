@@ -28,6 +28,10 @@ var dicomParser = (function (dicomParser)
         }
     }
 
+    dicomParser.isEncapsulated = function(element, byteStream) {
+        return element.length === 4294967295;
+    };
+
     dicomParser.readDicomElementExplicit = function(byteStream, warnings, untilTag)
     {
         if(byteStream === undefined)
@@ -72,12 +76,14 @@ var dicomParser = (function (dicomParser)
         }
 
 
-        if(element.length === 4294967295)
-        {
-            if(element.tag === 'x7fe00010') {
+        if(element.tag === 'x7fe00010') {
+            if(dicomParser.isEncapsulated(element, byteStream)) {
+                element.hadUndefinedLength = true;
                 dicomParser.findEndOfEncapsulatedElement(byteStream, element, warnings);
                 return element;
-            }   else if(element.vr === 'UN') {
+            }
+        } else if (element.length === 4294967295) {
+            if(element.vr === 'UN') {
                 dicomParser.findAndSetUNElementLength(byteStream, element);
                 return element;
             } else {
