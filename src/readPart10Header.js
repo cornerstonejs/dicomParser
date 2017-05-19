@@ -1,3 +1,8 @@
+import ByteStream from './byteStream';
+import DataSet from './dataSet';
+import littleEndianByteArrayParser from './littleEndianByteArrayParser';
+import readDicomElementExplicit from './readDicomElementExplicit';
+
 /**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
  * argument is supplied and it contains the untilTag property, parsing will stop once that
@@ -9,60 +14,54 @@
  * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
  *         elements successfully parsed before the error.
  */
-var dicomParser = (function(dicomParser) {
-  if(dicomParser === undefined)
-  {
-    dicomParser = {};
+
+export default function readPart10Header (byteArray, options) {
+  if (byteArray === undefined) {
+    throw 'dicomParser.readPart10Header: missing required parameter \'byteArray\'';
   }
 
-  dicomParser.readPart10Header = function(byteArray, options) {
+  const littleEndianByteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
 
-    if(byteArray === undefined)
-    {
-      throw "dicomParser.readPart10Header: missing required parameter 'byteArray'";
+  function readPrefix () {
+    littleEndianByteStream.seek(128);
+    const prefix = littleEndianByteStream.readFixedString(4);
+
+    if (prefix !== 'DICM') {
+      throw 'dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.';
     }
+  }
 
-    var littleEndianByteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
+  // main function here
+  function readTheHeader () {
+    // Per the DICOM standard, the header is always encoded in Explicit VR Little Endian (see PS3.10, section 7.1)
+    // so use littleEndianByteStream throughout this method regardless of the transfer syntax
+    readPrefix();
 
-    function readPrefix()
-    {
-      littleEndianByteStream.seek(128);
-      var prefix = littleEndianByteStream.readFixedString(4);
-      if(prefix !== "DICM")
-      {
-        throw "dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.";
+    const warnings = [];
+    const elements = {};
+
+    while (littleEndianByteStream.position < littleEndianByteStream.byteArray.length) {
+      const position = littleEndianByteStream.position;
+      const element = readDicomElementExplicit(littleEndianByteStream, warnings);
+
+      if (element.tag > 'x0002ffff') {
+        littleEndianByteStream.position = position;
+        break;
       }
+      // Cache the littleEndianByteArrayParser for meta header elements, since the rest of the data set may be big endian
+      // and this parser will be needed later if the meta header values are to be read.
+      element.parser = littleEndianByteArrayParser;
+      elements[element.tag] = element;
     }
 
-    // main function here
-    function readTheHeader() {
-      // Per the DICOM standard, the header is always encoded in Explicit VR Little Endian (see PS3.10, section 7.1)
-      // so use littleEndianByteStream throughout this method regardless of the transfer syntax
-      readPrefix();
+    const metaHeaderDataSet = new DataSet(littleEndianByteStream.byteArrayParser, littleEndianByteStream.byteArray, elements);
 
-      var warnings = [];
-      var elements = {};
-      while(littleEndianByteStream.position < littleEndianByteStream.byteArray.length) {
-        var position = littleEndianByteStream.position;
-        var element = dicomParser.readDicomElementExplicit(littleEndianByteStream, warnings);
-        if(element.tag > 'x0002ffff') {
-          littleEndianByteStream.position = position;
-          break;
-        }
-        // Cache the littleEndianByteArrayParser for meta header elements, since the rest of the data set may be big endian
-        // and this parser will be needed later if the meta header values are to be read.
-        element.parser = dicomParser.littleEndianByteArrayParser;
-        elements[element.tag] = element;
-      }
-      var metaHeaderDataSet = new dicomParser.DataSet(littleEndianByteStream.byteArrayParser, littleEndianByteStream.byteArray, elements);
-      metaHeaderDataSet.warnings = littleEndianByteStream.warnings;
-      metaHeaderDataSet.position = littleEndianByteStream.position;
-      return metaHeaderDataSet;
-    }
+    metaHeaderDataSet.warnings = littleEndianByteStream.warnings;
+    metaHeaderDataSet.position = littleEndianByteStream.position;
 
-    // This is where we actually start parsing
-    return readTheHeader();
-  };
+    return metaHeaderDataSet;
+  }
 
-  return dicomParser;
-})(dicomParser);
+  // This is where we actually start parsing
+  return readTheHeader();
+}

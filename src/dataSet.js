@@ -1,3 +1,5 @@
+import { readFixedString } from './byteArrayParser';
+
 /**
  *
  * The DataSet class encapsulates a collection of DICOM Elements and provides various functions
@@ -18,33 +20,26 @@
  * UT = Strip trailing spaces
  *
  */
-var dicomParser = (function (dicomParser)
+
+function getByteArrayParser(element, defaultParser)
 {
-    "use strict";
+    return (element.parser !== undefined ? element.parser : defaultParser);
+}
 
-    if(dicomParser === undefined)
-    {
-        dicomParser = {};
-    }
+/**
+ * Constructs a new DataSet given byteArray and collection of elements
+ * @param byteArrayParser
+ * @param byteArray
+ * @param elements
+ * @constructor
+ */
+export default class DataSet {
 
-    function getByteArrayParser(element, defaultParser)
-    {
-        return (element.parser !== undefined ? element.parser : defaultParser);
-    }
-
-    /**
-     * Constructs a new DataSet given byteArray and collection of elements
-     * @param byteArrayParser
-     * @param byteArray
-     * @param elements
-     * @constructor
-     */
-    dicomParser.DataSet = function(byteArrayParser, byteArray, elements)
-    {
+    constructor(byteArrayParser, byteArray, elements) {
         this.byteArrayParser = byteArrayParser;
         this.byteArray = byteArray;
         this.elements = elements;
-    };
+    }
 
     /**
      * Finds the element for tag and returns an unsigned int 16 if it exists and has data
@@ -52,7 +47,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} unsigned int 16 or undefined if the attribute is not present or has data of length 0
      */
-    dicomParser.DataSet.prototype.uint16 = function(tag, index)
+    uint16(tag, index)
     {
         var element = this.elements[tag];
         index = (index !== undefined) ? index : 0;
@@ -61,7 +56,7 @@ var dicomParser = (function (dicomParser)
             return getByteArrayParser(element, this.byteArrayParser).readUint16(this.byteArray, element.dataOffset + (index *2));
         }
         return undefined;
-    };
+    }
 
     /**
      * Finds the element for tag and returns an signed int 16 if it exists and has data
@@ -69,7 +64,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} signed int 16 or undefined if the attribute is not present or has data of length 0
      */
-    dicomParser.DataSet.prototype.int16 = function(tag, index)
+    int16(tag, index)
     {
         var element = this.elements[tag];
         index = (index !== undefined) ? index : 0;
@@ -78,7 +73,7 @@ var dicomParser = (function (dicomParser)
             return getByteArrayParser(element, this.byteArrayParser).readInt16(this.byteArray, element.dataOffset + (index * 2));
         }
         return undefined;
-    };
+    }
 
     /**
      * Finds the element for tag and returns an unsigned int 32 if it exists and has data
@@ -86,7 +81,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} unsigned int 32 or undefined if the attribute is not present or has data of length 0
      */
-    dicomParser.DataSet.prototype.uint32 = function(tag, index)
+    uint32(tag, index)
     {
         var element = this.elements[tag];
         index = (index !== undefined) ? index : 0;
@@ -95,7 +90,7 @@ var dicomParser = (function (dicomParser)
             return getByteArrayParser(element, this.byteArrayParser).readUint32(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
-    };
+    }
 
     /**
      * Finds the element for tag and returns an signed int 32 if it exists and has data
@@ -103,7 +98,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} signed int 32 or undefined if the attribute is not present or has data of length 0
      */
-    dicomParser.DataSet.prototype.int32 = function(tag, index)
+    int32(tag, index)
     {
         var element = this.elements[tag];
         index = (index !== undefined) ? index : 0;
@@ -112,7 +107,7 @@ var dicomParser = (function (dicomParser)
             return getByteArrayParser(element, this.byteArrayParser).readInt32(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
-    };
+    }
 
     /**
      * Finds the element for tag and returns a 32 bit floating point number (VR=FL) if it exists and has data
@@ -120,7 +115,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} float or undefined if the attribute is not present or has data of length 0
      */
-    dicomParser.DataSet.prototype.float = function(tag, index)
+    float(tag, index)
     {
         var element = this.elements[tag];
         index = (index !== undefined) ? index : 0;
@@ -129,7 +124,7 @@ var dicomParser = (function (dicomParser)
             return getByteArrayParser(element, this.byteArrayParser).readFloat(this.byteArray, element.dataOffset + (index * 4));
         }
         return undefined;
-    };
+    }
 
     /**
      * Finds the element for tag and returns a 64 bit floating point number (VR=FD) if it exists and has data
@@ -137,7 +132,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} float or undefined if the attribute is not present or doesn't has data of length 0
      */
-    dicomParser.DataSet.prototype.double = function(tag, index)
+    double(tag, index)
     {
         var element = this.elements[tag];
         index = (index !== undefined) ? index : 0;
@@ -146,19 +141,19 @@ var dicomParser = (function (dicomParser)
             return getByteArrayParser(element, this.byteArrayParser).readDouble(this.byteArray, element.dataOffset + (index * 8));
         }
         return undefined;
-    };
+    }
 
     /**
      * Returns the number of string values for the element
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @returns {*} the number of string values or undefined if the attribute is not present or has zero length data
      */
-    dicomParser.DataSet.prototype.numStringValues = function(tag)
+    numStringValues(tag)
     {
         var element = this.elements[tag];
         if(element && element.length > 0)
         {
-            var fixedString = dicomParser.readFixedString(this.byteArray, element.dataOffset, element.length);
+            var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
             var numMatching = fixedString.match(/\\/g);
             if(numMatching === null)
             {
@@ -167,7 +162,7 @@ var dicomParser = (function (dicomParser)
             return numMatching.length + 1;
         }
         return undefined;
-    };
+    }
 
     /**
      * Returns a string for the element.  If index is provided, the element is assumed to be
@@ -180,12 +175,12 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the desired value in a multi valued string or undefined for the entire string
      * @returns {*}
      */
-    dicomParser.DataSet.prototype.string = function(tag, index)
+    string(tag, index)
     {
         var element = this.elements[tag];
         if(element && element.length > 0)
         {
-            var fixedString = dicomParser.readFixedString(this.byteArray, element.dataOffset, element.length);
+            var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
             if(index >= 0)
             {
                 var values = fixedString.split('\\');
@@ -199,7 +194,7 @@ var dicomParser = (function (dicomParser)
             }
         }
         return undefined;
-    };
+    }
 
     /**
      * Returns a string with the leading spaces preserved and trailing spaces removed.
@@ -210,12 +205,12 @@ var dicomParser = (function (dicomParser)
      * @param index
      * @returns {*}
      */
-    dicomParser.DataSet.prototype.text = function(tag, index)
+    text(tag, index)
     {
         var element = this.elements[tag];
         if(element && element.length > 0)
         {
-            var fixedString = dicomParser.readFixedString(this.byteArray, element.dataOffset, element.length);
+            var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
             if(index >= 0)
             {
                 var values = fixedString.split('\\');
@@ -227,7 +222,7 @@ var dicomParser = (function (dicomParser)
             }
         }
         return undefined;
-    };
+    }
 
     /**
      * Parses a string to a float for the specified index in a multi-valued element.  If index is not specified,
@@ -236,7 +231,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the desired value in a multi valued string or undefined for the first value
      * @returns {*} a floating point number or undefined if not present or data not long enough
      */
-    dicomParser.DataSet.prototype.floatString = function(tag, index)
+    floatString(tag, index)
     {
         var element = this.elements[tag];
         if(element && element.length > 0)
@@ -248,7 +243,7 @@ var dicomParser = (function (dicomParser)
             }
         }
         return undefined;
-    };
+    }
 
     /**
      * Parses a string to an integer for the specified index in a multi-valued element.  If index is not specified,
@@ -257,7 +252,7 @@ var dicomParser = (function (dicomParser)
      * @param index the index of the desired value in a multi valued string or undefined for the first value
      * @returns {*} an integer or undefined if not present or data not long enough
      */
-    dicomParser.DataSet.prototype.intString = function(tag, index)
+    intString(tag, index)
     {
         var element = this.elements[tag];
         if(element && element.length > 0) {
@@ -268,27 +263,24 @@ var dicomParser = (function (dicomParser)
             }
         }
         return undefined;
-    };
+    }
 
     /**
      * Parses an element tag according to the 'AT' VR definition (VR=AT).
      * @param {String} A DICOM tag with in the format xGGGGEEEE.
      * @returns {String} A string representation of a data element tag or undefined if the field is not present or data is not long enough.
      */
-    dicomParser.DataSet.prototype.attributeTag = function(tag)
-    {
-        var parser, bytes, offset, element = this.elements[tag];
-        if (element && element.length === 4)
-        {
-            parser = getByteArrayParser(element, this.byteArrayParser).readUint16;
-            bytes = this.byteArray;
-            offset = element.dataOffset;
+    attributeTag(tag) {
+        const element = this.elements[tag];
+
+        if (element && element.length === 4) {
+            const parser = getByteArrayParser(element, this.byteArrayParser).readUint16;
+            const bytes = this.byteArray;
+            const offset = element.dataOffset;
+
             return 'x' + ('00000000' + (parser(bytes, offset) * 256 * 256 + parser(bytes, offset + 2)).toString(16)).substr(-8);
         }
+
         return undefined;
-    };
-
-    //dicomParser.DataSet = DataSet;
-
-    return dicomParser;
-}(dicomParser));
+    }
+}

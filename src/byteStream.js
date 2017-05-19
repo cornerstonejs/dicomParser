@@ -1,3 +1,6 @@
+import sharedCopy from './sharedCopy';
+import { readFixedString } from './byteArrayParser';
+
 /**
  *
  * Internal helper class to assist with parsing. Supports reading from a byte
@@ -7,26 +10,19 @@
  *  var byteStream = new dicomParser.ByteStream(dicomParser.littleEndianByteArrayParser, byteArray);
  *
  * */
-var dicomParser = (function (dicomParser)
-{
-    "use strict";
 
-    if(dicomParser === undefined)
-    {
-        dicomParser = {};
-    }
-
-    /**
-     * Constructor for ByteStream objects.
-     * @param byteArrayParser a parser for parsing the byte array
-     * @param byteArray a Uint8Array containing the byte stream
-     * @param position (optional) the position to start reading from.  0 if not specified
-     * @constructor
-     * @throws will throw an error if the byteArrayParser parameter is not present
-     * @throws will throw an error if the byteArray parameter is not present or invalid
-     * @throws will throw an error if the position parameter is not inside the byte array
-     */
-    dicomParser.ByteStream = function(byteArrayParser, byteArray, position) {
+/**
+ * Constructor for ByteStream objects.
+ * @param byteArrayParser a parser for parsing the byte array
+ * @param byteArray a Uint8Array containing the byte stream
+ * @param position (optional) the position to start reading from.  0 if not specified
+ * @constructor
+ * @throws will throw an error if the byteArrayParser parameter is not present
+ * @throws will throw an error if the byteArray parameter is not present or invalid
+ * @throws will throw an error if the position parameter is not inside the byte array
+ */
+export default class ByteStream {
+    constructor (byteArrayParser, byteArray, position) {
         if(byteArrayParser === undefined)
         {
             throw "dicomParser.ByteStream: missing required parameter 'byteArrayParser'";
@@ -52,7 +48,7 @@ var dicomParser = (function (dicomParser)
         this.byteArray = byteArray;
         this.position = position ? position : 0;
         this.warnings = []; // array of string warnings encountered while parsing
-    };
+    }
 
     /**
      * Safely seeks through the byte stream.  Will throw an exception if an attempt
@@ -60,14 +56,14 @@ var dicomParser = (function (dicomParser)
      * @param offset the number of bytes to add to the position
      * @throws error if seek would cause position to be outside of the byteArray
      */
-    dicomParser.ByteStream.prototype.seek = function(offset)
+    seek (offset)
     {
         if(this.position + offset < 0)
         {
             throw "dicomParser.ByteStream.prototype.seek: cannot seek to position < 0";
         }
         this.position += offset;
-    };
+    }
 
     /**
      * Returns a new ByteStream object from the current position and of the requested number of bytes
@@ -75,15 +71,15 @@ var dicomParser = (function (dicomParser)
      * @returns {dicomParser.ByteStream}
      * @throws error if buffer overread would occur
      */
-    dicomParser.ByteStream.prototype.readByteStream = function(numBytes)
+    readByteStream (numBytes)
     {
         if(this.position + numBytes > this.byteArray.length) {
             throw 'dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread';
         }
-        var byteArrayView = dicomParser.sharedCopy(this.byteArray, this.position, numBytes);
+        var byteArrayView = sharedCopy(this.byteArray, this.position, numBytes);
         this.position += numBytes;
-        return new dicomParser.ByteStream(this.byteArrayParser, byteArrayView);
-    };
+        return new ByteStream(this.byteArrayParser, byteArrayView);
+    }
 
     /**
      *
@@ -93,12 +89,12 @@ var dicomParser = (function (dicomParser)
      * @returns {*} the parsed unsigned int 16
      * @throws error if buffer overread would occur
      */
-    dicomParser.ByteStream.prototype.readUint16 = function()
+    readUint16 ()
     {
         var result = this.byteArrayParser.readUint16(this.byteArray, this.position);
         this.position += 2;
         return result;
-    };
+    }
 
     /**
      * Parses an unsigned int 32 from a byte array and advances
@@ -107,12 +103,12 @@ var dicomParser = (function (dicomParser)
      * @returns {*} the parse unsigned int 32
      * @throws error if buffer overread would occur
      */
-    dicomParser.ByteStream.prototype.readUint32 = function()
+    readUint32 ()
     {
         var result = this.byteArrayParser.readUint32(this.byteArray, this.position);
         this.position += 4;
         return result;
-    };
+    }
 
     /**
      * Reads a string of 8-bit characters from an array of bytes and advances
@@ -122,12 +118,10 @@ var dicomParser = (function (dicomParser)
      * @returns {string} the parsed string
      * @throws error if buffer overread would occur
      */
-    dicomParser.ByteStream.prototype.readFixedString = function(length)
+    readFixedString (length)
     {
-        var result = dicomParser.readFixedString(this.byteArray, this.position, length);
+        var result = readFixedString(this.byteArray, this.position, length);
         this.position += length;
         return result;
-    };
-
-    return dicomParser;
-}(dicomParser));
+    }
+}
