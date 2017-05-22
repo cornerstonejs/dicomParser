@@ -14,7 +14,7 @@ module.exports = {
   output: {
     filename: '[name].js',
     library: '[name]',
-    libraryTarget: 'var',
+    libraryTarget: 'umd',
     path: outputPath
   },
   devtool: 'source-map',
