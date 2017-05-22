@@ -1,10 +1,10 @@
 export * from './util';
 export * from './parseDicomDataSet';
+export * from './byteArrayParser';
 
 export { default as alloc } from './alloc';
 export { default as version } from './version';
 export { default as bigEndianByteArrayParser } from './bigEndianByteArrayParser';
-export { readFixedString } from './byteArrayParser';
 export { default as ByteStream } from './byteStream';
 export { default as sharedCopy } from './sharedCopy';
 export { default as DataSet } from './dataSet';
