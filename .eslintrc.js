@@ -13,9 +13,6 @@ module.exports = {
   },
   'globals': {
     'dicomParser': true,
-    'cornerstone': true,
-    'cornerstoneWADOImageLoader': true,
-    'cornerstoneWADOImageLoaderWebWorker': true,
     'jpeg': true,
     'JpegImage': true,
     'OpenJPEG': true,
