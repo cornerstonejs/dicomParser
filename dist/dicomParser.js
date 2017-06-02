@@ -1,4 +1,4 @@
-/*! dicom-parser - 1.7.4 - 2017-06-02 | (c) 2017 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - 1.7.5 - 2017-06-02 | (c) 2017 Chris Hafey | https://github.com/chafey/dicomParser */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -8134,7 +8134,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = '1.7.4';
+exports.default = '1.7.5';
 
 /***/ }),
 /* 46 */
