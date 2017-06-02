@@ -54,10 +54,12 @@ function readSQElementUndefinedLengthExplicit (byteStream, element, warnings) {
       // set the correct length
       element.length = byteStream.position - element.dataOffset;
       byteStream.seek(8);
+
       return element;
     }
 
     const item = readSequenceItemExplicit(byteStream, warnings);
+
     element.items.push(item);
   }
 
@@ -70,6 +72,7 @@ function readSQElementKnownLengthExplicit (byteStream, element, warnings) {
 
   while (byteStream.position < maxPosition) {
     const item = readSequenceItemExplicit(byteStream, warnings);
+
     element.items.push(item);
   }
 }

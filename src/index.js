@@ -14,7 +14,7 @@ export { default as findItemDelimitationItemAndSetElementLength } from './findIt
 export { default as littleEndianByteArrayParser } from './littleEndianByteArrayParser';
 export { default as parseDicom } from './parseDicom';
 export { default as readDicomElementExplicit } from './readDicomElementExplicit';
-export { default as readDicomElementImplicit } from './readDicomElementImplicit'
+export { default as readDicomElementImplicit } from './readDicomElementImplicit';
 export { default as readEncapsulatedImageFrame } from './readEncapsulatedImageFrame';
 export { default as readEncapsulatedPixelData } from './readEncapsulatedPixelData';
 export { default as readEncapsulatedPixelDataFromFragments } from './readEncapsulatedPixelDataFromFragments';

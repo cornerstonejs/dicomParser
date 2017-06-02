@@ -1,3 +1,6 @@
+[![NPM version][npm-version-image]][npm-url] [![NPM downloads][npm-downloads-image]][npm-url] [![MIT License][license-image]][license-url] [![Build Status][travis-image]][travis-url]
+[![Coverage Status][coverage-image]][coverage-url]
+
 dicomParser
 ===========
 
@@ -30,10 +33,6 @@ Get a packaged source file:
 Or install via [NPM](https://www.npmjs.com/):
 
 > npm install dicom-parser
-
-Or install via [Bower](http://bower.io/):
-
-> bower install dicomParser
 
 Or install via atmosphere for [Meteor](https://www.meteor.com/) applications
 
@@ -140,20 +139,12 @@ Key Features
 Build System
 ============
 
-This project uses grunt to build the software.
+This project uses Webpack to build the software.
 
 Pre-requisites:
 ---------------
 
 NodeJs - [click to visit web site for installation instructions](http://nodejs.org).
-
-grunt-cli
-
-> npm install -g grunt-cli
-
-bower
-
-> npm install -g bower
 
 Common Tasks
 ------------
@@ -161,13 +152,11 @@ Common Tasks
 Update dependencies (after each pull):
 > npm install
 
-> bower install
-
 Running the build:
-> grunt
+> npm run build
 
 Automatically running the build and unit tests after each source change:
-> grunt watch
+> npm run watch
 
 Backlog
 ------------
@@ -359,3 +348,16 @@ You can find out more about this by googling for "self documenting code"
 Copyright
 ============
 Copyright 2016 Chris Hafey [chafey@gmail.com](mailto:chafey@gmail.com)
+
+[license-image]: http://img.shields.io/badge/license-MIT-blue.svg?style=flat
+[license-url]: LICENSE
+
+[npm-url]: https://npmjs.org/package/dicom-parser
+[npm-version-image]: http://img.shields.io/npm/v/dicom-parser.svg?style=flat
+[npm-downloads-image]: http://img.shields.io/npm/dm/dicom-parser.svg?style=flat
+
+[travis-url]: http://travis-ci.org/chafey/dicomParser
+[travis-image]: https://travis-ci.org/chafey/dicomParser.svg?branch=master
+
+[coverage-url]: https://coveralls.io/github/chafey/dicomParser?branch=master
+[coverage-image]: https://coveralls.io/repos/github/chafey/dicomParser/badge.svg?branch=master

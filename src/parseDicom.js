@@ -38,7 +38,7 @@ export default function parseDicom (byteArray, options) {
   function isExplicit (transferSyntax) {
     // implicit little endian
     if (transferSyntax === '1.2.840.10008.1.2') {
-        return false;
+      return false;
     }
 
     // all other transfer syntaxes should be explicit
@@ -129,10 +129,10 @@ export default function parseDicom (byteArray, options) {
       } else {
         parseDicomDataSet.parseDicomDataSetImplicit(dataSet, dataSetByteStream, dataSetByteStream.byteArray.length, options);
       }
-    } catch(e) {
+    } catch (e) {
       const ex = {
         exception: e,
-        dataSet: dataSet
+        dataSet
       };
 
       throw ex;

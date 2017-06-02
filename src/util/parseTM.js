@@ -4,8 +4,7 @@
  * @param {boolean} [validate] - true if an exception should be thrown if the date is invalid
  * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data.  Missing fields are set to undefined
  */
-export default function parseTM(time, validate) {
-
+export default function parseTM (time, validate) {
   if (time.length >= 2) // must at least have HH
   {
     // 0123456789
@@ -15,17 +14,16 @@ export default function parseTM(time, validate) {
     var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : undefined;
     var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : undefined;
 
-    if(validate) {
-      if((isNaN(hh)) ||
+    if (validate) {
+      if ((isNaN(hh)) ||
         (mm !== undefined && isNaN(mm)) ||
         (ss !== undefined && isNaN(ss)) ||
         (ffffff !== undefined && isNaN(ffffff)) ||
         (hh < 0 || hh > 23) ||
-        (mm && (mm <0 || mm > 59))  ||
-        (ss && (ss <0 || ss > 59))  ||
-        (ffffff && (ffffff <0 || ffffff > 999999)))
-      {
-        throw "invalid TM '" + time + "'";
+        (mm && (mm < 0 || mm > 59)) ||
+        (ss && (ss < 0 || ss > 59)) ||
+        (ffffff && (ffffff < 0 || ffffff > 999999))) {
+        throw `invalid TM '${time}'`;
       }
     }
 
@@ -37,8 +35,8 @@ export default function parseTM(time, validate) {
     };
   }
 
-  if(validate) {
-    throw "invalid TM '" + time + "'";
+  if (validate) {
+    throw `invalid TM '${time}'`;
   }
 
   return undefined;

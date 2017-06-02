@@ -48,16 +48,19 @@ function readSQElementUndefinedLengthImplicit (byteStream, element, vrCallback) 
   while ((byteStream.position + 4) <= byteStream.byteArray.length) {
     // end reading this sequence if the next tag is the sequence delimitation item
     const nextTag = readTag(byteStream);
+
     byteStream.seek(-4);
 
     if (nextTag === 'xfffee0dd') {
       // set the correct length
       element.length = byteStream.position - element.dataOffset;
       byteStream.seek(8);
+
       return element;
     }
 
     const item = readSequenceItemImplicit(byteStream, vrCallback);
+
     element.items.push(item);
   }
 
@@ -70,6 +73,7 @@ function readSQElementKnownLengthImplicit (byteStream, element, vrCallback) {
 
   while (byteStream.position < maxPosition) {
     const item = readSequenceItemImplicit(byteStream, vrCallback);
+
     element.items.push(item);
   }
 }

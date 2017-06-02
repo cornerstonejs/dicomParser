@@ -1,4 +1,4 @@
-{
+module.exports = {
   'parser': 'babel-eslint',
   'env': {
     'browser': true,
@@ -229,7 +229,7 @@
     ],
     'radix': 'warn',
     'require-await': 'warn',
-    'require-jsdoc': 'warn',
+    //'require-jsdoc': 'warn',
     'rest-spread-spacing': 'warn',
     'semi': 'warn',
     'semi-spacing': 'warn',
@@ -252,11 +252,11 @@
       'warn',
       'never'
     ],
-    'valid-jsdoc': 'warn',
+    //'valid-jsdoc': 'warn',
     'vars-on-top': 'warn',
     'wrap-iife': ['warn', 'inside'],
     'wrap-regex': 'warn',
     'yield-star-spacing': 'warn',
     'yoda': 'warn'
   }
-}
+};
