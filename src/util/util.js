@@ -43,7 +43,7 @@ const isStringVr = (vr) => stringVrs[vr];
  * @returns {boolean}
  */
 const isPrivateTag = (tag) => {
-  const lastGroupDigit = parseInt(tag[4]);
+  const lastGroupDigit = parseInt(tag[4], 10);
   const groupIsOdd = (lastGroupDigit % 2) === 1;
 
 
@@ -53,15 +53,13 @@ const isPrivateTag = (tag) => {
 /**
  * Parses a PN formatted string into a javascript object with properties for givenName, familyName, middleName, prefix and suffix
  * @param personName a string in the PN VR format
- * @param index
  * @returns {*} javascript object with properties for givenName, familyName, middleName, prefix and suffix or undefined if no element or data
  */
 const parsePN = (personName) => {
-  if (personName === undefined) {
-    return undefined;
+  if (!personName) {
+    return;
   }
   const stringValues = personName.split('^');
-
 
   return {
     familyName: stringValues[0],

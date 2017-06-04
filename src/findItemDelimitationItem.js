@@ -10,7 +10,7 @@
  */
 export default function findItemDelimitationItemAndSetElementLength (byteStream, element) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'');
   }
 
   const itemDelimitationItemLength = 8; // group, element, length

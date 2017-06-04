@@ -2,7 +2,7 @@
 function daysInMonth (m, y) { // m is 0 indexed: 0-11
   switch (m) {
   case 2 :
-    return (y % 4 == 0 && y % 100) || y % 400 == 0 ? 29 : 28;
+    return (y % 4 === 0 && y % 100) || y % 400 === 0 ? 29 : 28;
   case 9 : case 4 : case 6 : case 11 :
     return 30;
   default :
@@ -27,26 +27,23 @@ function isValidDate (d, m, y) {
  * @returns {*} Javascript object with properties year, month and day or undefined if not present or not 8 bytes long
  */
 export default function parseDA (date, validate) {
-  if (date && date.length === 8) {
-    var yyyy = parseInt(date.substring(0, 4), 10);
-    var mm = parseInt(date.substring(4, 6), 10);
-    var dd = parseInt(date.substring(6, 8), 10);
-
-    if (validate) {
-      if (isValidDate(dd, mm, yyyy) !== true) {
-        throw `invalid DA '${date}'`;
-      }
-    }
-
-    return {
-      year: yyyy,
-      month: mm,
-      day: dd
-    };
+  if (!date || date.length !== 8) {
+    throw new Error(`invalid DA ${date}`);
   }
+
+  const yyyy = parseInt(date.substring(0, 4), 10);
+  const mm = parseInt(date.substring(4, 6), 10);
+  const dd = parseInt(date.substring(6, 8), 10);
+
   if (validate) {
-    throw `invalid DA '${date}'`;
+    if (isValidDate(dd, mm, yyyy) !== true) {
+      throw new Error(`invalid DA ${date}`);
+    }
   }
 
-  return undefined;
+  return {
+    year: yyyy,
+    month: mm,
+    day: dd
+  };
 }

@@ -28,53 +28,52 @@ const calculateBufferSize = (fragments, startFragment, numFragments) => {
  * @param [fragments] - optional array of objects describing each fragment (offset, position, length)
  * @returns {object} byte array with the encapsulated pixel data
  */
-export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDataElement, startFragmentIndex, numFragments, fragments) {
+export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDataElement, startFragmentIndex, numFragments = 1, fragments) {
   // default values
-  numFragments = numFragments || 1;
-  fragments = fragments || pixelDataElement.fragments;
+  const frags = fragments || pixelDataElement.fragments;
 
   // check parameters
   if (dataSet === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'dataSet\'';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'dataSet\'');
   }
   if (pixelDataElement === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'pixelDataElement\'';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'pixelDataElement\'');
   }
   if (startFragmentIndex === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'startFragmentIndex\'';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'startFragmentIndex\'');
   }
   if (numFragments === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'numFragments\'';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: missing required parameter \'numFragments\'');
   }
   if (pixelDataElement.tag !== 'x7fe00010') {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to non pixel data tag (expected tag = x7fe00010';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to non pixel data tag (expected tag = x7fe00010');
   }
   if (pixelDataElement.encapsulatedPixelData !== true) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.hadUndefinedLength !== true) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.basicOffsetTable === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.fragments === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.fragments.length <= 0) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (startFragmentIndex < 0) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'startFragmentIndex\' must be >= 0';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'startFragmentIndex\' must be >= 0');
   }
   if (startFragmentIndex >= pixelDataElement.fragments.length) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'startFragmentIndex\' must be < number of fragments';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'startFragmentIndex\' must be < number of fragments');
   }
   if (numFragments < 1) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'numFragments\' must be > 0';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'numFragments\' must be > 0');
   }
   if (startFragmentIndex + numFragments > pixelDataElement.fragments.length) {
-    throw 'dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'startFragment\' + \'numFragments\' < number of fragments';
+    throw new Error('dicomParser.readEncapsulatedPixelDataFromFragments: parameter \'startFragment\' + \'numFragments\' < number of fragments');
   }
 
   // create byte stream on the data for this pixel data element
@@ -84,7 +83,7 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
   const basicOffsetTable = readSequenceItem(byteStream);
 
   if (basicOffsetTable.tag !== 'xfffee000') {
-    throw 'dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000';
+    throw new Error('dicomParser.readEncapsulatedPixelData: missing basic offset table xfffee000');
   }
 
   byteStream.seek(basicOffsetTable.length);
@@ -96,18 +95,18 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
 
   // if there is only one fragment, return a view on this array to avoid copying
   if (numFragments === 1) {
-    return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
+    return sharedCopy(byteStream.byteArray, fragmentZeroPosition + frags[startFragmentIndex].offset + fragmentHeaderSize, frags[startFragmentIndex].length);
   }
 
   // more than one fragment, combine all of the fragments into one buffer
-  const bufferSize = calculateBufferSize(fragments, startFragmentIndex, numFragments);
+  const bufferSize = calculateBufferSize(frags, startFragmentIndex, numFragments);
   const pixelData = alloc(byteStream.byteArray, bufferSize);
   let pixelDataIndex = 0;
 
   for (let i = startFragmentIndex; i < startFragmentIndex + numFragments; i++) {
-    let fragmentOffset = fragmentZeroPosition + fragments[i].offset + fragmentHeaderSize;
+    let fragmentOffset = fragmentZeroPosition + frags[i].offset + fragmentHeaderSize;
 
-    for (let j = 0; j < fragments[i].length; j++) {
+    for (let j = 0; j < frags[i].length; j++) {
       pixelData[pixelDataIndex++] = byteStream.byteArray[fragmentOffset++];
     }
   }

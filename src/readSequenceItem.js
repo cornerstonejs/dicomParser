@@ -14,7 +14,7 @@ import readTag from './readTag';
  */
 export default function readSequenceItem (byteStream) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readSequenceItem: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.readSequenceItem: missing required parameter \'byteStream\'');
   }
 
   const element = {
@@ -24,7 +24,7 @@ export default function readSequenceItem (byteStream) {
   };
 
   if (element.tag !== 'xfffee000') {
-    throw `dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset ${byteStream.position}`;
+    throw new Error(`dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset ${byteStream.position}`);
   }
 
   return element;

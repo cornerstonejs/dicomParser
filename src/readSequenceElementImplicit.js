@@ -86,11 +86,11 @@ function readSQElementKnownLengthImplicit (byteStream, element, vrCallback) {
  */
 export default function readSequenceItemsImplicit (byteStream, element, vrCallback) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readSequenceItemsImplicit: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.readSequenceItemsImplicit: missing required parameter \'byteStream\'');
   }
 
   if (element === undefined) {
-    throw 'dicomParser.readSequenceItemsImplicit: missing required parameter \'element\'';
+    throw new Error('dicomParser.readSequenceItemsImplicit: missing required parameter \'element\'');
   }
 
   element.items = [];

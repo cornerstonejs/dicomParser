@@ -27,7 +27,7 @@ const calculateNumberOfFragmentsForFrame = (frameIndex, basicOffsetTable, fragme
     }
   }
 
-  throw 'dicomParser.calculateNumberOfFragmentsForFrame: could not find fragment with offset matching basic offset table';
+  throw new Error('dicomParser.calculateNumberOfFragmentsForFrame: could not find fragment with offset matching basic offset table');
 };
 
 /**
@@ -51,37 +51,37 @@ export default function readEncapsulatedImageFrame (dataSet, pixelDataElement, f
 
   // Validate parameters
   if (dataSet === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: missing required parameter \'dataSet\'';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: missing required parameter \'dataSet\'');
   }
   if (pixelDataElement === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: missing required parameter \'pixelDataElement\'';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: missing required parameter \'pixelDataElement\'');
   }
   if (frameIndex === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: missing required parameter \'frameIndex\'';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: missing required parameter \'frameIndex\'');
   }
   if (basicOffsetTable === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' does not have basicOffsetTable';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' does not have basicOffsetTable');
   }
   if (pixelDataElement.tag !== 'x7fe00010') {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to non pixel data tag (expected tag = x7fe00010)';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to non pixel data tag (expected tag = x7fe00010)');
   }
   if (pixelDataElement.encapsulatedPixelData !== true) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.hadUndefinedLength !== true) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have undefined length';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have undefined length');
   }
   if (pixelDataElement.fragments === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have fragments';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have fragments');
   }
   if (basicOffsetTable.length === 0) {
-    throw 'dicomParser.readEncapsulatedImageFrame: basicOffsetTable has zero entries';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: basicOffsetTable has zero entries');
   }
   if (frameIndex < 0) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'frameIndex\' must be >= 0';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: parameter \'frameIndex\' must be >= 0');
   }
   if (frameIndex >= basicOffsetTable.length) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'frameIndex\' must be < basicOffsetTable.length';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: parameter \'frameIndex\' must be < basicOffsetTable.length');
   }
 
   // find starting fragment based on the offset for the frame in the basic offset table
@@ -89,7 +89,7 @@ export default function readEncapsulatedImageFrame (dataSet, pixelDataElement, f
   const startFragmentIndex = findFragmentIndexWithOffset(fragments, offset);
 
   if (startFragmentIndex === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: unable to find fragment that matches basic offset table entry';
+    throw new Error('dicomParser.readEncapsulatedImageFrame: unable to find fragment that matches basic offset table entry');
   }
 
   // calculate the number of fragments for this frame

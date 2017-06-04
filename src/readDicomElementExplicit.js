@@ -23,7 +23,7 @@ const getDataLengthSizeInBytesForVR = (vr) => {
 
 export default function readDicomElementExplicit (byteStream, warnings, untilTag) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readDicomElementExplicit: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.readDicomElementExplicit: missing required parameter \'byteStream\'');
   }
 
   const element = {

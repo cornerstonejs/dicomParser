@@ -3,14 +3,14 @@
  */
 
 /**
- * reads from the byte stream until it finds the magic number for the Sequence Delimitation
+ * Reads from the byte stream until it finds the magic number for the Sequence Delimitation
  * Item item and then sets the length of the element
  * @param byteStream
  * @param element
  */
 export default function findAndSetUNElementLength (byteStream, element) {
   if (byteStream === undefined) {
-    throw 'dicomParser.findAndSetUNElementLength: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.findAndSetUNElementLength: missing required parameter \'byteStream\'');
   }
 
   // group, element, length

@@ -11,13 +11,12 @@ import readDicomElementExplicit from './readDicomElementExplicit';
  * @param byteArray the byte array
  * @param options object to control parsing behavior (optional)
  * @returns {DataSet}
- * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
- *         elements successfully parsed before the error.
+ * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the elements successfully parsed before the error.
  */
 
 export default function readPart10Header (byteArray, options) {
   if (byteArray === undefined) {
-    throw 'dicomParser.readPart10Header: missing required parameter \'byteArray\'';
+    throw new Error('dicomParser.readPart10Header: missing required parameter \'byteArray\'');
   }
 
   const littleEndianByteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
@@ -27,7 +26,7 @@ export default function readPart10Header (byteArray, options) {
     const prefix = littleEndianByteStream.readFixedString(4);
 
     if (prefix !== 'DICM') {
-      throw 'dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.';
+      throw new Error('dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.');
     }
   }
 
@@ -39,10 +38,15 @@ export default function readPart10Header (byteArray, options) {
 
     const warnings = [];
     const elements = {};
+    let untilTag;
+
+    if (options && options.untilTag) {
+      untilTag = options.untilTag;
+    }
 
     while (littleEndianByteStream.position < littleEndianByteStream.byteArray.length) {
       const position = littleEndianByteStream.position;
-      const element = readDicomElementExplicit(littleEndianByteStream, warnings);
+      const element = readDicomElementExplicit(littleEndianByteStream, warnings, untilTag);
 
       if (element.tag > 'x0002ffff') {
         littleEndianByteStream.position = position;

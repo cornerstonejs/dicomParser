@@ -9,20 +9,20 @@ import * as util from './util';
  */
 export default function explicitElementToString (dataSet, element) {
   if (dataSet === undefined || element === undefined) {
-    throw 'dicomParser.explicitElementToString: missing required parameters';
+    throw new Error('dicomParser.explicitElementToString: missing required parameters');
   }
   if (element.vr === undefined) {
-    throw 'dicomParser.explicitElementToString: cannot convert implicit element to string';
+    throw new Error('dicomParser.explicitElementToString: cannot convert implicit element to string');
   }
-  var vr = element.vr;
-  var tag = element.tag;
+  const vr = element.vr;
+  const tag = element.tag;
 
-  var textResult;
+  let textResult;
 
   function multiElementToString (numItems, func) {
-    var result = '';
+    let result = '';
 
-    for (var i = 0; i < numItems; i++) {
+    for (let i = 0; i < numItems; i++) {
       if (i !== 0) {
         result += '/';
       }
@@ -35,10 +35,10 @@ export default function explicitElementToString (dataSet, element) {
   if (util.isStringVr(vr) === true) {
     textResult = dataSet.string(tag);
   } else if (vr === 'AT') {
-    var num = dataSet.uint32(tag);
+    let num = dataSet.uint32(tag);
 
     if (num === undefined) {
-      return undefined;
+      return;
     }
     if (num < 0) {
       num = 0xFFFFFFFF + num + 1;

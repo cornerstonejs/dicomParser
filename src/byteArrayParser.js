@@ -16,18 +16,18 @@
  */
 export function readFixedString (byteArray, position, length) {
   if (length < 0) {
-    throw 'dicomParser.readFixedString - length cannot be less than 0';
+    throw new Error('dicomParser.readFixedString - length cannot be less than 0');
   }
 
   if (position + length > byteArray.length) {
-    throw 'dicomParser.readFixedString: attempt to read past end of buffer';
+    throw new Error('dicomParser.readFixedString: attempt to read past end of buffer');
   }
 
-  var result = '';
-  var byte;
+  let result = '';
 
-  for (var i = 0; i < length; i++) {
-    byte = byteArray[position + i];
+  for (let i = 0; i < length; i++) {
+    const byte = byteArray[position + i];
+
     if (byte === 0) {
       position += length;
 

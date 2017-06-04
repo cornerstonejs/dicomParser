@@ -6,7 +6,9 @@ import readDicomElementImplicit from './readDicomElementImplicit';
  */
 
 /**
- * reads an explicit data set
+ * Reads an explicit data set
+ *
+ * @param {DataSet} dataSet The dataset
  * @param byteStream the byte stream to read from
  * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
  */
@@ -14,31 +16,38 @@ export function parseDicomDataSetExplicit (dataSet, byteStream, maxPosition, opt
   maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition;
 
   if (byteStream === undefined) {
-    throw 'dicomParser.parseDicomDataSetExplicit: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.parseDicomDataSetExplicit: missing required parameter \'byteStream\'');
   }
 
   if (maxPosition < byteStream.position || maxPosition > byteStream.byteArray.length) {
-    throw 'dicomParser.parseDicomDataSetExplicit: invalid value for parameter \'maxP osition\'';
+    throw new Error('dicomParser.parseDicomDataSetExplicit: invalid value for parameter \'maxP osition\'');
   }
 
   const elements = dataSet.elements;
+  let untilTag;
+
+  if (options && options.untilTag) {
+    untilTag = options.untilTag;
+  }
 
   while (byteStream.position < maxPosition) {
-    const element = readDicomElementExplicit(byteStream, dataSet.warnings, options.untilTag);
+    const element = readDicomElementExplicit(byteStream, dataSet.warnings, untilTag);
 
     elements[element.tag] = element;
-    if (element.tag === options.untilTag) {
+    if (element.tag === untilTag) {
       return;
     }
   }
 
   if (byteStream.position > maxPosition) {
-    throw 'dicomParser:parseDicomDataSetExplicit: buffer overrun';
+    throw new Error('dicomParser:parseDicomDataSetExplicit: buffer overrun');
   }
 }
 
 /**
- * reads an implicit data set
+ * Reads an implicit data set
+ *
+ * @param {DataSet} dataSet The dataset
  * @param byteStream the byte stream to read from
  * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
  */
@@ -46,20 +55,25 @@ export function parseDicomDataSetImplicit (dataSet, byteStream, maxPosition, opt
   maxPosition = (maxPosition === undefined) ? dataSet.byteArray.length : maxPosition;
 
   if (byteStream === undefined) {
-    throw 'dicomParser.parseDicomDataSetImplicit: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.parseDicomDataSetImplicit: missing required parameter \'byteStream\'');
   }
 
   if (maxPosition < byteStream.position || maxPosition > byteStream.byteArray.length) {
-    throw 'dicomParser.parseDicomDataSetImplicit: invalid value for parameter \'maxPosition\'';
+    throw new Error('dicomParser.parseDicomDataSetImplicit: invalid value for parameter \'maxPosition\'');
   }
 
   const elements = dataSet.elements;
+  let untilTag;
+
+  if (options && options.untilTag) {
+    untilTag = options.untilTag;
+  }
 
   while (byteStream.position < maxPosition) {
-    const element = readDicomElementImplicit(byteStream, options.untilTag, options.vrCallback);
+    const element = readDicomElementImplicit(byteStream, untilTag, options.vrCallback);
 
     elements[element.tag] = element;
-    if (element.tag === options.untilTag) {
+    if (element.tag === untilTag) {
       return;
     }
   }

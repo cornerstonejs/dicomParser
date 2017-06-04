@@ -16,11 +16,11 @@ export default {
    */
   readUint16 (byteArray, position) {
     if (position < 0) {
-      throw 'littleEndianByteArrayParser.readUint16: position cannot be less than 0';
+      throw new Error('littleEndianByteArrayParser.readUint16: position cannot be less than 0');
     }
 
     if (position + 2 > byteArray.length) {
-      throw 'littleEndianByteArrayParser.readUint16: attempt to read past end of buffer';
+      throw new Error('littleEndianByteArrayParser.readUint16: attempt to read past end of buffer');
     }
 
     return byteArray[position] + (byteArray[position + 1] * 256);
@@ -38,10 +38,10 @@ export default {
    */
   readInt16 (byteArray, position) {
     if (position < 0) {
-      throw 'littleEndianByteArrayParser.readInt16: position cannot be less than 0';
+      throw new Error('littleEndianByteArrayParser.readInt16: position cannot be less than 0');
     }
     if (position + 2 > byteArray.length) {
-      throw 'littleEndianByteArrayParser.readInt16: attempt to read past end of buffer';
+      throw new Error('littleEndianByteArrayParser.readInt16: attempt to read past end of buffer');
     }
 
     let int16 = byteArray[position] + (byteArray[position + 1] << 8);
@@ -66,11 +66,11 @@ export default {
    */
   readUint32 (byteArray, position) {
     if (position < 0) {
-      throw 'littleEndianByteArrayParser.readUint32: position cannot be less than 0';
+      throw new Error('littleEndianByteArrayParser.readUint32: position cannot be less than 0');
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'littleEndianByteArrayParser.readUint32: attempt to read past end of buffer';
+      throw new Error('littleEndianByteArrayParser.readUint32: attempt to read past end of buffer');
     }
 
     return (byteArray[position] +
@@ -90,11 +90,11 @@ export default {
    */
   readInt32 (byteArray, position) {
     if (position < 0) {
-      throw 'littleEndianByteArrayParser.readInt32: position cannot be less than 0';
+      throw new Error('littleEndianByteArrayParser.readInt32: position cannot be less than 0');
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'littleEndianByteArrayParser.readInt32: attempt to read past end of buffer';
+      throw new Error('littleEndianByteArrayParser.readInt32: attempt to read past end of buffer');
     }
 
     return (byteArray[position] +
@@ -114,11 +114,11 @@ export default {
    */
   readFloat (byteArray, position) {
     if (position < 0) {
-      throw 'littleEndianByteArrayParser.readFloat: position cannot be less than 0';
+      throw new Error('littleEndianByteArrayParser.readFloat: position cannot be less than 0');
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'littleEndianByteArrayParser.readFloat: attempt to read past end of buffer';
+      throw new Error('littleEndianByteArrayParser.readFloat: attempt to read past end of buffer');
     }
 
     // I am sure there is a better way than this but this should be safe
@@ -145,11 +145,11 @@ export default {
    */
   readDouble (byteArray, position) {
     if (position < 0) {
-      throw 'littleEndianByteArrayParser.readDouble: position cannot be less than 0';
+      throw new Error('littleEndianByteArrayParser.readDouble: position cannot be less than 0');
     }
 
     if (position + 8 > byteArray.length) {
-      throw 'littleEndianByteArrayParser.readDouble: attempt to read past end of buffer';
+      throw new Error('littleEndianByteArrayParser.readDouble: attempt to read past end of buffer');
     }
 
     // I am sure there is a better way than this but this should be safe

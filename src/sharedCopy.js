@@ -10,7 +10,7 @@
  * @param byteArray the underlying byteArray (either Uint8Array or Buffer)
  * @param byteOffset offset into the underlying byteArray to create the view of
  * @param length number of bytes in the view
- * @returns {object} Uint8Array or Buffer depending on the type of byteArray
+ * @returns {Uint8Array|Buffer} Uint8Array or Buffer depending on the type of byteArray
  */
 export default function sharedCopy (byteArray, byteOffset, length) {
   if (typeof Buffer !== 'undefined' && byteArray instanceof Buffer) {
@@ -18,5 +18,5 @@ export default function sharedCopy (byteArray, byteOffset, length) {
   } else if (byteArray instanceof Uint8Array) {
     return new Uint8Array(byteArray.buffer, byteArray.byteOffset + byteOffset, length);
   }
-  throw 'dicomParser.from: unknown type for byteArray';
+  throw new Error('dicomParser.sharedCopy: unknown type for byteArray');
 }

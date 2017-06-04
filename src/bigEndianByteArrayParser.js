@@ -15,10 +15,10 @@ export default {
      */
   readUint16 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readUint16: position cannot be less than 0';
+      throw new Error('bigEndianByteArrayParser.readUint16: position cannot be less than 0');
     }
     if (position + 2 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readUint16: attempt to read past end of buffer';
+      throw new Error('bigEndianByteArrayParser.readUint16: attempt to read past end of buffer');
     }
 
     return (byteArray[position] << 8) + byteArray[position + 1];
@@ -36,14 +36,14 @@ export default {
      */
   readInt16 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readInt16: position cannot be less than 0';
+      throw new Error('bigEndianByteArrayParser.readInt16: position cannot be less than 0');
     }
     if (position + 2 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readInt16: attempt to read past end of buffer';
+      throw new Error('bigEndianByteArrayParser.readInt16: attempt to read past end of buffer');
     }
-    var int16 = (byteArray[position] << 8) + byteArray[position + 1];
-        // fix sign
+    let int16 = (byteArray[position] << 8) + byteArray[position + 1];
 
+    // fix sign
     if (int16 & 0x8000) {
       int16 = int16 - 0xFFFF - 1;
     }
@@ -62,14 +62,14 @@ export default {
      */
   readUint32 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readUint32: position cannot be less than 0';
+      throw new Error('bigEndianByteArrayParser.readUint32: position cannot be less than 0');
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readUint32: attempt to read past end of buffer';
+      throw new Error('bigEndianByteArrayParser.readUint32: attempt to read past end of buffer');
     }
 
-    var uint32 = (256 * (256 * (256 * byteArray[position] +
+    const uint32 = (256 * (256 * (256 * byteArray[position] +
                                           byteArray[position + 1]) +
                                           byteArray[position + 2]) +
                                           byteArray[position + 3]);
@@ -88,14 +88,14 @@ export default {
      */
   readInt32 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readInt32: position cannot be less than 0';
+      throw new Error('bigEndianByteArrayParser.readInt32: position cannot be less than 0');
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readInt32: attempt to read past end of buffer';
+      throw new Error('bigEndianByteArrayParser.readInt32: attempt to read past end of buffer');
     }
 
-    var int32 = ((byteArray[position] << 24) +
+    const int32 = ((byteArray[position] << 24) +
                      (byteArray[position + 1] << 16) +
                      (byteArray[position + 2] << 8) +
                       byteArray[position + 3]);
@@ -114,21 +114,21 @@ export default {
      */
   readFloat (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readFloat: position cannot be less than 0';
+      throw new Error('bigEndianByteArrayParser.readFloat: position cannot be less than 0');
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readFloat: attempt to read past end of buffer';
+      throw new Error('bigEndianByteArrayParser.readFloat: attempt to read past end of buffer');
     }
 
-        // I am sure there is a better way than this but this should be safe
-    var byteArrayForParsingFloat = new Uint8Array(4);
+    // TODO: I am sure there is a better way than this but this should be safe
+    const byteArrayForParsingFloat = new Uint8Array(4);
 
     byteArrayForParsingFloat[3] = byteArray[position];
     byteArrayForParsingFloat[2] = byteArray[position + 1];
     byteArrayForParsingFloat[1] = byteArray[position + 2];
     byteArrayForParsingFloat[0] = byteArray[position + 3];
-    var floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
+    const floatArray = new Float32Array(byteArrayForParsingFloat.buffer);
 
 
     return floatArray[0];
@@ -145,15 +145,15 @@ export default {
      */
   readDouble (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readDouble: position cannot be less than 0';
+      throw new Error('bigEndianByteArrayParser.readDouble: position cannot be less than 0');
     }
 
     if (position + 8 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readDouble: attempt to read past end of buffer';
+      throw new Error('bigEndianByteArrayParser.readDouble: attempt to read past end of buffer');
     }
 
-        // I am sure there is a better way than this but this should be safe
-    var byteArrayForParsingFloat = new Uint8Array(8);
+    // TODO: I am sure there is a better way than this but this should be safe
+    const byteArrayForParsingFloat = new Uint8Array(8);
 
     byteArrayForParsingFloat[7] = byteArray[position];
     byteArrayForParsingFloat[6] = byteArray[position + 1];
@@ -163,7 +163,7 @@ export default {
     byteArrayForParsingFloat[2] = byteArray[position + 5];
     byteArrayForParsingFloat[1] = byteArray[position + 6];
     byteArrayForParsingFloat[0] = byteArray[position + 7];
-    var floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
+    const floatArray = new Float64Array(byteArrayForParsingFloat.buffer);
 
 
     return floatArray[0];

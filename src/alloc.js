@@ -10,5 +10,5 @@ export default function alloc (byteArray, length) {
   } else if (byteArray instanceof Uint8Array) {
     return new Uint8Array(length);
   }
-  throw 'dicomParser.alloc: unknown type for byteArray';
+  throw new Error('dicomParser.alloc: unknown type for byteArray');
 }

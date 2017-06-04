@@ -22,7 +22,7 @@ import { readFixedString } from './byteArrayParser';
  */
 
 function getByteArrayParser (element, defaultParser) {
-  return (element.parser !== undefined ? element.parser : defaultParser);
+  return (element.parser === undefined ? defaultParser : element.parser);
 }
 
 /**
@@ -46,15 +46,12 @@ export default class DataSet {
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} unsigned int 16 or undefined if the attribute is not present or has data of length 0
      */
-  uint16 (tag, index) {
-    var element = this.elements[tag];
+  uint16 (tag, index = 0) {
+    const element = this.elements[tag];
 
-    index = (index !== undefined) ? index : 0;
     if (element && element.length !== 0) {
       return getByteArrayParser(element, this.byteArrayParser).readUint16(this.byteArray, element.dataOffset + (index * 2));
     }
-
-    return undefined;
   }
 
     /**
@@ -63,15 +60,12 @@ export default class DataSet {
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} signed int 16 or undefined if the attribute is not present or has data of length 0
      */
-  int16 (tag, index) {
-    var element = this.elements[tag];
+  int16 (tag, index = 0) {
+    const element = this.elements[tag];
 
-    index = (index !== undefined) ? index : 0;
     if (element && element.length !== 0) {
       return getByteArrayParser(element, this.byteArrayParser).readInt16(this.byteArray, element.dataOffset + (index * 2));
     }
-
-    return undefined;
   }
 
     /**
@@ -80,15 +74,12 @@ export default class DataSet {
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} unsigned int 32 or undefined if the attribute is not present or has data of length 0
      */
-  uint32 (tag, index) {
-    var element = this.elements[tag];
+  uint32 (tag, index = 0) {
+    const element = this.elements[tag];
 
-    index = (index !== undefined) ? index : 0;
     if (element && element.length !== 0) {
       return getByteArrayParser(element, this.byteArrayParser).readUint32(this.byteArray, element.dataOffset + (index * 4));
     }
-
-    return undefined;
   }
 
     /**
@@ -97,15 +88,12 @@ export default class DataSet {
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} signed int 32 or undefined if the attribute is not present or has data of length 0
      */
-  int32 (tag, index) {
-    var element = this.elements[tag];
+  int32 (tag, index = 0) {
+    const element = this.elements[tag];
 
-    index = (index !== undefined) ? index : 0;
     if (element && element.length !== 0) {
       return getByteArrayParser(element, this.byteArrayParser).readInt32(this.byteArray, element.dataOffset + (index * 4));
     }
-
-    return undefined;
   }
 
     /**
@@ -114,15 +102,12 @@ export default class DataSet {
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} float or undefined if the attribute is not present or has data of length 0
      */
-  float (tag, index) {
-    var element = this.elements[tag];
+  float (tag, index = 0) {
+    const element = this.elements[tag];
 
-    index = (index !== undefined) ? index : 0;
     if (element && element.length !== 0) {
       return getByteArrayParser(element, this.byteArrayParser).readFloat(this.byteArray, element.dataOffset + (index * 4));
     }
-
-    return undefined;
   }
 
     /**
@@ -131,15 +116,12 @@ export default class DataSet {
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
      * @returns {*} float or undefined if the attribute is not present or doesn't has data of length 0
      */
-  double (tag, index) {
-    var element = this.elements[tag];
+  double (tag, index = 0) {
+    const element = this.elements[tag];
 
-    index = (index !== undefined) ? index : 0;
     if (element && element.length !== 0) {
       return getByteArrayParser(element, this.byteArrayParser).readDouble(this.byteArray, element.dataOffset + (index * 8));
     }
-
-    return undefined;
   }
 
     /**
@@ -148,11 +130,11 @@ export default class DataSet {
      * @returns {*} the number of string values or undefined if the attribute is not present or has zero length data
      */
   numStringValues (tag) {
-    var element = this.elements[tag];
+    const element = this.elements[tag];
 
     if (element && element.length > 0) {
-      var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
-      var numMatching = fixedString.match(/\\/g);
+      const fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
+      const numMatching = fixedString.match(/\\/g);
 
       if (numMatching === null) {
         return 1;
@@ -160,8 +142,6 @@ export default class DataSet {
 
       return numMatching.length + 1;
     }
-
-    return undefined;
   }
 
     /**
@@ -176,22 +156,21 @@ export default class DataSet {
      * @returns {*}
      */
   string (tag, index) {
-    var element = this.elements[tag];
+    const element = this.elements[tag];
 
     if (element && element.length > 0) {
-      var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
+      const fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
 
       if (index >= 0) {
-        var values = fixedString.split('\\');
-                // trim trailing spaces
+        const values = fixedString.split('\\');
+        // trim trailing spaces
 
         return values[index].trim();
       }
-                // trim trailing spaces
+
+      // trim trailing spaces
       return fixedString.trim();
     }
-
-    return undefined;
   }
 
     /**
@@ -204,13 +183,13 @@ export default class DataSet {
      * @returns {*}
      */
   text (tag, index) {
-    var element = this.elements[tag];
+    const element = this.elements[tag];
 
     if (element && element.length > 0) {
-      var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
+      const fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
 
       if (index >= 0) {
-        var values = fixedString.split('\\');
+        const values = fixedString.split('\\');
 
 
         return values[index].replace(/ +$/, '');
@@ -218,8 +197,6 @@ export default class DataSet {
 
       return fixedString.replace(/ +$/, '');
     }
-
-    return undefined;
   }
 
     /**
@@ -229,19 +206,16 @@ export default class DataSet {
      * @param index the index of the desired value in a multi valued string or undefined for the first value
      * @returns {*} a floating point number or undefined if not present or data not long enough
      */
-  floatString (tag, index) {
-    var element = this.elements[tag];
+  floatString (tag, index = 0) {
+    const element = this.elements[tag];
 
     if (element && element.length > 0) {
-      index = (index !== undefined) ? index : 0;
-      var value = this.string(tag, index);
+      const value = this.string(tag, index);
 
       if (value !== undefined) {
         return parseFloat(value);
       }
     }
-
-    return undefined;
   }
 
     /**
@@ -251,24 +225,21 @@ export default class DataSet {
      * @param index the index of the desired value in a multi valued string or undefined for the first value
      * @returns {*} an integer or undefined if not present or data not long enough
      */
-  intString (tag, index) {
-    var element = this.elements[tag];
+  intString (tag, index = 0) {
+    const element = this.elements[tag];
 
     if (element && element.length > 0) {
-      index = (index !== undefined) ? index : 0;
-      var value = this.string(tag, index);
+      const value = this.string(tag, index);
 
       if (value !== undefined) {
-        return parseInt(value);
+        return parseInt(value, 10);
       }
     }
-
-    return undefined;
   }
 
     /**
      * Parses an element tag according to the 'AT' VR definition (VR=AT).
-     * @param {String} A DICOM tag with in the format xGGGGEEEE.
+     * @param {String} tag A DICOM tag with in the format xGGGGEEEE.
      * @returns {String} A string representation of a data element tag or undefined if the field is not present or data is not long enough.
      */
   attributeTag (tag) {
@@ -281,7 +252,5 @@ export default class DataSet {
 
       return `x${(`00000000${(parser(bytes, offset) * 256 * 256 + parser(bytes, offset + 2)).toString(16)}`).substr(-8)}`;
     }
-
-    return undefined;
   }
 }

@@ -31,7 +31,7 @@ const isSequence = (element, byteStream, vrCallback) => {
 
 export default function readDicomElementImplicit (byteStream, untilTag, vrCallback) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'');
   }
 
   const element = {

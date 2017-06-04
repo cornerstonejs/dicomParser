@@ -24,20 +24,20 @@ import { readFixedString } from './byteArrayParser';
 export default class ByteStream {
   constructor (byteArrayParser, byteArray, position) {
     if (byteArrayParser === undefined) {
-      throw 'dicomParser.ByteStream: missing required parameter \'byteArrayParser\'';
+      throw new Error('dicomParser.ByteStream: missing required parameter \'byteArrayParser\'');
     }
     if (byteArray === undefined) {
-      throw 'dicomParser.ByteStream: missing required parameter \'byteArray\'';
+      throw new Error('dicomParser.ByteStream: missing required parameter \'byteArray\'');
     }
     if ((byteArray instanceof Uint8Array) === false &&
           (byteArray instanceof Buffer) === false) {
-      throw 'dicomParser.ByteStream: parameter byteArray is not of type Uint8Array or Buffer';
+      throw new Error('dicomParser.ByteStream: parameter byteArray is not of type Uint8Array or Buffer');
     }
     if (position < 0) {
-      throw 'dicomParser.ByteStream: parameter \'position\' cannot be less than 0';
+      throw new Error('dicomParser.ByteStream: parameter \'position\' cannot be less than 0');
     }
     if (position >= byteArray.length) {
-      throw 'dicomParser.ByteStream: parameter \'position\' cannot be greater than or equal to \'byteArray\' length';
+      throw new Error('dicomParser.ByteStream: parameter \'position\' cannot be greater than or equal to \'byteArray\' length');
     }
     this.byteArrayParser = byteArrayParser;
     this.byteArray = byteArray;
@@ -53,7 +53,7 @@ export default class ByteStream {
      */
   seek (offset) {
     if (this.position + offset < 0) {
-      throw 'dicomParser.ByteStream.prototype.seek: cannot seek to position < 0';
+      throw new Error('dicomParser.ByteStream.prototype.seek: cannot seek to position < 0');
     }
     this.position += offset;
   }
@@ -66,9 +66,9 @@ export default class ByteStream {
      */
   readByteStream (numBytes) {
     if (this.position + numBytes > this.byteArray.length) {
-      throw 'dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread';
+      throw new Error('dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread');
     }
-    var byteArrayView = sharedCopy(this.byteArray, this.position, numBytes);
+    const byteArrayView = sharedCopy(this.byteArray, this.position, numBytes);
 
     this.position += numBytes;
 
@@ -84,7 +84,7 @@ export default class ByteStream {
      * @throws error if buffer overread would occur
      */
   readUint16 () {
-    var result = this.byteArrayParser.readUint16(this.byteArray, this.position);
+    const result = this.byteArrayParser.readUint16(this.byteArray, this.position);
 
     this.position += 2;
 
@@ -99,7 +99,7 @@ export default class ByteStream {
      * @throws error if buffer overread would occur
      */
   readUint32 () {
-    var result = this.byteArrayParser.readUint32(this.byteArray, this.position);
+    const result = this.byteArrayParser.readUint32(this.byteArray, this.position);
 
     this.position += 4;
 
@@ -115,7 +115,7 @@ export default class ByteStream {
      * @throws error if buffer overread would occur
      */
   readFixedString (length) {
-    var result = readFixedString(this.byteArray, this.position, length);
+    const result = readFixedString(this.byteArray, this.position, length);
 
     this.position += length;
 

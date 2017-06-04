@@ -22,12 +22,12 @@ import * as parseDicomDataSet from './parseDicomDataSet';
 
 export default function parseDicom (byteArray, options) {
   if (byteArray === undefined) {
-    throw 'dicomParser.parseDicom: missing required parameter \'byteArray\'';
+    throw new Error('dicomParser.parseDicom: missing required parameter \'byteArray\'');
   }
 
   function readTransferSyntax (metaHeaderDataSet) {
     if (metaHeaderDataSet.elements.x00020010 === undefined) {
-      throw 'dicomParser.parseDicom: missing required meta header attribute 0002,0010';
+      throw new Error('dicomParser.parseDicom: missing required meta header attribute 0002,0010');
     }
 
     const transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
@@ -47,15 +47,15 @@ export default function parseDicom (byteArray, options) {
 
   function getDataSetByteStream (transferSyntax, position) {
     if (transferSyntax === '1.2.840.10008.1.2.1.99') {
-      // if an infalter callback is registered, use it
+      // if an inflater callback is registered, use it
       if (options && options.inflater) {
         const fullByteArrayCallback = options.inflater(byteArray, position);
 
         return new ByteStream(littleEndianByteArrayParser, fullByteArrayCallback, 0);
-      }
-      // if running on node, use the zlib library to inflate
-      // http://stackoverflow.com/questions/4224606/how-to-check-whether-a-script-is-running-under-node-js
-      else if (typeof module !== 'undefined' && this.module !== module) {
+      } else if (typeof module !== 'undefined' && this.module !== module) {
+        // if running on node, use the zlib library to inflate
+        // http://stackoverflow.com/questions/4224606/how-to-check-whether-a-script-is-running-under-node-js
+
         // inflate it
         const zlib = require('zlib');
         const deflatedBuffer = sharedCopy(byteArray, position, byteArray.length - position);
@@ -68,10 +68,10 @@ export default function parseDicom (byteArray, options) {
         inflatedBuffer.copy(fullByteArrayBuffer, position);
 
         return new ByteStream(littleEndianByteArrayParser, fullByteArrayBuffer, 0);
-      }
-      // if pako is defined - use it.  This is the web browser path
-      // https://github.com/nodeca/pako
-      else if (typeof pako !== 'undefined') {
+      } else if (typeof pako !== 'undefined') {
+        // if pako is defined - use it.  This is the web browser path
+        // https://github.com/nodeca/pako
+
         // inflate it
         const deflated = byteArray.slice(position);
         const inflated = pako.inflateRaw(deflated);
@@ -86,7 +86,7 @@ export default function parseDicom (byteArray, options) {
       }
 
       // throw exception since no inflater is available
-      throw 'dicomParser.parseDicom: no inflater available to handle deflate transfer syntax';
+      throw new Error('dicomParser.parseDicom: no inflater available to handle deflate transfer syntax');
     }
 
     // explicit big endian
@@ -135,7 +135,7 @@ export default function parseDicom (byteArray, options) {
         dataSet
       };
 
-      throw ex;
+      throw new Error(ex);
     }
 
     return dataSet;

@@ -10,7 +10,7 @@
  */
 export default function readTag (byteStream) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readTag: missing required parameter \'byteStream\'';
+    throw new Error('dicomParser.readTag: missing required parameter \'byteStream\'');
   }
 
   const groupNumber = byteStream.readUint16() * 256 * 256;

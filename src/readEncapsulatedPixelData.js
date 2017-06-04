@@ -29,31 +29,31 @@ export default function readEncapsulatedPixelData (dataSet, pixelDataElement, fr
   }
 
   if (dataSet === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: missing required parameter \'dataSet\'';
+    throw new Error('dicomParser.readEncapsulatedPixelData: missing required parameter \'dataSet\'');
   }
   if (pixelDataElement === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: missing required parameter \'element\'';
+    throw new Error('dicomParser.readEncapsulatedPixelData: missing required parameter \'element\'');
   }
   if (frame === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: missing required parameter \'frame\'';
+    throw new Error('dicomParser.readEncapsulatedPixelData: missing required parameter \'frame\'');
   }
   if (pixelDataElement.tag !== 'x7fe00010') {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to non pixel data tag (expected tag = x7fe00010)';
+    throw new Error('dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to non pixel data tag (expected tag = x7fe00010)');
   }
   if (pixelDataElement.encapsulatedPixelData !== true) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.hadUndefinedLength !== true) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.basicOffsetTable === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (pixelDataElement.fragments === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
+    throw new Error('dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data');
   }
   if (frame < 0) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'frame\' must be >= 0';
+    throw new Error('dicomParser.readEncapsulatedPixelData: parameter \'frame\' must be >= 0');
   }
 
   // If the basic offset table is not empty, we can extract the frame
