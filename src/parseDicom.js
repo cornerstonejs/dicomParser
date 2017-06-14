@@ -1,12 +1,12 @@
-import alloc from './alloc';
-import bigEndianByteArrayParser from './bigEndianByteArrayParser';
-import ByteStream from './byteStream';
-import DataSet from './dataSet';
-import littleEndianByteArrayParser from './littleEndianByteArrayParser';
-import readPart10Header from './readPart10Header';
-import sharedCopy from './sharedCopy';
-import * as byteArrayParser from './byteArrayParser';
-import * as parseDicomDataSet from './parseDicomDataSet';
+import alloc from './alloc.js';
+import bigEndianByteArrayParser from './bigEndianByteArrayParser.js';
+import ByteStream from './byteStream.js';
+import DataSet from './dataSet.js';
+import littleEndianByteArrayParser from './littleEndianByteArrayParser.js';
+import readPart10Header from './readPart10Header.js';
+import sharedCopy from './sharedCopy.js';
+import * as byteArrayParser from './byteArrayParser.js';
+import * as parseDicomDataSet from './parseDicomDataSet.js';
 
 /**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.
