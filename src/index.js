@@ -1,4 +1,4 @@
-export * from './util.js';
+export * from './util/index.js';
 export * from './parseDicomDataSet.js';
 export * from './byteArrayParser.js';
 

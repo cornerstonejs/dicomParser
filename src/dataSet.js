@@ -1,4 +1,4 @@
-import { readFixedString } from './byteArrayParser';
+import { readFixedString } from './byteArrayParser.js';
 
 /**
  *

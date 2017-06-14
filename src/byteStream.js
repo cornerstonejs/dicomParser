@@ -1,5 +1,5 @@
-import sharedCopy from './sharedCopy';
-import { readFixedString } from './byteArrayParser';
+import sharedCopy from './sharedCopy.js';
+import { readFixedString } from './byteArrayParser.js';
 
 /**
  *
