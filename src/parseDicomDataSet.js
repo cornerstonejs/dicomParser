@@ -1,5 +1,5 @@
-import readDicomElementExplicit from './readDicomElementExplicit';
-import readDicomElementImplicit from './readDicomElementImplicit';
+import readDicomElementExplicit from './readDicomElementExplicit.js';
+import readDicomElementImplicit from './readDicomElementImplicit.js';
 
 /**
  * Internal helper functions for parsing implicit and explicit DICOM data sets

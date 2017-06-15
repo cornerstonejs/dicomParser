@@ -1,8 +1,8 @@
-import DataSet from './dataSet';
-import readDicomElementImplicit from './readDicomElementImplicit';
-import readSequenceItem from './readSequenceItem';
-import readTag from './readTag';
-import * as parseDicomDataSet from './parseDicomDataSet';
+import DataSet from './dataSet.js';
+import readDicomElementImplicit from './readDicomElementImplicit.js';
+import readSequenceItem from './readSequenceItem.js';
+import readTag from './readTag.js';
+import * as parseDicomDataSet from './parseDicomDataSet.js';
 
 /**
  * Internal helper functions for parsing DICOM elements

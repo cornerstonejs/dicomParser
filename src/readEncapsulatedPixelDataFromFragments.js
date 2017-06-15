@@ -1,7 +1,7 @@
-import alloc from './alloc';
-import ByteStream from './byteStream';
-import readSequenceItem from './readSequenceItem';
-import sharedCopy from './sharedCopy';
+import alloc from './alloc.js';
+import ByteStream from './byteStream.js';
+import readSequenceItem from './readSequenceItem.js';
+import sharedCopy from './sharedCopy.js';
 
 /**
  * Functionality for extracting encapsulated pixel data

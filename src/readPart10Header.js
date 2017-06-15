@@ -1,7 +1,7 @@
-import ByteStream from './byteStream';
-import DataSet from './dataSet';
-import littleEndianByteArrayParser from './littleEndianByteArrayParser';
-import readDicomElementExplicit from './readDicomElementExplicit';
+import ByteStream from './byteStream.js';
+import DataSet from './dataSet.js';
+import littleEndianByteArrayParser from './littleEndianByteArrayParser.js';
+import readDicomElementExplicit from './readDicomElementExplicit.js';
 
 /**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options

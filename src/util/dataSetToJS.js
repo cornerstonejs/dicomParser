@@ -1,5 +1,5 @@
-import explicitElementToString from './elementToString';
-import * as util from './util';
+import explicitElementToString from './elementToString.js';
+import * as util from './util.js';
 
 /**
  * converts an explicit dataSet to a javascript object

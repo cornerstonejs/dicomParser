@@ -1,8 +1,8 @@
-import findEndOfEncapsulatedElement from './findEndOfEncapsulatedPixelData';
-import findAndSetUNElementLength from './findAndSetUNElementLength';
-import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem';
-import readTag from './readTag';
-import readSequenceItemsExplicit from './readSequenceElementExplicit';
+import findEndOfEncapsulatedElement from './findEndOfEncapsulatedPixelData.js';
+import findAndSetUNElementLength from './findAndSetUNElementLength.js';
+import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem.js';
+import readTag from './readTag.js';
+import readSequenceItemsExplicit from './readSequenceElementExplicit.js';
 
 /**
  * Internal helper functions for for parsing DICOM elements
