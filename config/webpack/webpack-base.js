@@ -13,7 +13,12 @@ module.exports = {
   target: 'web',
   output: {
     filename: '[name].js',
-    library: '[name]',
+    library: {
+      commonjs: "dicom-parser",
+      commonjs2: "dicom-parser",
+      amd: "dicom-parser",
+      root: 'dicomParser'
+    },
     libraryTarget: 'umd',
     path: outputPath,
     umdNamedDefine: true
