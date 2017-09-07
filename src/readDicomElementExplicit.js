@@ -1,6 +1,6 @@
 import findEndOfEncapsulatedElement from './findEndOfEncapsulatedPixelData.js';
 import findAndSetUNElementLength from './findAndSetUNElementLength.js';
-import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem.js';
+import readSequenceItemsImplicit from './readSequenceItemsImplicit.js';
 import readTag from './readTag.js';
 import readSequenceItemsExplicit from './readSequenceElementExplicit.js';
 
@@ -65,7 +65,7 @@ export default function readDicomElementExplicit (byteStream, warnings, untilTag
 
       return element;
     } else if (element.vr === 'UN') {
-      findAndSetUNElementLength(byteStream, element);
+      readSequenceItemsImplicit(byteStream, element);
 
       return element;
     }
