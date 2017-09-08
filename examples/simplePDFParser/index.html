@@ -1,0 +1,213 @@
+<!DOCTYPE>
+<html>
+  <head>
+    <title>PDF Dicom Parser</title>
+    <style>
+      h1 {
+        text-align: center;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .container .drop-zone-wrapper {
+        order: 1;
+        flex-grow: 0;
+      }
+
+      .container .drop-zone-wrapper .drop-zone {
+        height: 70px;
+        background-color: #e3e3e3;
+        padding: 5px;
+        margin-top: 10px;
+      }
+
+      .container .drop-zone-wrapper .drop-zone .waiting-text {
+        display: none;
+      }
+
+      .container .drop-zone-wrapper .drop-zone.waiting .waiting-text {
+        text-align: center;
+        margin-top: 25px;
+        display: block;
+      }
+
+      .container .drop-zone-wrapper .drop-zone .loading-text {
+        display: none;
+      }
+
+      .container .drop-zone-wrapper .drop-zone.loading .loading-text {
+        text-align: center;
+        margin-top: 25px;
+        display: block;
+      }
+
+      .container .drop-zone-wrapper .drop-zone .file-info {
+        display: none;
+      }
+
+      .container .drop-zone-wrapper .drop-zone.info .file-info {
+        display: block;
+      }
+
+      .container .pdf-wrapper {
+        width: 100%;
+        order: 2;
+        flex-grow: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Example of Displaying a DICOM with PDF</h1>
+    <div class="container">
+      <div class="drop-zone-wrapper">
+        Drop your file in the gray area below:
+
+        <div id="dropZone" class="drop-zone waiting">
+          <div class="waiting-text">Waiting for your file...</div>
+          <div class="loading-text"></div>
+          <div id="file-info"></div>
+        </div>
+      </div>
+      <div id="pdfZone" class="pdf-wrapper"></div>
+    </div>
+
+    <script src="../../dist/dicomParser.js"></script>
+    <script type="text/javascript">
+      (function (dP) {
+        var SOPUID_TAG = 'x00080016';
+        var ENCAPSULATED_PDF = '1.2.840.10008.5.1.4.1.1.104.1';
+        var $dropZone = document.getElementById('dropZone');
+        var $dropZoneFileInfo = document.getElementById('file-info');
+        var $dropZoneLoading = document.getElementsByClassName('loading-text')[0];
+        var $pdfZone = document.getElementById('pdfZone');
+        var reader;
+
+        function dumpFile(file, fileName){
+          if (file === undefined) {
+              return;
+          }
+
+          $dropZone.classList.remove('waiting');
+          $dropZone.classList.remove('info');
+          $dropZone.classList.add('loading');
+
+          $dropZoneLoading.innerHTML = 'Status: Loading file, please wait...';
+
+          reader = new FileReader();
+
+          reader.onload = function (file) {
+            onLoadHandler(file, fileName);
+          };
+
+          reader.readAsArrayBuffer(file);
+        }
+
+        function onLoadHandler(file, fileName) {
+          var arrayBuffer = reader.result;
+
+          // Here we have the file data as an ArrayBuffer.  dicomParser requires as input a
+          // Uint8Array so we create that here
+          var byteArray = new Uint8Array(arrayBuffer);
+          var kb = byteArray.length / 1024;
+          var mb = kb / 1024;
+          var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
+
+          $dropZoneLoading.innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
+
+          // set a short timeout to do the parse so the DOM has time to update itself with the above message
+          setTimeout(function() {
+            try {
+              var output = [];
+              var start = new Date().getTime();
+              var options = {
+                untilTag: ''
+              };
+
+              var dataSet = dicomParser.parseDicom(byteArray, options);
+
+              renderPDF(dataSet);
+
+              var end = new Date().getTime();
+              var time = end - start;
+              var statusText = 'Status:<br>';
+
+              if (dataSet.warnings.length > 0) {
+                  statusText += 'Warnings encountered while parsing file <ul>';
+
+                  dataSet.warnings.forEach(function(warning) {
+                      statusText += '<li>' + warning +'</li>';
+                  });
+
+                  $dropZoneFileInfo.innerHTML = statusText + '</ul>';
+              }
+
+              statusText += 'File name: ' + fileName + '<br>';
+              statusText += 'Size: ' + byteStr + '<br>';
+              statusText += 'Parse time: ' + time + 'ms<br>';
+
+              $dropZone.classList.remove('loading');
+              $dropZone.classList.add('info');
+
+              $dropZoneFileInfo.innerHTML = statusText;
+
+            } catch(err) {
+              var message = err;
+
+              if (err.exception) {
+                  message = err.exception;
+              }
+
+              $dropZoneFileInfo.innerHTML = 'Status: Error - ' + message + ' (file of size ' + byteStr + ' )';
+
+              if (err.output) {
+                $dropZoneFileInfo.innerHTML = '<ul>' + output.join('') + '</ul>';
+              } else if (err.dataSet) {
+                $dropZoneFileInfo.innerHTML = '<ul>' + output.join('') + '</ul>';
+              }
+            }
+          },500);
+        }
+
+        function renderPDF(dataSet) {
+          var SOPUID = dataSet.string(SOPUID_TAG);
+
+          if (SOPUID === ENCAPSULATED_PDF) {
+            var fileTag = dataSet.elements.x00420011;
+            var pdfByteArray = dataSet.byteArray.slice(fileTag.dataOffset, fileTag.dataOffset+fileTag.length);
+            var PDF = new Blob([pdfByteArray], {type: 'application/pdf'});
+            var fileURL = URL.createObjectURL(PDF);
+        
+            $pdfZone.innerHTML = '<object data="' + fileURL +'" type="application/pdf" width="100%" height="80%"></object>'
+          } else {
+            throw new Error('This is not a DICOM with a PDF');
+          }
+        }
+
+        // this function gets called once the user drops the file onto the div
+        function handleFileSelect(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            
+            var file = evt.dataTransfer.files[0];
+
+            dumpFile(file, file.name);
+        }
+
+        function handleDragOver(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+        }
+
+        // Setup the dnd listeners.
+        $dropZone.addEventListener('dragover', handleDragOver, false);
+        $dropZone.addEventListener('drop', handleFileSelect, false);
+      })(dicomParser);
+
+    </script>
+  </body>
+</html>
