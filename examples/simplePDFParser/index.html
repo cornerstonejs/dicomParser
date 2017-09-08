@@ -1,89 +1,39 @@
 <!DOCTYPE>
 <html>
   <head>
-    <title>PDF Dicom Parser</title>
+    <title>DICOM Encapsulated PDF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
     <style>
-      h1 {
-        text-align: center;
-      }
-
-      .container {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-
-      .container .drop-zone-wrapper {
-        order: 1;
-        flex-grow: 0;
-      }
-
-      .container .drop-zone-wrapper .drop-zone {
-        height: 70px;
-        background-color: #e3e3e3;
-        padding: 5px;
-        margin-top: 10px;
-      }
-
-      .container .drop-zone-wrapper .drop-zone .waiting-text {
-        display: none;
-      }
-
-      .container .drop-zone-wrapper .drop-zone.waiting .waiting-text {
-        text-align: center;
-        margin-top: 25px;
-        display: block;
-      }
-
-      .container .drop-zone-wrapper .drop-zone .loading-text {
-        display: none;
-      }
-
-      .container .drop-zone-wrapper .drop-zone.loading .loading-text {
-        text-align: center;
-        margin-top: 25px;
-        display: block;
-      }
-
-      .container .drop-zone-wrapper .drop-zone .file-info {
-        display: none;
-      }
-
-      .container .drop-zone-wrapper .drop-zone.info .file-info {
-        display: block;
-      }
-
-      .container .pdf-wrapper {
-        width: 100%;
-        order: 2;
-        flex-grow: 1;
+      .pdf-zone {
+        background-color: #e2e2e2;
+        height: 600px;
+        border-radius: 5px;
       }
     </style>
   </head>
   <body>
-    <h1>Example of Displaying a DICOM with PDF</h1>
-    <div class="container">
-      <div class="drop-zone-wrapper">
-        Drop your file in the gray area below:
 
-        <div id="dropZone" class="drop-zone waiting">
-          <div class="waiting-text">Waiting for your file...</div>
-          <div class="loading-text"></div>
-          <div id="file-info"></div>
-        </div>
+    <div class="container">
+      <div class="row page-header">
+        <h1>Example of Displaying a DICOM Encapsulated PDF</h1>
+        <p class="lead">Drag and drop a DICOM Encapsulated PDF file into the light blue region below for a dump of its elements. To render another file, drag and drop it at the same place you did before.</p>
+        <p>This example illustrate how we should parse and render PDF files encapsulated inside a DICOM in the HTML document. We are showing it inside a div but you can also open it in another tab if you want to.</p>
       </div>
-      <div id="pdfZone" class="pdf-wrapper"></div>
+
+      <div class="row alert alert-info drop-zone" role="alert">
+          Waiting for your file...
+      </div>
+
+      <div class="row pdf-zone"></div>
     </div>
 
     <script src="../../dist/dicomParser.js"></script>
     <script type="text/javascript">
       (function (dP) {
-        var SOPUID_TAG = 'x00080016';
         var ENCAPSULATED_PDF = '1.2.840.10008.5.1.4.1.1.104.1';
-        var $dropZone = document.getElementById('dropZone');
-        var $dropZoneFileInfo = document.getElementById('file-info');
-        var $dropZoneLoading = document.getElementsByClassName('loading-text')[0];
-        var $pdfZone = document.getElementById('pdfZone');
+        var $dropZone = document.getElementsByClassName('drop-zone')[0];
+        var $pdfZone = document.getElementsByClassName('pdf-zone')[0];
         var reader;
 
         function dumpFile(file, fileName){
@@ -91,11 +41,11 @@
               return;
           }
 
-          $dropZone.classList.remove('waiting');
-          $dropZone.classList.remove('info');
-          $dropZone.classList.add('loading');
+          $dropZone.classList.remove('alert-success');
+          $dropZone.classList.remove('alert-danger');
+          $dropZone.classList.add('alert-info');
 
-          $dropZoneLoading.innerHTML = 'Status: Loading file, please wait...';
+          $dropZone.innerHTML = 'Status: Loading file, please wait...';
 
           reader = new FileReader();
 
@@ -116,7 +66,7 @@
           var mb = kb / 1024;
           var byteStr = mb > 1 ? mb.toFixed(3) + " MB" : kb.toFixed(0) + " KB";
 
-          $dropZoneLoading.innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
+          $dropZone.innerHTML = 'Status: Parsing ' + byteStr + ' bytes, please wait..';
 
           // set a short timeout to do the parse so the DOM has time to update itself with the above message
           setTimeout(function() {
@@ -149,31 +99,39 @@
               statusText += 'Size: ' + byteStr + '<br>';
               statusText += 'Parse time: ' + time + 'ms<br>';
 
-              $dropZone.classList.remove('loading');
-              $dropZone.classList.add('info');
+              $dropZone.classList.remove('alert-info');
+              $dropZone.classList.add('alert-success');
 
-              $dropZoneFileInfo.innerHTML = statusText;
+              $dropZone.innerHTML = statusText;
 
-            } catch(err) {
-              var message = err;
+            } catch(error) {
+              var message;
 
-              if (err.exception) {
-                  message = err.exception;
+              if (error.exception) {
+                  message = error.exception;
+              } else {
+                message = error.message;
               }
 
-              $dropZoneFileInfo.innerHTML = 'Status: Error - ' + message + ' (file of size ' + byteStr + ' )';
+              $dropZone.classList.remove('alert-info');
+              $dropZone.classList.remove('alert-success');
+              $dropZone.classList.remove('alert-danger');
+
+              message += '\nStatus: Error - ' + message + ' (file of size ' + byteStr + ' )\n';
 
               if (err.output) {
-                $dropZoneFileInfo.innerHTML = '<ul>' + output.join('') + '</ul>';
+                message += '<ul>' + output.join('') + '</ul>';
               } else if (err.dataSet) {
-                $dropZoneFileInfo.innerHTML = '<ul>' + output.join('') + '</ul>';
+                message += '<ul>' + output.join('') + '</ul>';
               }
+
+              $dropZone.innerHTML = message;
             }
           },500);
         }
 
         function renderPDF(dataSet) {
-          var SOPUID = dataSet.string(SOPUID_TAG);
+          var SOPUID = dataSet.string('x00080016');
 
           if (SOPUID === ENCAPSULATED_PDF) {
             var fileTag = dataSet.elements.x00420011;
@@ -181,9 +139,9 @@
             var PDF = new Blob([pdfByteArray], {type: 'application/pdf'});
             var fileURL = URL.createObjectURL(PDF);
         
-            $pdfZone.innerHTML = '<object data="' + fileURL +'" type="application/pdf" width="100%" height="80%"></object>'
+            $pdfZone.innerHTML = '<object data="' + fileURL +'" type="application/pdf" width="100%" height="100%"></object>'
           } else {
-            throw new Error('This is not a DICOM with a PDF');
+            throw new Error('This is not a DICOm with a PDF');
           }
         }
 
