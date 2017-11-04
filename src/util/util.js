@@ -73,7 +73,7 @@ const parsePN = (personName) => {
 };
 
 export {
-    isStringVr,
-    isPrivateTag,
-    parsePN
+  isStringVr,
+  isPrivateTag,
+  parsePN
 };

@@ -45,7 +45,7 @@ export default class ByteStream {
     this.warnings = []; // array of string warnings encountered while parsing
   }
 
-    /**
+  /**
      * Safely seeks through the byte stream.  Will throw an exception if an attempt
      * is made to seek outside of the byte array.
      * @param offset the number of bytes to add to the position
@@ -58,7 +58,7 @@ export default class ByteStream {
     this.position += offset;
   }
 
-    /**
+  /**
      * Returns a new ByteStream object from the current position and of the requested number of bytes
      * @param numBytes the length of the byte array for the ByteStream to contain
      * @returns {dicomParser.ByteStream}
@@ -75,7 +75,7 @@ export default class ByteStream {
     return new ByteStream(this.byteArrayParser, byteArrayView);
   }
 
-    /**
+  /**
      *
      * Parses an unsigned int 16 from a byte array and advances
      * the position by 2 bytes
@@ -91,7 +91,7 @@ export default class ByteStream {
     return result;
   }
 
-    /**
+  /**
      * Parses an unsigned int 32 from a byte array and advances
      * the position by 2 bytes
      *
@@ -106,7 +106,7 @@ export default class ByteStream {
     return result;
   }
 
-    /**
+  /**
      * Reads a string of 8-bit characters from an array of bytes and advances
      * the position by length bytes.  A null terminator will end the string
      * but will not effect advancement of the position.

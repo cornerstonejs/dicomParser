@@ -33,14 +33,13 @@ function getByteArrayParser (element, defaultParser) {
  * @constructor
  */
 export default class DataSet {
-
   constructor (byteArrayParser, byteArray, elements) {
     this.byteArrayParser = byteArrayParser;
     this.byteArray = byteArray;
     this.elements = elements;
   }
 
-    /**
+  /**
      * Finds the element for tag and returns an unsigned int 16 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -57,7 +56,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Finds the element for tag and returns an signed int 16 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -74,7 +73,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Finds the element for tag and returns an unsigned int 32 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -91,7 +90,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Finds the element for tag and returns an signed int 32 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -108,7 +107,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Finds the element for tag and returns a 32 bit floating point number (VR=FL) if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -125,7 +124,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Finds the element for tag and returns a 64 bit floating point number (VR=FD) if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -142,7 +141,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Returns the number of string values for the element
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @returns {*} the number of string values or undefined if the attribute is not present or has zero length data
@@ -164,7 +163,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Returns a string for the element.  If index is provided, the element is assumed to be
      * multi-valued and will return the component specified by index.  Undefined is returned
      * if there is no component with the specified index, the element does not exist or is zero length.
@@ -183,18 +182,18 @@ export default class DataSet {
 
       if (index >= 0) {
         var values = fixedString.split('\\');
-                // trim trailing spaces
+        // trim trailing spaces
 
         return values[index].trim();
       }
-                // trim trailing spaces
+      // trim trailing spaces
       return fixedString.trim();
     }
 
     return undefined;
   }
 
-    /**
+  /**
      * Returns a string with the leading spaces preserved and trailing spaces removed.
      *
      * Use this function to access data for VRs of type UT, ST and LT
@@ -222,7 +221,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Parses a string to a float for the specified index in a multi-valued element.  If index is not specified,
      * the first value in a multi-valued VR will be parsed if present.
      * @param tag The DICOM tag in the format xGGGGEEEE
@@ -244,7 +243,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Parses a string to an integer for the specified index in a multi-valued element.  If index is not specified,
      * the first value in a multi-valued VR will be parsed if present.
      * @param tag The DICOM tag in the format xGGGGEEEE
@@ -266,7 +265,7 @@ export default class DataSet {
     return undefined;
   }
 
-    /**
+  /**
      * Parses an element tag according to the 'AT' VR definition (VR=AT).
      * @param {String} A DICOM tag with in the format xGGGGEEEE.
      * @returns {String} A string representation of a data element tag or undefined if the field is not present or data is not long enough.
