@@ -43,7 +43,7 @@ const isStringVr = (vr) => stringVrs[vr];
  * @returns {boolean}
  */
 const isPrivateTag = (tag) => {
-  const lastGroupDigit = parseInt(tag[4]);
+  const lastGroupDigit = parseInt(tag[4], 10);
   const groupIsOdd = (lastGroupDigit % 2) === 1;
 
 

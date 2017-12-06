@@ -1,4 +1,4 @@
-/*! dicom-parser - 1.7.6 - 2017-11-04 | (c) 2017 Chris Hafey | https://github.com/chafey/dicomParser */
+/*! dicom-parser - 1.7.6 - 2017-12-06 | (c) 2017 Chris Hafey | https://github.com/cornerstonejs/dicomParser */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -3456,7 +3456,7 @@ var isStringVr = function isStringVr(vr) {
  * @returns {boolean}
  */
 var isPrivateTag = function isPrivateTag(tag) {
-  var lastGroupDigit = parseInt(tag[4]);
+  var lastGroupDigit = parseInt(tag[4], 10);
   var groupIsOdd = lastGroupDigit % 2 === 1;
 
   return groupIsOdd;

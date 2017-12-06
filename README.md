@@ -12,8 +12,8 @@ Live Examples
 
 The best way to see the power of this library is to actually see it in use.  A number of live examples are
 included that are not only useful but also show how to use dicomParser.
-[Click here for a list of all live examples](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
-Make sure you try out the [DICOM Dump with Data Dictionary](https://rawgit.com/chafey/dicomParser/master/examples/dumpWithDataDictionary/index.html)
+[Click here for a list of all live examples](https://rawgithub.com/cornerstonejs/dicomParser/master/examples/index.html)
+Make sure you try out the [DICOM Dump with Data Dictionary](https://rawgit.com/cornerstonejs/dicomParser/master/examples/dumpWithDataDictionary/index.html)
 which is a very useful tool and excellent example of most features.
 
 Community
@@ -27,8 +27,8 @@ Install
 
 Get a packaged source file:
 
-* [dicomParser.js](https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.js)
-* [dicomParser.min.js](https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.min.js)
+* [dicomParser.js](https://raw.githubusercontent.com/cornerstonejs/dicomParser/master/dist/dicomParser.js)
+* [dicomParser.min.js](https://raw.githubusercontent.com/cornerstonejs/dicomParser/master/dist/dicomParser.min.js)
 
 Or install via [NPM](https://www.npmjs.com/):
 
@@ -70,16 +70,16 @@ catch(ex)
 }
 ```
 
-[See the live examples for more in depth usage of the library](https://rawgithub.com/chafey/dicomParser/master/examples/index.html)
+[See the live examples for more in depth usage of the library](https://rawgithub.com/cornerstonejs/dicomParser/master/examples/index.html)
 
 Note that actually displaying DICOM images is quite complex due to the variety of pixel formats and compression
 algorithms that DICOM supports.  If you are interested in displaying images, please take a look at the
-[cornerstone library](https://github.com/chafey/cornerstone) and the
-[cornerstoneWADOImageLoader](https://github.com/chafey/cornerstoneWADOImageLoader) which uses this
+[cornerstone library](https://github.com/cornerstonejs/cornerstone) and the
+[cornerstoneWADOImageLoader](https://github.com/cornerstonejs/cornerstoneWADOImageLoader) which uses this
 library to extract the pixel data from DICOM files and display the images with
-[cornerstone library](https://github.com/chafey/cornerstone).
+[cornerstone library](https://github.com/cornerstonejs/cornerstone).
 You can find the actual code that extracts grayscale pixel data using this library
-[here](https://github.com/chafey/cornerstoneWADOImageLoader/blob/master/src/makeGrayscaleImage.js).
+[here](https://github.com/cornerstonejs/cornerstoneWADOImageLoader/blob/master/src/makeGrayscaleImage.js).
 
 Options
 -------
@@ -195,7 +195,7 @@ Contributors
 Why another Javascript DICOM parsing library?
 ============================================
 
-While building the WADO Image Loader for [cornerstone](https://github.com/chafey/cornerstone), I couldn't find a Javascript DICOM parser that exactly met
+While building the WADO Image Loader for [cornerstone](https://github.com/cornerstonejs/cornerstone), I couldn't find a Javascript DICOM parser that exactly met
 my needs.  DICOM really isn't that hard to parse so I figured I would just make my own.  Here are some of the key things that I
 really wanted out of a DICOM library that I am hoping to deliver:
 
@@ -356,8 +356,8 @@ Copyright 2016 Chris Hafey [chafey@gmail.com](mailto:chafey@gmail.com)
 [npm-version-image]: http://img.shields.io/npm/v/dicom-parser.svg?style=flat
 [npm-downloads-image]: http://img.shields.io/npm/dm/dicom-parser.svg?style=flat
 
-[travis-url]: http://travis-ci.org/chafey/dicomParser
-[travis-image]: https://travis-ci.org/chafey/dicomParser.svg?branch=master
+[travis-url]: http://travis-ci.org/cornerstonejs/dicomParser
+[travis-image]: https://travis-ci.org/cornerstonejs/dicomParser.svg?branch=master
 
-[coverage-url]: https://coveralls.io/github/chafey/dicomParser?branch=master
-[coverage-image]: https://coveralls.io/repos/github/chafey/dicomParser/badge.svg?branch=master
+[coverage-url]: https://coveralls.io/github/cornerstonejs/dicomParser?branch=master
+[coverage-image]: https://coveralls.io/repos/github/cornerstonejs/dicomParser/badge.svg?branch=master

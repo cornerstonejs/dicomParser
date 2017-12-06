@@ -9,15 +9,15 @@
     "imaging"
   ],
   "author": "Chris Hafey",
-  "homepage": "https://github.com/chafey/dicomParser",
+  "homepage": "https://github.com/cornerstonejs/dicomParser",
   "license": "MIT",
   "module": "src/index.js",
   "bugs": {
-    "url": "https://github.com/chafey/dicomParser/issues"
+    "url": "https://github.com/cornerstonejs/dicomParser/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/chafey/dicomParser.git"
+    "url": "https://github.com/cornerstonejs/dicomParser.git"
   },
   "scripts": {
     "eslint": "eslint -c .eslintrc.js src",
