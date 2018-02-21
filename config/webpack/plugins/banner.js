@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const rootPath = process.env.PWD;
+const rootPath = process.cwd();
 const pkgPath = path.join(rootPath, "package");
 const pkg = require(pkgPath);
 
