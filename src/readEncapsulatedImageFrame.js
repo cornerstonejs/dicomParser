@@ -1,4 +1,4 @@
-import readEncapsulatedPixelDataFromFragments from './readEncapsulatedPixelDataFromFragments';
+import readEncapsulatedPixelDataFromFragments from './readEncapsulatedPixelDataFromFragments.js';
 
 /**
  * Functionality for extracting encapsulated pixel data

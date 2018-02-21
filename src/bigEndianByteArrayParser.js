@@ -3,7 +3,7 @@
  */
 export default {
 
-    /**
+  /**
      *
      * Parses an unsigned int 16 from a big-endian byte array
      *
@@ -24,7 +24,7 @@ export default {
     return (byteArray[position] << 8) + byteArray[position + 1];
   },
 
-    /**
+  /**
      *
      * Parses a signed int 16 from a big-endian byte array
      *
@@ -42,7 +42,7 @@ export default {
       throw 'bigEndianByteArrayParser.readInt16: attempt to read past end of buffer';
     }
     var int16 = (byteArray[position] << 8) + byteArray[position + 1];
-        // fix sign
+    // fix sign
 
     if (int16 & 0x8000) {
       int16 = int16 - 0xFFFF - 1;
@@ -51,7 +51,7 @@ export default {
     return int16;
   },
 
-    /**
+  /**
      * Parses an unsigned int 32 from a big-endian byte array
      *
      * @param byteArray the byte array to read from
@@ -77,7 +77,7 @@ export default {
     return uint32;
   },
 
-    /**
+  /**
      * Parses a signed int 32 from a big-endian byte array
      *
      * @param byteArray the byte array to read from
@@ -103,7 +103,7 @@ export default {
     return int32;
   },
 
-    /**
+  /**
      * Parses 32-bit float from a big-endian byte array
      *
      * @param byteArray the byte array to read from
@@ -121,7 +121,7 @@ export default {
       throw 'bigEndianByteArrayParser.readFloat: attempt to read past end of buffer';
     }
 
-        // I am sure there is a better way than this but this should be safe
+    // I am sure there is a better way than this but this should be safe
     var byteArrayForParsingFloat = new Uint8Array(4);
 
     byteArrayForParsingFloat[3] = byteArray[position];
@@ -134,7 +134,7 @@ export default {
     return floatArray[0];
   },
 
-    /**
+  /**
      * Parses 64-bit float from a big-endian byte array
      *
      * @param byteArray the byte array to read from
@@ -152,7 +152,7 @@ export default {
       throw 'bigEndianByteArrayParser.readDouble: attempt to read past end of buffer';
     }
 
-        // I am sure there is a better way than this but this should be safe
+    // I am sure there is a better way than this but this should be safe
     var byteArrayForParsingFloat = new Uint8Array(8);
 
     byteArrayForParsingFloat[7] = byteArray[position];

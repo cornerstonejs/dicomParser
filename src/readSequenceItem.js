@@ -1,4 +1,4 @@
-import readTag from './readTag';
+import readTag from './readTag.js';
 
 /**
  * Internal helper functions for parsing DICOM elements

@@ -1,6 +1,6 @@
-import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem';
-import readSequenceItemsImplicit from './readSequenceElementImplicit';
-import readTag from './readTag';
+import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem.js';
+import readSequenceItemsImplicit from './readSequenceElementImplicit.js';
+import readTag from './readTag.js';
 
 /**
  * Internal helper functions for for parsing DICOM elements

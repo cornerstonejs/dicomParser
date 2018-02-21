@@ -79,7 +79,7 @@ export default {
            (byteArray[position + 3] * 256 * 256 * 256));
   },
 
-/**
+  /**
  * Parses a signed int 32 from a little-endian byte array
  *
  * @param byteArray the byte array to read from

@@ -1,7 +1,7 @@
-export * from './util';
+export * from './util.js';
 
-export { default as parseTM } from './parseTM';
-export { default as parseDA } from './parseDA';
-export { default as explicitElementToString } from './elementToString';
-export { default as explicitDataSetToJS } from './dataSetToJS';
-export { default as createJPEGBasicOffsetTable } from './createJPEGBasicOffsetTable';
+export { default as parseTM } from './parseTM.js';
+export { default as parseDA } from './parseDA.js';
+export { default as explicitElementToString } from './elementToString.js';
+export { default as explicitDataSetToJS } from './dataSetToJS.js';
+export { default as createJPEGBasicOffsetTable } from './createJPEGBasicOffsetTable.js';

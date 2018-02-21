@@ -1,4 +1,4 @@
-import * as util from './util';
+import * as util from './util.js';
 
 /**
  * Converts an explicit VR element to a string or undefined if it is not possible to convert.
