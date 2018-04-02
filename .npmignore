@@ -1,4 +1,16 @@
-examples
-meteor
-test
-testImages
+## All Non-Dist Directories
+config/
+coverage/
+documentation/
+examples/
+meteor/
+src/
+test/
+testImages/
+
+## Root Files
+.babelrc
+.eslintignore
+.gitignore
+.jsdocrc
+.travis.yml

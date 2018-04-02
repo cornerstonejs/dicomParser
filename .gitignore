@@ -1,4 +1,10 @@
-node_modules
-bower_components
+## Directorties
+node_modules/
+coverage/
+documentation/
+dist/
+
+## Files
+npm-debug.log
 .idea
-build
+.DS_Store
