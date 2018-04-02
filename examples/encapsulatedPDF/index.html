@@ -29,6 +29,8 @@
     </div>
 
     <script src="../../dist/dicomParser.js"></script>
+    <script>window.dicomParser || document.write('<script src="https://unpkg.com/dicom-parser">\x3C/script>')</script>
+    
     <script type="text/javascript">
       var ENCAPSULATED_PDF = '1.2.840.10008.5.1.4.1.1.104.1';
       var $dropZone = document.getElementsByClassName('drop-zone')[0];

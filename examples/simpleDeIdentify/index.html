@@ -163,7 +163,8 @@
 </body>
 
 <!-- include the dicomParser library -->
-<script src="../../dist/dicomParser.js"></script>
+<script src="../../dist/dicomParser.js"></script> 
+<script>window.dicomParser || document.write('<script src="https://unpkg.com/dicom-parser">\x3C/script>')</script>
 
 <!-- jquery - included to make things easier to demo, not needed by dicomParser -->
 <script src="../jquery.min.js"></script>

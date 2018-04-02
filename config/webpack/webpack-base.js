@@ -15,7 +15,6 @@ module.exports = {
     filename: '[name].js',
     library: {
       commonjs: "dicom-parser",
-      commonjs2: "dicom-parser",
       amd: "dicom-parser",
       root: 'dicomParser'
     },

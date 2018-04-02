@@ -7,21 +7,23 @@ require.config( {
 
     // Tell require.js where the dicomParser library is
     paths: {
-        dicomParser: '../../dist/dicomParser'
+        dicomParser: '../../dist/dicomParser',
+        dicomParserUnpkg: 'https://unpkg.com/dicom-parser/dist/dicomParser.min'
     }
 });
 
 // This is our "mainline" which begins execution.  Require.js will automatically load
 // the dicomParser library for us pass the dicomParser object in as to our mainline function
-require(['dicomParser'], function(dicomParser) {
+require(['dicomParser', 'dicomParserUnpkg'], function(dicomParser, dicomParserUnpkg) {
 
+    const parser = dicomParser || dicomParserUnpkg;
     function dumpFile(file)
     {
         var reader = new FileReader();
         reader.onload = function(file) {
             var arrayBuffer = reader.result;
             var byteArray = new Uint8Array(arrayBuffer);
-            var dataSet = dicomParser.parseDicom(byteArray);
+            var dataSet = parser.parseDicom(byteArray);
             document.getElementById('sopInstanceUid').innerHTML = dataSet.string('x00080018');
         };
         reader.readAsArrayBuffer(file);
