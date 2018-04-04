@@ -1,14 +1,14 @@
 const path = require('path');
-const webpack = require('webpack');
 const rootPath = process.cwd();
 const context = path.join(rootPath, "src");
 const outputPath = path.join(rootPath, 'dist');
 const bannerPlugin = require(path.join(__dirname, 'plugins', 'banner.js'));
 
 module.exports = {
+  mode: 'development',
   context: context,
   entry: {
-    dicomParser: path.join(context, 'index.js')
+    dicomParser: './index.js'
   },
   target: 'web',
   output: {
