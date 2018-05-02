@@ -27,8 +27,8 @@ Install
 
 Get a packaged source file:
 
-* [dicomParser.js](https://raw.githubusercontent.com/cornerstonejs/dicomParser/master/dist/dicomParser.js)
-* [dicomParser.min.js](https://raw.githubusercontent.com/cornerstonejs/dicomParser/master/dist/dicomParser.min.js)
+* [dicomParser.js](https://unpkg.com/dicom-parser@latest/dist/dicomParser.js)
+* [dicomParser.min.js](https://unpkg.com/dicom-parser@latest/dist/dicomParser.min.js)
 
 Or install via [NPM](https://www.npmjs.com/):
 
