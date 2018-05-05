@@ -167,7 +167,7 @@ describe('util', () => {
 
     describe('when parsing a partial fractional TM', () => {
 
-      it('should return the expected value', () => {
+      it('should return the expected value for no zeros', () => {
         // Arrange
         const tmString = '081236.5';
 
@@ -178,7 +178,21 @@ describe('util', () => {
         expect(val.hours).to.equal(8);
         expect(val.minutes).to.equal(12);
         expect(val.seconds).to.equal(36);
-        expect(val.fractionalSeconds).to.equal(5);
+        expect(val.fractionalSeconds).to.equal(500000);
+      });
+
+      it('should return the expected value for leading and following zeros', () => {
+        // Arrange
+        const tmString = '081236.00500';
+
+        // Act
+        const val = util.parseTM(tmString);
+
+        // Assert
+        expect(val.hours).to.equal(8);
+        expect(val.minutes).to.equal(12);
+        expect(val.seconds).to.equal(36);
+        expect(val.fractionalSeconds).to.equal(5000);
       });
 
     });
