@@ -3,6 +3,7 @@
   "version": "1.8.0",
   "description": "Javascript parser for DICOM Part 10 data",
   "main": "dist/dicomParser.min.js",
+  "module": "dist/dicomParser.min.js",
   "keywords": [
     "DICOM",
     "medical",
@@ -11,7 +12,6 @@
   "author": "Chris Hafey",
   "homepage": "https://github.com/cornerstonejs/dicomParser",
   "license": "MIT",
-  "module": "src/index.js",
   "bugs": {
     "url": "https://github.com/cornerstonejs/dicomParser/issues"
   },

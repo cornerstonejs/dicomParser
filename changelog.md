@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [unreleased]
 ### Fix
+- Fix module field inside package.json was pointing to src file that is not present in new npm module, pointed it to dist folder now. (issue#91)
 - (Webpack) Issue #85: Output global object must be 'this'
 
 ## [1.8.0] - 2018-04-12
