@@ -19,6 +19,7 @@ module.exports = {
       root: 'dicomParser'
     },
     libraryTarget: 'umd',
+    globalObject: 'this',
     path: outputPath,
     umdNamedDefine: true
   },
