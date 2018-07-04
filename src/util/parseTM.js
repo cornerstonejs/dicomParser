@@ -10,9 +10,9 @@ export default function parseTM (time, validate) {
     // 0123456789
     // HHMMSS.FFFFFF
     var hh = parseInt(time.substring(0, 2), 10);
-    var mm = time.length >= 4 ? parseInt(time.substring(2, 4), 10) : undefined;
-    var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : undefined;
-    var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : undefined;
+    var mm = time.length >= 4 ? parseInt(time.substring(2, 4), 10) : 0;
+    var ss = time.length >= 6 ? parseInt(time.substring(4, 6), 10) : 0;
+    var ffffff = time.length >= 8 ? parseInt(time.substring(7, 13), 10) : 0;
 
     if (validate) {
       if ((isNaN(hh)) ||

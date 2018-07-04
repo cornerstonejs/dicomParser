@@ -150,17 +150,17 @@ describe('util', () => {
 
       it('should return the right minutes', () => {
         // Assert
-        expect(val.minutes).to.be.undefined;
+        expect(val.minutes).to.equal(0);
       });
 
       it('should return the right seconds', () => {
         // Assert
-        expect(val.seconds).to.be.undefined;
+        expect(val.seconds).to.equal(0);
       });
 
       it('should return the right fractionalSeconds', () => {
         // Assert
-        expect(val.fractionalSeconds).to.be.undefined;
+        expect(val.fractionalSeconds).to.equal(0);
       });
 
     });
