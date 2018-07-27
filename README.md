@@ -66,7 +66,7 @@ try
 }
 catch(ex)
 {
-   console.log('Error parsing byte stream' - ex);
+   console.log('Error parsing byte stream', ex);
 }
 ```
 
