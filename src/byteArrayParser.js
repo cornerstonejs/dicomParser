@@ -33,7 +33,7 @@ export function readFixedString (byteArray, position, length) {
 
       return result;
     }
-    result += String.fromCharCode(byte);
+    result += String.fromCharCode(byte % 128);
   }
 
   return result;
