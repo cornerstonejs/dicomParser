@@ -1,25 +1,72 @@
-export * from './util/index.js';
-export * from './parseDicomDataSet.js';
-export * from './byteArrayParser.js';
+import {
+  isStringVr,
+  isPrivateTag,
+  parsePN,
+  parseTM,
+  parseDA,
+  explicitElementToString,
+  explicitDataSetToJS,
+  createJPEGBasicOffsetTable
+} from './util/index.js';
 
-export { default as alloc } from './alloc.js';
-export { default as version } from './version.js';
-export { default as bigEndianByteArrayParser } from './bigEndianByteArrayParser.js';
-export { default as ByteStream } from './byteStream.js';
-export { default as sharedCopy } from './sharedCopy.js';
-export { default as DataSet } from './dataSet.js';
-export { default as findAndSetUNElementLength } from './findAndSetUNElementLength.js';
-export { default as findEndOfEncapsulatedElement } from './findEndOfEncapsulatedPixelData.js';
-export { default as findItemDelimitationItemAndSetElementLength } from './findItemDelimitationItem.js';
-export { default as littleEndianByteArrayParser } from './littleEndianByteArrayParser.js';
-export { default as parseDicom } from './parseDicom.js';
-export { default as readDicomElementExplicit } from './readDicomElementExplicit.js';
-export { default as readDicomElementImplicit } from './readDicomElementImplicit.js';
-export { default as readEncapsulatedImageFrame } from './readEncapsulatedImageFrame.js';
-export { default as readEncapsulatedPixelData } from './readEncapsulatedPixelData.js';
-export { default as readEncapsulatedPixelDataFromFragments } from './readEncapsulatedPixelDataFromFragments.js';
-export { default as readPart10Header } from './readPart10Header.js';
-export { default as readSequenceItemsExplicit } from './readSequenceElementExplicit.js';
-export { default as readSequenceItemsImplicit } from './readSequenceElementImplicit.js';
-export { default as readSequenceItem } from './readSequenceItem.js';
-export { default as readTag } from './readTag.js';
+import { parseDicomDataSetExplicit, parseDicomDataSetImplicit } from './parseDicomDataSet.js';
+import { readFixedString } from './byteArrayParser.js';
+
+import alloc from './alloc.js';
+import version from './version.js';
+import bigEndianByteArrayParser from './bigEndianByteArrayParser.js';
+import ByteStream from './byteStream.js';
+import sharedCopy from './sharedCopy.js';
+import DataSet from './dataSet.js';
+import findAndSetUNElementLength from './findAndSetUNElementLength.js';
+import findEndOfEncapsulatedElement from './findEndOfEncapsulatedPixelData.js';
+import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem.js';
+import littleEndianByteArrayParser from './littleEndianByteArrayParser.js';
+import parseDicom from './parseDicom.js';
+import readDicomElementExplicit from './readDicomElementExplicit.js';
+import readDicomElementImplicit from './readDicomElementImplicit.js';
+import readEncapsulatedImageFrame from './readEncapsulatedImageFrame.js';
+import readEncapsulatedPixelData from './readEncapsulatedPixelData.js';
+import readEncapsulatedPixelDataFromFragments from './readEncapsulatedPixelDataFromFragments.js';
+import readPart10Header from './readPart10Header.js';
+import readSequenceItemsExplicit from './readSequenceElementExplicit.js';
+import readSequenceItemsImplicit from './readSequenceElementImplicit.js';
+import readSequenceItem from './readSequenceItem.js';
+import readTag from './readTag.js';
+
+const dicomParser = {
+  isStringVr,
+  isPrivateTag,
+  parsePN,
+  parseTM,
+  parseDA,
+  explicitElementToString,
+  explicitDataSetToJS,
+  createJPEGBasicOffsetTable,
+  parseDicomDataSetExplicit,
+  parseDicomDataSetImplicit,
+  readFixedString,
+  alloc,
+  version,
+  bigEndianByteArrayParser,
+  ByteStream,
+  sharedCopy,
+  DataSet,
+  findAndSetUNElementLength,
+  findEndOfEncapsulatedElement,
+  findItemDelimitationItemAndSetElementLength,
+  littleEndianByteArrayParser,
+  parseDicom,
+  readDicomElementExplicit,
+  readDicomElementImplicit,
+  readEncapsulatedImageFrame,
+  readEncapsulatedPixelData,
+  readEncapsulatedPixelDataFromFragments,
+  readPart10Header,
+  readSequenceItemsExplicit,
+  readSequenceItemsImplicit,
+  readSequenceItem,
+  readTag
+};
+
+export default dicomParser;
