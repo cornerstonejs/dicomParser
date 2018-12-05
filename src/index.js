@@ -69,4 +69,39 @@ const dicomParser = {
   readTag
 };
 
+export {
+  isStringVr,
+  isPrivateTag,
+  parsePN,
+  parseTM,
+  parseDA,
+  explicitElementToString,
+  explicitDataSetToJS,
+  createJPEGBasicOffsetTable,
+  parseDicomDataSetExplicit,
+  parseDicomDataSetImplicit,
+  readFixedString,
+  alloc,
+  version,
+  bigEndianByteArrayParser,
+  ByteStream,
+  sharedCopy,
+  DataSet,
+  findAndSetUNElementLength,
+  findEndOfEncapsulatedElement,
+  findItemDelimitationItemAndSetElementLength,
+  littleEndianByteArrayParser,
+  parseDicom,
+  readDicomElementExplicit,
+  readDicomElementImplicit,
+  readEncapsulatedImageFrame,
+  readEncapsulatedPixelData,
+  readEncapsulatedPixelDataFromFragments,
+  readPart10Header,
+  readSequenceItemsExplicit,
+  readSequenceItemsImplicit,
+  readSequenceItem,
+  readTag
+};
+
 export default dicomParser;
