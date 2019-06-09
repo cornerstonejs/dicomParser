@@ -1,6 +1,7 @@
 import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem.js';
 import readSequenceItemsImplicit from './readSequenceElementImplicit.js';
 import readTag from './readTag.js';
+import { isPrivateTag } from './util/util.js';
 
 /**
  * Internal helper functions for for parsing DICOM elements
@@ -48,7 +49,7 @@ export default function readDicomElementImplicit (byteStream, untilTag, vrCallba
     return element;
   }
 
-  if (isSequence(element, byteStream, vrCallback)) {
+  if (isSequence(element, byteStream, vrCallback) && !isPrivateTag(element.tag)) {
     // parse the sequence
     readSequenceItemsImplicit(byteStream, element);
 
