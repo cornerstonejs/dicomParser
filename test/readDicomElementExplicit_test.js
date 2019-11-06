@@ -35,7 +35,7 @@ describe('readDicomElementExplicit', () => {
     expect(element.tag).to.equal('x22114433');
   });
 
-  it('should parsed vr correctly', () => {
+  it('should parse vr correctly', () => {
     // Arrange
     const byteArray = new Uint8Array(32);
 
@@ -127,6 +127,48 @@ describe('readDicomElementExplicit', () => {
 
     // Assert
     expect(element.dataOffset).to.equal(12);
+  });
+
+  it('should parse UN element of implicit length containing an embedded sequence', () => {
+    // Arrange
+    const byteArray = new Uint8Array([  
+      0x01, 0x10, 0x00, 0x20, // (1001,2000)
+      0x55, 0x4E, // UN
+      0x00, 0x00, // Reserved bytes
+      0xFF, 0xFF, 0xFF, 0xFF, // Undefined length
+
+      // Empty item
+      0xFE, 0xFF, 0x00, 0xE0,
+      0xFF, 0xFF, 0xFF, 0xFF,
+
+      // Nested empty sequence
+      0x01, 0x10, 0x02, 0x20, // (1001,2002)
+      0x53, 0x51, // SQ
+      0x00, 0x00, // Reserved bytes
+      0xFF, 0xFF, 0xFF, 0xFF, // Undefined length
+      0xFE, 0xFF, 0xDD, 0xE0, // End of sequence
+      0x00, 0x00, 0x00, 0x00,
+
+      0xFE, 0xFF, 0x0D, 0xE0, // End of item
+      0x00, 0x00, 0x00, 0x00,
+
+      0xFE, 0xFF, 0xDD, 0xE0, // End of sequence
+      0x00, 0x00, 0x00, 0x00,
+    ]);
+
+    const byteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
+
+    // Act
+    const element = readDicomElementExplicit(byteStream);
+
+    // Assert
+    expect(element.dataOffset).to.equal(12);
+    expect(element.tag).to.equal('x10012000');
+    expect(element.vr).to.equal('UN');
+    expect(element.length).to.equal(44);
+    expect(element.items.length).to.equal(1);
+    expect(element.items[0].tag).to.equal('xfffee000');
+    expect(element.items[0].dataSet.elements).to.have.all.keys(['x10012002']);
   });
 
 });
