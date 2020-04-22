@@ -2,11 +2,20 @@ declare module 'dicom-parser' {
  
   export type ByteArray = Uint8Array | Buffer;
 
+  export interface Element {
+    tag: string;
+    vr?: string;
+    length?: number;
+    dataOffset?: number;
+    items?: Element[];
+    dataSet?: DataSet;
+  }
+
   export interface DataSet {
     byteArray: ByteArray;
     byteArrayParser : ByteArrayParser;
     elements: {
-      [key: string]: number | undefined
+      [key: string]: Element;
     };
     warnings: string[];
 
@@ -40,7 +49,7 @@ declare module 'dicom-parser' {
     readDouble: (byteArray: ByteArray, position: number) => number;
   }
 
-  export type ParseDicomOptions = {
+  export interface ParseDicomOptions {
     untilTag?: string;
     vrCallback?: (tag: string) => void;
     inflater: (arr: Uint8Array, position: number) => void;
