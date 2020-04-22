@@ -53,7 +53,7 @@ declare module 'dicom-parser' {
     untilTag?: string;
     vrCallback?: (tag: string) => void;
     inflater: (arr: Uint8Array, position: number) => void;
-  };
+  }
 
   export function parseDicom(arr: Uint8Array, option?: ParseDicomOptions): DataSet;
  
