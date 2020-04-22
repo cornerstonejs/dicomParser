@@ -5,10 +5,11 @@ declare module 'dicom-parser' {
   export interface Element {
     tag: string;
     vr?: string;
-    length?: number;
-    dataOffset?: number;
+    length: number;
+    dataOffset: number;
     items?: Element[];
     dataSet?: DataSet;
+    parser?: ByteArrayParser;
   }
 
   export interface DataSet {
