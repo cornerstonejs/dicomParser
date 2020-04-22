@@ -5,21 +5,23 @@ declare module 'dicom-parser' {
   export interface DataSet {
     byteArray: ByteArray;
     byteArrayParser : ByteArrayParser;
-    elements:{ [key: string]: number | undefined };
+    elements: {
+      [key: string]: number | undefined
+    };
     warnings: string[];
 
-    uint16 (tag: string, index: number) : number;
-    int16 (tag: string, index: number) : number;
-    uint32 (tag: string, index: number) : number;
-    int32 (tag: string, index: number) : number;
-    float (tag: string, index: number) : number;
-    double (tag: string, index: number) : number;
-    numStringValues (tag: string) : number;
-    string (tag: string, index: number) : string;
-    text (tag: string, index: number) : string;
-    floatString (tag: string, index: number) : number;
-    intString (tag: string, index: number) : number;
-    attributeTag (tag: string) : string;
+    uint16: (tag: string, index: number) => number;
+    int16: (tag: string, index: number) => number;
+    uint32: (tag: string, index: number) => number;
+    int32: (tag: string, index: number) => number;
+    float: (tag: string, index: number) => number;
+    double: (tag: string, index: number) => number;
+    numStringValues: (tag: string) => number;
+    string: (tag: string, index: number) => string;
+    text: (tag: string, index: number) => string;
+    floatString: (tag: string, index: number) => number;
+    intString: (tag: string, index: number) => number;
+    attributeTag: (tag: string) => string;
   }
 
   export interface ByteStream {
@@ -30,12 +32,12 @@ declare module 'dicom-parser' {
   }
 
   export interface ByteArrayParser {
-    readUint16(byteArray: ByteArray, position: number): number;
-    readInt16(byteArray: ByteArray, position: number): number;
-    readUint32(byteArray: ByteArray, position: number): number;
-    readInt32(byteArray: ByteArray, position: number): number;
-    readFloat(byteArray: ByteArray, position: number): number;
-    readDouble(byteArray: ByteArray, position: number): number;
+    readUint16: (byteArray: ByteArray, position: number) => number;
+    readInt16: (byteArray: ByteArray, position: number) => number;
+    readUint32: (byteArray: ByteArray, position: number) => number;
+    readInt32: (byteArray: ByteArray, position: number) => number;
+    readFloat: (byteArray: ByteArray, position: number) => number;
+    readDouble: (byteArray: ByteArray, position: number) => number;
   }
 
   export type ParseDicomOptions = {
@@ -44,6 +46,6 @@ declare module 'dicom-parser' {
     inflater: (arr: Uint8Array, position: number) => void;
   };
 
-  export function parseDicom(arr: Uint8Array, option?: ParseDicomOptions) : DataSet;
+  export function parseDicom(arr: Uint8Array, option?: ParseDicomOptions): DataSet;
  
 }
