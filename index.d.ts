@@ -2,6 +2,12 @@ declare module 'dicom-parser' {
  
   export type ByteArray = Uint8Array | Buffer;
 
+  export interface Fragment {
+    offset: number;
+    position: number;
+    length: number;
+  }
+
   export interface Element {
     tag: string;
     vr?: string;
@@ -10,13 +16,21 @@ declare module 'dicom-parser' {
     items?: Element[];
     dataSet?: DataSet;
     parser?: ByteArrayParser;
+    hadUndefinedLength?: boolean;
+
+    encapsulatedPixelData?: boolean;
+    basicOffsetTable?: number[];
+    fragments?: Fragment[];
   }
 
   export interface DataSet {
     byteArray: ByteArray;
     byteArrayParser : ByteArrayParser;
+    /**
+     * Access element with the DICOM tag in the format xGGGGEEEE.
+     */
     elements: {
-      [key: string]: Element;
+      [tag: string]: Element;
     };
     warnings: string[];
 
@@ -26,7 +40,7 @@ declare module 'dicom-parser' {
     uint16: (tag: string, index?: number) => number;
 
     /**
-     * Finds the element for tag and returns an signed int 16 if it exists and has data. Use this function for VR type SS.
+     * Finds the element for tag and returns a signed int 16 if it exists and has data. Use this function for VR type SS.
      */
     int16: (tag: string, index?: number) => number;
 
@@ -36,7 +50,7 @@ declare module 'dicom-parser' {
     uint32: (tag: string, index?: number) => number;
 
     /**
-     * Finds the element for tag and returns an signed int 32 if it exists and has data. Use this function for VR type SL.
+     * Finds the element for tag and returns a signed int 32 if it exists and has data. Use this function for VR type SL.
      */
     int32: (tag: string, index?: number) => number;
 
@@ -51,7 +65,7 @@ declare module 'dicom-parser' {
     double: (tag: string, index?: number) => number;
 
     /**
-     * Returns the Value Multiplicity of an elements - the number of values in a multi-valued element.
+     * Returns the actual Value Multiplicity of an element - the number of values in a multi-valued element.
      */
     numStringValues: (tag: string) => number;
 
@@ -86,6 +100,13 @@ declare module 'dicom-parser' {
     byteArrayParser: ByteArrayParser;
     position: number;
     warnings: string[];
+ 
+    new (byteArrayParser: ByteArrayParser, byteArray: ByteArray, position: number);
+    seek: (offset: number) => void;
+    readByteStream: (numBytes: number) => ByteStream;
+    readUint16: () => number;
+    readUint32: () => number;
+    readFixedString: (length: number) => string;
   }
 
   export interface ByteArrayParser {
