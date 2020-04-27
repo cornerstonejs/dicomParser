@@ -124,6 +124,53 @@ declare module 'dicom-parser' {
     inflater: (arr: Uint8Array, position: number) => void;
   }
 
-  export function parseDicom(arr: Uint8Array, option?: ParseDicomOptions): DataSet;
+  export function parseDicom(arr: Uint8Array, option?: ParseDicomOptions): DataSet
+
+  export function isStringVr(vr: string): boolean
+  export function isPrivateTag(tag: string): boolean
+  export function parsePN(personName: string): {
+    familyName?: string;
+    givenName?: string;
+    middleName?: string;
+    prefix?: string;
+    suffix?: string;
+  }
+  export function parseTM(time: string, validate?: boolean): {
+    hours: number;
+    minutes?: number;
+    seconds?: number;
+    fractionalSeconds?: number;
+  }
+  export function parseDA(date: string, validate?: boolean): {
+    year: number;
+    month: number;
+    day: number;
+  }
+  export function explicitElementToString(dataSet: DataSet, element: Element): string
+  type explicitDataSetToJSType = string | { dataOffset: number, length: number };
+  export function explicitDataSetToJS(dataSet: DataSet, options?: { omitPrivateAttibutes: boolean, maxElementLength: number }): explicitDataSetToJSType | explicitDataSetToJSType[]
+  export function createJPEGBasicOffsetTable(dataSet: DataSet, pixelDataElement: Element, fragments?: Fragment[]): number[];
+  export function parseDicomDataSetExplicit(dataSet: DataSet, byteStream: ByteStream, maxPosition?: number, options?: { untilTag: string }): void
+  type vrCallback = (tag: string) => string;
+  export function parseDicomDataSetImplicit(dataSet: DataSet, byteStream: ByteStream, maxPosition?: number, options?: { untilTag: string, vrCallback?: vrCallback }): void
+  export function readFixedString(byteArray: ByteArray, position: number, length: number): string
+  export function alloc(byteArray: ByteArray, length: number): ByteArray
+  export const version: string;
+  export const bigEndianByteArrayParser: ByteArrayParser;
+  export function sharedCopy(byteArray: ByteArray, byteOffset: number, length: number): ByteArray
+  export function findAndSetUNElementLength(byteStream: ByteStream, element: Element): void
+  export function findEndOfEncapsulatedElement(byteStream: ByteStream, element: Element, warnings?: string[]): void
+  export function findItemDelimitationItemAndSetElementLength(byteStream: ByteStream, element: Element): void
+  export const littleEndianByteArrayParser: ByteArrayParser;
+  export function readDicomElementExplicit(byteStream: ByteStream, warnings?: string[], untilTag?: string): Element
+  export function readDicomElementImplicit(byteStream: ByteStream, untilTag?: string, vrCallback?: vrCallback): Element
+  export function readEncapsulatedImageFrame(dataSet: DataSet, pixelDataElement: Element, frameIndex: number, basicOffsetTable?: number[], fragments?: Fragment[]): ByteStream
+  export function readEncapsulatedPixelData(dataSet: DataSet, pixelDataElement: Element, frame: number): ByteStream
+  export function readEncapsulatedPixelDataFromFragments(dataSet: DataSet, pixelDataElement: Element, startFragmentIndex: number, numFragments: number, fragments?: Fragment[]): ByteStream
+  export function readPart10Header(byteArray: ByteArray, options?: { untilTag: string }): DataSet
+  export function readSequenceItemsExplicit(byteStream: ByteStream, element: Element, warnings?: string[]): void
+  export function readSequenceItemsImplicit(byteStream: ByteStream, element: Element, vrCallback?: vrCallback): void
+  export function readSequenceItem(byteStream: ByteStream): Pick<Element, 'tag' | 'length' | 'dataOffset'>
+  export function readTag(byteStream: ByteStream): string
  
 }
