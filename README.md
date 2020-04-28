@@ -345,6 +345,11 @@ harder it is to remember what you are looking at
 
 You can find out more about this by googling for "self documenting code"
 
+In the Wild
+===========
+
+- [VS Code: DICOM Dump Extension](https://github.com/smikitky/vscode-dicom-dump)
+
 Copyright
 ============
 Copyright 2016 Chris Hafey [chafey@gmail.com](mailto:chafey@gmail.com)
