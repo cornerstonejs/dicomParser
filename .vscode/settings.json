@@ -1,0 +1,4 @@
+{
+    "mochaExplorer.files": "test/*.ts",
+    "mochaExplorer.require":   "mocha.test.bootsrap.js"
+}

@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es2015"
+    ],
+    "types": [
+      "node",
+      "mocha",
+    ],
+    "outDir": "dist/lib",
+    "declaration": true,
+    "module": "es2015",
+    "target": "es5",
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "pretty": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "downlevelIteration": true,
+  },
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "/dist/",
+    "/node_modules/",
+  ],
+  "typeRoots": [
+    "/node_modules/@types/"
+  ]
+}

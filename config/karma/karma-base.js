@@ -1,42 +1,25 @@
-const path = require('path');
-const webpackConfig = require('../webpack');
+const webpackConfig = require("./webpack.karma");
 
 /* eslint no-process-env:0 */
-process.env.CHROME_BIN = require('puppeteer').executablePath();
-
-// Deleting output.library to avoid "Uncaught SyntaxError: Unexpected token /" error
-// when running testes (var test/foo_test.js = ...)
-delete webpackConfig.output.library;
-
-// Code coverage
-webpackConfig.module.rules.push({
-  test: /\.js$/,
-  include: path.resolve('./src/'),
-  loader: 'istanbul-instrumenter-loader',
-  query: {
-    esModules: true
-  }
-});
+process.env.CHROME_BIN = require("puppeteer").executablePath();
 
 module.exports = {
-  basePath: '../../',
-  frameworks: ['mocha'],
-  reporters: ['progress', 'coverage'],
-  files: [
-    'test/**/*_test.js'
-  ],
+  basePath: "../../",
+  frameworks: ["mocha"],
+  reporters: ["progress", "coverage"],
+  files: ["test/**/*_test.ts"],
 
   plugins: [
-    'karma-webpack',
-    'karma-mocha',
-    'karma-chrome-launcher',
-    'karma-firefox-launcher',
-    'karma-coverage'
+    "karma-webpack",
+    "karma-mocha",
+    "karma-chrome-launcher",
+    "karma-firefox-launcher",
+    "karma-coverage",
   ],
 
   preprocessors: {
-    'src/**/*.js': ['webpack'],
-    'test/**/*_test.js': ['webpack']
+    "src/**/*.ts": ["webpack"],
+    "test/**/*_test.ts": ["webpack"],
   },
 
   webpack: webpackConfig,
@@ -46,17 +29,17 @@ module.exports = {
     stats: {
       chunks: false,
       timings: false,
-      errorDetails: true
-    }
+      errorDetails: true,
+    },
   },
 
   coverageReporter: {
-    dir: './coverage',
+    dir: "./coverage",
     reporters: [
-      {type: 'html', subdir: 'html'},
-      {type: 'lcov', subdir: '.'},
-      {type: 'text', subdir: '.', file: 'text.txt'},
-      {type: 'text-summary', subdir: '.', file: 'text-summary.txt'}
-    ]
-  }
+      { type: "html", subdir: "html" },
+      { type: "lcov", subdir: "." },
+      { type: "text", subdir: ".", file: "text.txt" },
+      { type: "text-summary", subdir: ".", file: "text-summary.txt" },
+    ],
+  },
 };
