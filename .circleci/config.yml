@@ -15,7 +15,7 @@ jobs:
             - v1-dependencies-{{ checksum "package.json" }}
             - v1-dependencies-
       - run: npm install
-      - run: npm run build
+      - run: npm run build:ci
       - save_cache:
           paths:
             - node_modules
@@ -37,7 +37,7 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-      - run: npm run build
+      - run: npm run build:ci
       - run:
           name: Write NPM Token to ~/.npmrc
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
