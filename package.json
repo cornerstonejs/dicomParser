@@ -21,6 +21,7 @@
   },
   "scripts": {
     "build": "npm run version && npm run webpack && npm run copy:meteor && npm run doc:generate",
+    "build:ci": "npm run webpack:prod && npm run webpack:dev && npm run copy:meteor",
     "clean": "npm run clean:dist && npm run clean:coverage",
     "clean:coverage": "shx rm -rf coverage",
     "clean:dist": "shx rm -rf dist",
