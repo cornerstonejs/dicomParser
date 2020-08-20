@@ -20,7 +20,7 @@
     "url": "https://github.com/cornerstonejs/dicomParser.git"
   },
   "scripts": {
-    "build": "npm run test && npm run version && npm run webpack && npm run copy:meteor && npm run doc:generate",
+    "build": "npm run version && npm run webpack && npm run copy:meteor && npm run doc:generate",
     "clean": "npm run clean:dist && npm run clean:coverage",
     "clean:coverage": "shx rm -rf coverage",
     "clean:dist": "shx rm -rf dist",
