@@ -46,6 +46,9 @@ export default function parseDicom (byteArray, options) {
   }
 
   function getDataSetByteStream (transferSyntax, position) {
+    // Detect whether we are inside a browser or Node.js
+    const isNode = (typeof window === 'undefined');
+
     if (transferSyntax === '1.2.840.10008.1.2.1.99') {
       // if an infalter callback is registered, use it
       if (options && options.inflater) {
@@ -55,7 +58,7 @@ export default function parseDicom (byteArray, options) {
       }
       // if running on node, use the zlib library to inflate
       // http://stackoverflow.com/questions/4224606/how-to-check-whether-a-script-is-running-under-node-js
-      else if (typeof module !== 'undefined' && this.module !== module) {
+      else if (isNode === true) {
         // inflate it
         const zlib = require('zlib');
         const deflatedBuffer = sharedCopy(byteArray, position, byteArray.length - position);
