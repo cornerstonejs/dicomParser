@@ -164,9 +164,9 @@ declare module 'dicom-parser' {
   export const littleEndianByteArrayParser: ByteArrayParser;
   export function readDicomElementExplicit(byteStream: ByteStream, warnings?: string[], untilTag?: string): Element
   export function readDicomElementImplicit(byteStream: ByteStream, untilTag?: string, vrCallback?: vrCallback): Element
-  export function readEncapsulatedImageFrame(dataSet: DataSet, pixelDataElement: Element, frameIndex: number, basicOffsetTable?: number[], fragments?: Fragment[]): ByteStream
-  export function readEncapsulatedPixelData(dataSet: DataSet, pixelDataElement: Element, frame: number): ByteStream
-  export function readEncapsulatedPixelDataFromFragments(dataSet: DataSet, pixelDataElement: Element, startFragmentIndex: number, numFragments?: number, fragments?: Fragment[]): ByteStream
+  export function readEncapsulatedImageFrame(dataSet: DataSet, pixelDataElement: Element, frameIndex: number, basicOffsetTable?: number[], fragments?: Fragment[]): ByteArray
+  export function readEncapsulatedPixelData(dataSet: DataSet, pixelDataElement: Element, frame: number): ByteArray
+  export function readEncapsulatedPixelDataFromFragments(dataSet: DataSet, pixelDataElement: Element, startFragmentIndex: number, numFragments?: number, fragments?: Fragment[]): ByteArray
   export function readPart10Header(byteArray: ByteArray, options?: { untilTag: string }): DataSet
   export function readSequenceItemsExplicit(byteStream: ByteStream, element: Element, warnings?: string[]): void
   export function readSequenceItemsImplicit(byteStream: ByteStream, element: Element, vrCallback?: vrCallback): void
