@@ -47,7 +47,7 @@ export default function parseDicom (byteArray, options) {
 
   function getDataSetByteStream (transferSyntax, position) {
     // Detect whether we are inside a browser or Node.js
-    const isNode = (typeof window === 'undefined');
+    const isNode = (Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]');
 
     if (transferSyntax === '1.2.840.10008.1.2.1.99') {
       // if an infalter callback is registered, use it

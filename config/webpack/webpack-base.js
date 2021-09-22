@@ -10,6 +10,10 @@ module.exports = {
   entry: {
     dicomParser: './index.js'
   },
+  externals: {
+    'zlib': 'zlib'
+  },
+  node: false,
   target: 'web',
   output: {
     filename: '[name].js',
