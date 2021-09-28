@@ -4,6 +4,9 @@
   "description": "Javascript parser for DICOM Part 10 data",
   "main": "dist/dicomParser.min.js",
   "module": "dist/dicomParser.min.js",
+  "browser": {
+    "zlib": false
+  },
   "keywords": [
     "DICOM",
     "medical",
