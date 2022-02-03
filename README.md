@@ -4,7 +4,7 @@
 dicomParser
 ===========
 
-dicomParser is a lightweight library for parsing DICOM P10 byte streams in modern HTML5 based web browsers (IE10+),
+dicomParser is a lightweight library for parsing DICOM P10 byte streams, as well as raw (not encapsulated in part 10) byte streams, in modern HTML5 based web browsers (IE10+),
 Node.js and Meteor.  dicomParser is fast, easy to use and has no required external dependencies.
 
 Live Examples
@@ -52,8 +52,10 @@ var byteArray = new Uint8Array(arrayBuffer);
 
 try
 {
-   // Parse the byte array to get a DataSet object that has the parsed contents
-    var dataSet = dicomParser.parseDicom(byteArray/*, options */);
+    // Allow raw files
+    const options = { TransferSyntaxUID: '1.2.840.10008.1.2' };
+    // Parse the byte array to get a DataSet object that has the parsed contents
+    var dataSet = dicomParser.parseDicom(byteArray, options);
 
     // access a string element
     var studyInstanceUid = dataSet.string('x0020000d');
@@ -85,6 +87,10 @@ Options
 -------
 
 ```dicomParser.parseDicom``` accepts an optional second argument that is an options object. The accepted properties are:
+
+#### TransferSyntaxUID
+A string value used as the default transfer syntax uid for parsing raw DICOM (not encapsualted in Part 10).
+For raw DICOM files, this value should be the LEI UID value.
 
 #### untilTag
 
