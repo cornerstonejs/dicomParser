@@ -139,7 +139,26 @@ describe('parseDicom', () => {
 
     return convertToByteArray(rawData);
   }
-  
+
+  /**
+   * 
+   * @returns a DICOM file consisting of just the raw data
+   */
+  function makeRawData() {
+    const rawData = [
+      // Transfer Syntax UID
+      // x00020010          UI         20         1.2.840.10008.1.2.1 (Explicit VR Little Endian)
+      // Slice Location
+      // x00201041          DS               4      '-43'
+      0x20,0x00,0x41,0x10, 0x44,0x53, 0x04,0x00, 0x2D,0x34,0x33,0x00,
+      // Rows
+      // x00280010          US         2          512
+      0x28,0x00,0x10,0x00, 0x55,0x53, 0x02,0x00, 0x00,0x02
+    ];
+
+    return convertToByteArray(rawData);
+  }
+
   function assertMetaHeaderElements(dataSet, transferSyntax, groupLength) {
     expect(dataSet.uint32('x00020000')).to.equal(groupLength); // '(0002,0000) was not read correctly');
     expect(dataSet.uint16('x00020001')).to.equal(256); //'(0002,0001) was not read correctly');
@@ -174,7 +193,20 @@ describe('parseDicom', () => {
     expect(dataSet.uint16('x00280010')).to.equal(512);
     expect(dataSet.string('x00201041')).to.equal('-43');
   });
-    
+
+  it('should parse the dataset correctly (raw LEE)', () => {
+    // Arrange
+    const byteArray = makeRawData();
+
+    // Act
+    const dataSet = parseDicom(byteArray, {TransferSyntaxUID: '1.2.840.10008.1.2.1'});
+
+    // Assert
+    // assertMetaHeaderElements(dataSet, '1.2.840.10008.1.2.1', 159);
+    expect(dataSet.uint16('x00280010')).to.equal(512);
+    expect(dataSet.string('x00201041')).to.equal('-43');
+  });
+
   it('should parse the dataset correctly (implicitLittleEndian)', () => {
     // Arrange
     const byteArray = makeImplicitLittleEndianTestData();

@@ -15,30 +15,50 @@ import readDicomElementExplicit from './readDicomElementExplicit.js';
  *         elements successfully parsed before the error.
  */
 
-export default function readPart10Header (byteArray, options) {
+export default function readPart10Header(byteArray, options) {
   if (byteArray === undefined) {
     throw 'dicomParser.readPart10Header: missing required parameter \'byteArray\'';
   }
 
   const littleEndianByteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
 
-  function readPrefix () {
+  function readPrefix() {
+    const { TransferSyntaxUID } = options || {};
+    if( littleEndianByteStream.getSize() <=132 && TransferSyntaxUID ) {
+      return false;
+    }
     littleEndianByteStream.seek(128);
     const prefix = littleEndianByteStream.readFixedString(4);
 
     if (prefix !== 'DICM') {
-      throw 'dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.';
+      const { TransferSyntaxUID } = options || {};
+      if (!TransferSyntaxUID) {
+        throw 'dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.';
+      }
+      littleEndianByteStream.seek(0);
+      return false;
     }
+    return true;
   }
 
   // main function here
-  function readTheHeader () {
+  function readTheHeader() {
     // Per the DICOM standard, the header is always encoded in Explicit VR Little Endian (see PS3.10, section 7.1)
     // so use littleEndianByteStream throughout this method regardless of the transfer syntax
-    readPrefix();
+    const isPart10 = readPrefix();
 
     const warnings = [];
     const elements = {};
+
+    if (!isPart10) {
+      littleEndianByteStream.position = 0;
+      const metaHeaderDataSet = {
+        elements: {x00020010: { tag: 'x00020010', vr: 'UI', Value: options.TransferSyntaxUID }},
+        warnings, 
+      };
+      // console.log('Returning metaHeaderDataSet', metaHeaderDataSet);
+      return metaHeaderDataSet;
+    }
 
     while (littleEndianByteStream.position < littleEndianByteStream.byteArray.length) {
       const position = littleEndianByteStream.position;

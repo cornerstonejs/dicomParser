@@ -32,7 +32,7 @@ export default function parseDicom (byteArray, options) {
 
     const transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
 
-    return byteArrayParser.readFixedString(byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
+    return transferSyntaxElement.Value || byteArrayParser.readFixedString(byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
   }
 
   function isExplicit (transferSyntax) {
@@ -148,7 +148,7 @@ export default function parseDicom (byteArray, options) {
   function parseTheByteStream () {
     const metaHeaderDataSet = readPart10Header(byteArray, options);
     const dataSet = readDataSet(metaHeaderDataSet);
-
+    
     return mergeDataSets(metaHeaderDataSet, dataSet);
   }
 
