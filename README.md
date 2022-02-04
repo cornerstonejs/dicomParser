@@ -92,6 +92,9 @@ Options
 A string value used as the default transfer syntax uid for parsing raw DICOM (not encapsualted in Part 10).
 For raw DICOM files, this value should be the LEI UID value.
 
+#### dimseEncoding
+
+
 #### untilTag
 
 A tag in the form xggggeeee (where gggg is the hexadecimal group number and eeee is the hexadecimal element number,

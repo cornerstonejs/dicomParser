@@ -22,7 +22,7 @@ import findAndSetUNElementLength from './findAndSetUNElementLength.js';
 import findEndOfEncapsulatedElement from './findEndOfEncapsulatedPixelData.js';
 import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem.js';
 import littleEndianByteArrayParser from './littleEndianByteArrayParser.js';
-import parseDicom from './parseDicom.js';
+import parseDicom, { LEI, LEE } from './parseDicom.js';
 import readDicomElementExplicit from './readDicomElementExplicit.js';
 import readDicomElementImplicit from './readDicomElementImplicit.js';
 import readEncapsulatedImageFrame from './readEncapsulatedImageFrame.js';
@@ -66,7 +66,9 @@ const dicomParser = {
   readSequenceItemsExplicit,
   readSequenceItemsImplicit,
   readSequenceItem,
-  readTag
+  readTag,
+  LEI,
+  LEE,
 };
 
 export {

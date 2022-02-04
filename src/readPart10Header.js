@@ -9,14 +9,15 @@ import readDicomElementExplicit from './readDicomElementExplicit.js';
  * tag is encoutered.  This can be used to parse partial byte streams.
  *
  * @param byteArray the byte array
- * @param options : { TransferSyntaxUID: String } to specify a default raw transfer syntax UID.
- *              Use the LEI transfer syntax for raw files, or the provided one for SCP transfers.
+ * @param options Optional options values
+ *    TransferSyntaxUID: String to specify a default raw transfer syntax UID.
+ *        Use the LEI transfer syntax for raw files, or the provided one for SCP transfers.
  * @returns {DataSet}
  * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
  *         elements successfully parsed before the error.
  */
 
-export default function readPart10Header(byteArray, options = {}) {
+export default function readPart10Header (byteArray, options = {}) {
   if (byteArray === undefined) {
     throw 'dicomParser.readPart10Header: missing required parameter \'byteArray\'';
   }
@@ -25,7 +26,7 @@ export default function readPart10Header(byteArray, options = {}) {
   const littleEndianByteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
 
   function readPrefix() {
-    if( littleEndianByteStream.getSize() <=132 && TransferSyntaxUID ) {
+    if (littleEndianByteStream.getSize() <= 132 && TransferSyntaxUID) {
       return false;
     }
     littleEndianByteStream.seek(128);
@@ -54,8 +55,8 @@ export default function readPart10Header(byteArray, options = {}) {
     if (!isPart10) {
       littleEndianByteStream.position = 0;
       const metaHeaderDataSet = {
-        elements: {x00020010: { tag: 'x00020010', vr: 'UI', Value: TransferSyntaxUID }},
-        warnings, 
+        elements: { x00020010: { tag: 'x00020010', vr: 'UI', Value: TransferSyntaxUID } },
+        warnings,
       };
       // console.log('Returning metaHeaderDataSet', metaHeaderDataSet);
       return metaHeaderDataSet;
