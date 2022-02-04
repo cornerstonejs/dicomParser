@@ -25,7 +25,6 @@ const BEI = '1.2.840.10008.1.2.2';
  *
  * @param byteArray the byte array
  * @param options object to control parsing behavior (optional)
- *    dimseEncoding: boolean set to true to use LEE encoding for body instead of header encoding
  * @returns {DataSet}
  * @throws error if an error occurs while parsing.  The exception object will contain a
  *         property dataSet with the elements successfully parsed before the error.
@@ -36,14 +35,12 @@ export default function parseDicom(byteArray, options = {}) {
     throw new Error('dicomParser.parseDicom: missing required parameter \'byteArray\'');
   }
 
-  const { dimseEncoding } = options;
-
+  
   const readTransferSyntax = (metaHeaderDataSet) => {
     if (metaHeaderDataSet.elements.x00020010 === undefined) {
       throw new Error('dicomParser.parseDicom: missing required meta header attribute 0002,0010');
     }
 
-    if (dimseEncoding) return LEE;
     const transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
     return transferSyntaxElement && transferSyntaxElement.Value ||
       byteArrayParser.readFixedString(byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
