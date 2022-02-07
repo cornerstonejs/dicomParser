@@ -9,36 +9,58 @@ import readDicomElementExplicit from './readDicomElementExplicit.js';
  * tag is encoutered.  This can be used to parse partial byte streams.
  *
  * @param byteArray the byte array
- * @param options object to control parsing behavior (optional)
+ * @param options Optional options values
+ *    TransferSyntaxUID: String to specify a default raw transfer syntax UID.
+ *        Use the LEI transfer syntax for raw files, or the provided one for SCP transfers.
  * @returns {DataSet}
  * @throws error if an error occurs while parsing.  The exception object will contain a property dataSet with the
  *         elements successfully parsed before the error.
  */
 
-export default function readPart10Header (byteArray, options) {
+export default function readPart10Header (byteArray, options = {}) {
   if (byteArray === undefined) {
     throw 'dicomParser.readPart10Header: missing required parameter \'byteArray\'';
   }
 
+  const { TransferSyntaxUID } = options;
   const littleEndianByteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
 
-  function readPrefix () {
+  function readPrefix() {
+    if (littleEndianByteStream.getSize() <= 132 && TransferSyntaxUID) {
+      return false;
+    }
     littleEndianByteStream.seek(128);
     const prefix = littleEndianByteStream.readFixedString(4);
 
     if (prefix !== 'DICM') {
-      throw 'dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.';
+      const { TransferSyntaxUID } = options || {};
+      if (!TransferSyntaxUID) {
+        throw 'dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.';
+      }
+      littleEndianByteStream.seek(0);
+      return false;
     }
+    return true;
   }
 
   // main function here
-  function readTheHeader () {
+  function readTheHeader() {
     // Per the DICOM standard, the header is always encoded in Explicit VR Little Endian (see PS3.10, section 7.1)
     // so use littleEndianByteStream throughout this method regardless of the transfer syntax
-    readPrefix();
+    const isPart10 = readPrefix();
 
     const warnings = [];
     const elements = {};
+
+    if (!isPart10) {
+      littleEndianByteStream.position = 0;
+      const metaHeaderDataSet = {
+        elements: { x00020010: { tag: 'x00020010', vr: 'UI', Value: TransferSyntaxUID } },
+        warnings,
+      };
+      // console.log('Returning metaHeaderDataSet', metaHeaderDataSet);
+      return metaHeaderDataSet;
+    }
 
     while (littleEndianByteStream.position < littleEndianByteStream.byteArray.length) {
       const position = littleEndianByteStream.position;

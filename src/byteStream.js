@@ -76,6 +76,10 @@ export default class ByteStream {
     return new ByteStream(this.byteArrayParser, byteArrayView);
   }
 
+  getSize() {
+    return this.byteArray.length;
+  }
+
   /**
      *
      * Parses an unsigned int 16 from a byte array and advances

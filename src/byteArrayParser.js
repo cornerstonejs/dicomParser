@@ -5,7 +5,7 @@
 /**
  * Reads a string of 8-bit characters from an array of bytes and advances
  * the position by length bytes.  A null terminator will end the string
- * but will not effect advancement of the position.  Trailing and leading
+ * but will not affect advancement of the position.  Trailing and leading
  * spaces are preserved (not trimmed)
  * @param byteArray the byteArray to read from
  * @param position the position in the byte array to read from

@@ -177,6 +177,8 @@ export default class DataSet {
   string (tag, index) {
     var element = this.elements[tag];
 
+    if( element && element.Value ) return element.Value;
+    
     if (element && element.length > 0) {
       var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
 

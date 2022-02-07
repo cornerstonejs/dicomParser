@@ -33,6 +33,8 @@ export default function findEndOfEncapsulatedElement (byteStream, element, warni
   const basicOffsetTableItemlength = byteStream.readUint32();
   const numFragments = basicOffsetTableItemlength / 4;
 
+  // Bad idea to not include the basic offset table, as it means writing the data out is inconsistent with reading it
+  // but leave this for now.  To fix later.
   for (let i = 0; i < numFragments; i++) {
     const offset = byteStream.readUint32();
 

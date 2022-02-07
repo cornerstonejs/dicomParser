@@ -8,6 +8,16 @@ import sharedCopy from './sharedCopy.js';
 import * as byteArrayParser from './byteArrayParser.js';
 import * as parseDicomDataSet from './parseDicomDataSet.js';
 
+// LEE (Little Endian Explicit) is the transfer syntax used in dimse operations when there is a split
+// between the header and data.
+const LEE = '1.2.840.10008.1.2.1';
+
+// LEI (Little Endian Implicit) is the transfer syntax in raw files
+const LEI = '1.2.840.10008.1.2';
+
+// BEI (Big Endian Implicit) is deprecated, but needs special parse handling
+const BEI = '1.2.840.10008.1.2.2';
+
 /**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.
  * If the options argument is supplied and it contains the untilTag property, parsing
@@ -20,22 +30,23 @@ import * as parseDicomDataSet from './parseDicomDataSet.js';
  *         property dataSet with the elements successfully parsed before the error.
  */
 
-export default function parseDicom (byteArray, options) {
+export default function parseDicom(byteArray, options = {}) {
   if (byteArray === undefined) {
-    throw 'dicomParser.parseDicom: missing required parameter \'byteArray\'';
+    throw new Error('dicomParser.parseDicom: missing required parameter \'byteArray\'');
   }
 
-  function readTransferSyntax (metaHeaderDataSet) {
+  
+  const readTransferSyntax = (metaHeaderDataSet) => {
     if (metaHeaderDataSet.elements.x00020010 === undefined) {
-      throw 'dicomParser.parseDicom: missing required meta header attribute 0002,0010';
+      throw new Error('dicomParser.parseDicom: missing required meta header attribute 0002,0010');
     }
 
     const transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
-
-    return byteArrayParser.readFixedString(byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
+    return transferSyntaxElement && transferSyntaxElement.Value ||
+      byteArrayParser.readFixedString(byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
   }
 
-  function isExplicit (transferSyntax) {
+  function isExplicit(transferSyntax) {
     // implicit little endian
     if (transferSyntax === '1.2.840.10008.1.2') {
       return false;
@@ -45,7 +56,7 @@ export default function parseDicom (byteArray, options) {
     return true;
   }
 
-  function getDataSetByteStream (transferSyntax, position) {
+  function getDataSetByteStream(transferSyntax, position) {
     // Detect whether we are inside a browser or Node.js
     const isNode = (Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]');
 
@@ -93,7 +104,7 @@ export default function parseDicom (byteArray, options) {
     }
 
     // explicit big endian
-    if (transferSyntax === '1.2.840.10008.1.2.2') {
+    if (transferSyntax === BEI) {
       return new ByteStream(bigEndianByteArrayParser, byteArray, position);
     }
 
@@ -102,7 +113,7 @@ export default function parseDicom (byteArray, options) {
     return new ByteStream(littleEndianByteArrayParser, byteArray, position);
   }
 
-  function mergeDataSets (metaHeaderDataSet, instanceDataSet) {
+  function mergeDataSets(metaHeaderDataSet, instanceDataSet) {
     for (const propertyName in metaHeaderDataSet.elements) {
       if (metaHeaderDataSet.elements.hasOwnProperty(propertyName)) {
         instanceDataSet.elements[propertyName] = metaHeaderDataSet.elements[propertyName];
@@ -116,7 +127,7 @@ export default function parseDicom (byteArray, options) {
     return instanceDataSet;
   }
 
-  function readDataSet (metaHeaderDataSet) {
+  function readDataSet(metaHeaderDataSet) {
     const transferSyntax = readTransferSyntax(metaHeaderDataSet);
     const explicit = isExplicit(transferSyntax);
     const dataSetByteStream = getDataSetByteStream(transferSyntax, metaHeaderDataSet.position);
@@ -145,7 +156,7 @@ export default function parseDicom (byteArray, options) {
   }
 
   // main function here
-  function parseTheByteStream () {
+  function parseTheByteStream() {
     const metaHeaderDataSet = readPart10Header(byteArray, options);
     const dataSet = readDataSet(metaHeaderDataSet);
 
@@ -155,3 +166,5 @@ export default function parseDicom (byteArray, options) {
   // This is where we actually start parsing
   return parseTheByteStream();
 }
+
+export { LEI, LEE, BEI };
