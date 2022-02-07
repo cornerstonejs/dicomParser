@@ -121,7 +121,7 @@ declare module 'dicom-parser' {
   export interface ParseDicomOptions {
     untilTag?: string;
     vrCallback?: (tag: string) => void;
-    inflater: (arr: Uint8Array, position: number) => void;
+    inflater?: (arr: Uint8Array, position: number) => void;
   }
 
   export function parseDicom(arr: Uint8Array, option?: ParseDicomOptions): DataSet
