@@ -44,7 +44,7 @@ the Deflated Explicit VR Little Endian transfer syntax
 Usage
 -----
 
-```
+```javascript
 // create a Uint8Array or node.js Buffer with the contents of the DICOM P10 byte stream
 // you want to parse (e.g. XMLHttpRequest to a WADO server)
 var arrayBuffer = new ArrayBuffer(bufferSize);
