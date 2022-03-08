@@ -522,9 +522,9 @@ function dumpDataSet(dataSet, output)
                             color = '#C8C8C8';
                             // If it is some other length and we have no string
                             if(element.length === 2) {
-                                text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " as uint16: " +dataSet.uint16(propertyName);
+                                text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " as uint16: " +dataSet.uint16(propertyName) + "</i>";
                             } else if(element.length === 4) {
-                                text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " as uint32: " +dataSet.uint32(propertyName);
+                                text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " as uint32: " +dataSet.uint32(propertyName) + "</i>";
                             } else {
                                 text += "<i>" + dataDownloadLink(element, "binary data") + " of length " + element.length + " and VR " + vr + "</i>";
                             }
