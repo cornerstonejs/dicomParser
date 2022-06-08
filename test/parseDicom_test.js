@@ -220,4 +220,21 @@ describe('parseDicom', () => {
     expect(dataSet.string('x00201041')).to.equal('-43');
   });
 
+  it('should parse a truncated byte array and return all parsed elements in the exception (explicitLittleEndian)', () => {
+    // Arrange
+    const byteArray = makeExplicitLittleEndianTestData();
+    // Truncate between x00201041 and x00280010
+    const partialByteArray = byteArray.slice(0, 320)
+
+    // Act
+    try {
+      const dataSet = parseDicom(partialByteArray);
+    } catch (err) {
+      // Assert
+      assertMetaHeaderElements(err.dataSet, '1.2.840.10008.1.2.1', 159);
+      expect(err.dataSet.string('x00020010')).to.equal('1.2.840.10008.1.2.1')
+      expect(err.dataSet.string('x00201041')).to.equal('-43');
+      // expect(err.dataSet.uint16('x00280010')).to.equal(512);
+    }
+  });
 });
