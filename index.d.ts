@@ -119,6 +119,7 @@ declare module 'dicom-parser' {
   }
 
   export interface ParseDicomOptions {
+    TransferSyntaxUID?: string;
     untilTag?: string;
     vrCallback?: (tag: string) => void;
     inflater?: (arr: Uint8Array, position: number) => void;
