@@ -238,4 +238,67 @@ describe('readDicomElementImplicit', () => {
     expect(element.length).to.equal(11);
   });
 
+  it('private sequence with explicit length is skipped', () => {
+    // Arrange
+    // (0009,0006)                       length: 26
+    const bytes = [0x09, 0x00, 0x06, 0x00, 0x1a, 0x00, 0x00, 0x00,
+      // (fffe,e000)                     length: undefined
+      0xfe, 0xff, 0x00, 0xe0, 0xff, 0xff, 0xff, 0xff,
+      // (0008,0018)                      length: 2   'B'
+      0x08, 0x00, 0x18, 0x00, 0x02, 0x00, 0x00, 0x00, 0x42, 0x20,
+      // (fffe,e00d)                     length: 0
+      0xfe, 0xff, 0x0d, 0xe0, 0x00, 0x00, 0x00, 0x00,
+      // (0008,0100)                      length: 2   'A'
+      0x08, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00, 0x41, 0x20,
+    ];
+
+    const byteStream = new ByteStream(littleEndianByteArrayParser, convertToByteArray(bytes));
+
+    // Act
+    const element = readDicomElementImplicit(byteStream);
+
+    // Assert
+    expect(element.tag).to.equal('x00090006');
+    expect(element.items).to.equal(undefined);
+    expect(element.length).to.equal(26);
+
+    // Read the next element
+    const nextElement = readDicomElementImplicit(byteStream);
+    expect(nextElement.tag).to.equal('x00080100');
+    expect(nextElement.length).to.equal(2);
+  });
+
+  it('private sequence with implicit length is skipped', () => {
+    // Arrange
+    // (0009,0006)                       length: undefined
+    const bytes = [0x09, 0x00, 0x06, 0x00, 0xff, 0xff, 0xff, 0xff,
+      // (fffe,e000)                     length: undefined
+      0xfe, 0xff, 0x00, 0xe0, 0xff, 0xff, 0xff, 0xff,
+      // (0008,0018)                      length: 4   'ABC '
+      0x08, 0x00, 0x18, 0x00, 0x04, 0x00, 0x00, 0x00, 0x41, 0x42, 0x43, 0x20,
+      // (fffe,e00d)                     length: 0
+      0xfe, 0xff, 0x0d, 0xe0, 0x00, 0x00, 0x00, 0x00,
+      // (fffe,e0dd)                     length: 0
+      0xfe, 0xff, 0xdd, 0xe0, 0x00, 0x00, 0x00, 0x00,
+      // (0008,0100)                      length: 2   'A'
+      0x08, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00, 0x41, 0x20,
+    ];
+
+    const byteStream = new ByteStream(littleEndianByteArrayParser, convertToByteArray(bytes));
+
+    // Act
+    const element = readDicomElementImplicit(byteStream);
+
+    // Assert
+    expect(element.tag).to.equal('x00090006');
+    expect(element.items).to.equal(undefined);
+    expect(element.length).to.equal(28);
+
+    // Read the next element
+    const nextElement = readDicomElementImplicit(byteStream);
+    expect(nextElement.tag).to.equal('x00080100');
+    expect(nextElement.length).to.equal(2);
+  });
+
+
 });

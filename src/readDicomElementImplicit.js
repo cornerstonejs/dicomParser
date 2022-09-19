@@ -52,9 +52,14 @@ export default function readDicomElementImplicit (byteStream, untilTag, vrCallba
     return element;
   }
 
-  if (isSequence(element, byteStream, vrCallback) && !isPrivateTag(element.tag)) {
+  // always parse sequences with undefined lengths, since there's no other way to know how long they are.
+  if (isSequence(element, byteStream, vrCallback) && (!isPrivateTag(element.tag) || element.hadUndefinedLength)) {
     // parse the sequence
     readSequenceItemsImplicit(byteStream, element);
+
+    if (isPrivateTag(element.tag)) {
+      element.items = undefined;
+    }
 
     return element;
   }
