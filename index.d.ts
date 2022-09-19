@@ -95,13 +95,13 @@ declare module 'dicom-parser' {
     attributeTag: (tag: string) => string | undefined;
   }
 
-  export interface ByteStream {
+  export class ByteStream {
     byteArray: ByteArray;
     byteArrayParser: ByteArrayParser;
     position: number;
     warnings: string[];
  
-    new (byteArrayParser: ByteArrayParser, byteArray: ByteArray, position: number): ByteStream;
+    constructor(byteArrayParser: ByteArrayParser, byteArray: ByteArray, position: number): ByteStream;
     seek: (offset: number) => void;
     readByteStream: (numBytes: number) => ByteStream;
     readUint16: () => number;
