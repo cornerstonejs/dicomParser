@@ -41,11 +41,14 @@ const isStringVr = (vr) => stringVrs[vr];
  * Tests to see if a given tag in the format xggggeeee is a private tag or not
  * @param tag
  * @returns {boolean}
+ * @throws error if fourth character cannot be parsed
  */
 const isPrivateTag = (tag) => {
-  const lastGroupDigit = parseInt(tag[4], 10);
+  const lastGroupDigit = parseInt(tag[4], 16);
+  if (isNaN(lastGroupDigit)) {
+    throw 'dicomParser.isPrivateTag: cannot parse last character of group';
+  }
   const groupIsOdd = (lastGroupDigit % 2) === 1;
-
 
   return groupIsOdd;
 };
