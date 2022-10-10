@@ -80,8 +80,8 @@ algorithms that DICOM supports.  If you are interested in displaying images, ple
 [cornerstoneWADOImageLoader](https://github.com/cornerstonejs/cornerstoneWADOImageLoader) which uses this
 library to extract the pixel data from DICOM files and display the images with
 [cornerstone library](https://github.com/cornerstonejs/cornerstone).
-You can find the actual code that extracts grayscale pixel data using this library
-[here](https://github.com/cornerstonejs/cornerstoneWADOImageLoader/blob/master/src/makeGrayscaleImage.js).
+You can find the actual code that extracts pixel data using this library
+[here](https://github.com/cornerstonejs/cornerstoneWADOImageLoader/blob/master/src/imageLoader/createImage.js).
 
 Options
 -------
