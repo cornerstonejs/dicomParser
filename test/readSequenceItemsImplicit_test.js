@@ -48,6 +48,7 @@ describe('readSequenceItemsImplicit', () => {
 
     expect(pixelData).to.be.ok;
     expect(pixelData.length).to.equal(8);
+    expect(pixelData.vr).to.equal('OW');
     expect(sequenceItem.dataSet.elements['xfffee00d']).to.be.ok;
     expect(byteStream.warnings.length).to.equal(0);
   });
@@ -115,6 +116,7 @@ describe('readSequenceItemsImplicit', () => {
 
     expect(pixelData).to.be.ok;
     expect(pixelData.length).to.equal(8);
+    expect(pixelData.vr).to.equal('OW');
     expect(byteStream.warnings.length).to.equal(0);
   });
 
@@ -148,6 +150,7 @@ describe('readSequenceItemsImplicit', () => {
 
     expect(pixelData).to.be.ok;
     expect(pixelData.length).to.equal(8);
+    expect(pixelData.vr).to.equal('OW');
     expect(byteStream.warnings.length).to.equal(0);
   });
 

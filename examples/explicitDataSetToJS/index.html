@@ -29,7 +29,9 @@
         </p>
         <p>
             This example illustrates how to recursively iterate over a parsed data set to dump all data elements
-            into a tree like structure using the explicitDataSetToJS utility function.  Note that DICOM files dropped here are not uploaded anywhere, all processing
+            into a tree like structure using the explicitDataSetToJS utility function.  This example parses using 
+            a data dictionary via the vrCallback option in order to use explicitDataSetToJS even with implicit 
+            VR data sets.  Note that DICOM files dropped here are not uploaded anywhere, all processing
             is done inside your web browser in Javascript.
         </p>
         <strong>Use of this example require IE10+ or any other modern browser.</strong>
@@ -59,6 +61,7 @@
 
 <!-- include the dicomParser library -->
 <script src="../../dist/dicomParser.js"></script>
+<script src="../dataDictionary.js"></script>
 <script>window.dicomParser || document.write('<script src="https://unpkg.com/dicom-parser">\x3C/script>')</script>
 
 <!-- jquery - included to make things easier to demo, not needed by dicomParser -->
@@ -138,11 +141,14 @@
             // set a short timeout to do the parse so the DOM has time to update itself with the above message
             setTimeout(function() {
 
-                // Invoke the paresDicom function and get back a DataSet object with the contents
+                // Invoke the parseDicom function and get back a DataSet object with the contents
                 var dataSet;
                 try {
                     var start = new Date().getTime();
-                    dataSet = dicomParser.parseDicom(byteArray);
+                    dataSet = dicomParser.parseDicom(byteArray, { vrCallback(tag) {
+                        const formatted = `(${tag.substr(1, 4).toUpperCase()},${tag.substr(5,9).toUpperCase()})`;
+                        return !!TAG_DICT[formatted] ? TAG_DICT[formatted].vr : undefined;
+                    }});
 
                     var options = {
                         omitPrivateAttibutes :false ,

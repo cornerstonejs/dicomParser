@@ -178,6 +178,7 @@ describe('readDicomElementImplicit', () => {
     // Assert
     expect(element.tag).to.equal('x7fe00010');
     expect(element.items).to.equal(undefined);
+    expect(element.vr).to.equal('OW');
     expect(element.length).to.equal(8);
   });
 
@@ -235,6 +236,7 @@ describe('readDicomElementImplicit', () => {
     // Assert
     expect(element.tag).to.equal('x7fe00010');
     expect(element.items).to.equal(undefined);
+    expect(element.vr).to.equal('OW');
     expect(element.length).to.equal(11);
   });
 

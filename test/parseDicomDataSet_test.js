@@ -104,6 +104,7 @@ describe('parseDicomDataSet', () => {
  
       expect(element).to.be.ok;
       expect(element.items).to.be.undefined;
+      expect(element.vr).to.equal('OW');
       expect(element.length).to.equal(8);
     });
 
