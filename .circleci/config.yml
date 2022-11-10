@@ -1,9 +1,14 @@
-version: 2
+version: 2.1
+
+orbs:
+  browser-tools: circleci/browser-tools@1.4.0
 
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: circleci/node:16.13
+    - image: cimg/node:16.18-browsers
+      environment:
+        NODE_ENV: development 
 
 jobs:
   test:
@@ -13,15 +18,15 @@ jobs:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package.json" }}
-            - v1-dependencies-
       - run: npm install
       - run: npm run build:ci
+      - browser-tools/install-browser-tools
       - save_cache:
           paths:
             - node_modules
+            - ~/.cache/puppeteer
           key: v1-dependencies-{{ checksum "package.json" }}
-      # TODO: Support for unit tests in status check
-      # - run: npm run test
+      - run: npm run test
 
   # Publish latest
   deploy:
