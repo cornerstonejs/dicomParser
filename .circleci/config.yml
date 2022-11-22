@@ -17,7 +17,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-{{ checksum "package-lock.json" }}
       - run: npm install
       - run: npm run build:ci
       - browser-tools/install-browser-tools
@@ -25,7 +25,7 @@ jobs:
           paths:
             - node_modules
             - ~/.cache/puppeteer
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
       - run: npm run test
 
   # Publish latest
