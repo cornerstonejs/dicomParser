@@ -101,7 +101,7 @@ declare module 'dicom-parser' {
     position: number;
     warnings: string[];
  
-    constructor(byteArrayParser: ByteArrayParser, byteArray: ByteArray, position: number): ByteStream;
+    constructor(byteArrayParser: ByteArrayParser, byteArray: ByteArray, position: number);
     seek: (offset: number) => void;
     readByteStream: (numBytes: number) => ByteStream;
     readUint16: () => number;
