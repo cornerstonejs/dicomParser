@@ -48,7 +48,8 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
       - run:
           name: Publish package
-          command: npx semantic-release
+          command: npx semantic-release@19.0.5
+
 
 workflows:
   version: 2
