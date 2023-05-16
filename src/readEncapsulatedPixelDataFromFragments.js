@@ -94,6 +94,9 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
   // tag + length
   const fragmentHeaderSize = 8;
 
+  return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
+
+/*
   // if there is only one fragment, return a view on this array to avoid copying
   if (numFragments === 1) {
     return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
@@ -113,4 +116,5 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
   }
 
   return pixelData;
+*/
 }
