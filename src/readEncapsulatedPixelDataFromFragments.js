@@ -103,7 +103,6 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
   if (numFragments === 1) {
     return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
   }
-
   // more than one fragment, combine all of the fragments into one buffer
   const bufferSize = calculateBufferSize(fragments, startFragmentIndex, numFragments);
   const pixelData = alloc(byteStream.byteArray, bufferSize);
