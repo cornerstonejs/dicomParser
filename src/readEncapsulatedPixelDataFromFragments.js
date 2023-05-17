@@ -30,6 +30,8 @@ const calculateBufferSize = (fragments, startFragment, numFragments) => {
  */
 export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDataElement, startFragmentIndex, numFragments, fragments) {
   // default values
+  console.log("_____> in readEncapsulatedPixelDataFromFragments in dicomparser<_____ ");
+
   numFragments = numFragments || 1;
   fragments = fragments || pixelDataElement.fragments;
 
@@ -94,8 +96,6 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
   // tag + length
   const fragmentHeaderSize = 8;
 
-  console.log("_____> in readEncapsulatedPixelDataFromFragments in dicomparser<_____ ");
-
   return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
 
 /*
@@ -103,7 +103,6 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
   if (numFragments === 1) {
     return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
   }
-
   // more than one fragment, combine all of the fragments into one buffer
   const bufferSize = calculateBufferSize(fragments, startFragmentIndex, numFragments);
   const pixelData = alloc(byteStream.byteArray, bufferSize);

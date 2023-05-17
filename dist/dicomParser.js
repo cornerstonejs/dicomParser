@@ -1,4 +1,4 @@
-/*! dicom-parser - 1.8.12 - 2023-05-16 | (c) 2017 Chris Hafey | https://github.com/cornerstonejs/dicomParser */
+/*! dicom-parser - 1.8.12 - 2023-05-17 | (c) 2017 Chris Hafey | https://github.com/cornerstonejs/dicomParser */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory(require("zlib"));
@@ -74,7 +74,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "eb436c1a1e6a98340a45";
+/******/ 	var hotCurrentHash = "39bfcea76518f416daa3";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -2707,6 +2707,7 @@ var calculateBufferSize = function calculateBufferSize(fragments, startFragment,
  */
 function readEncapsulatedPixelDataFromFragments(dataSet, pixelDataElement, startFragmentIndex, numFragments, fragments) {
   // default values
+  console.log("_____> in readEncapsulatedPixelDataFromFragments in dicomparser<_____ ");
   numFragments = numFragments || 1;
   fragments = fragments || pixelDataElement.fragments;
 
@@ -2767,7 +2768,6 @@ function readEncapsulatedPixelDataFromFragments(dataSet, pixelDataElement, start
 
   // tag + length
   var fragmentHeaderSize = 8;
-  console.log("_____> in readEncapsulatedPixelDataFromFragments in dicomparser<_____ ");
   return Object(_sharedCopy_js__WEBPACK_IMPORTED_MODULE_3__["default"])(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
 
   /*
@@ -2775,7 +2775,6 @@ function readEncapsulatedPixelDataFromFragments(dataSet, pixelDataElement, start
     if (numFragments === 1) {
       return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
     }
-  
     // more than one fragment, combine all of the fragments into one buffer
     const bufferSize = calculateBufferSize(fragments, startFragmentIndex, numFragments);
     const pixelData = alloc(byteStream.byteArray, bufferSize);
