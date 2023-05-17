@@ -94,6 +94,8 @@ export default function readEncapsulatedPixelDataFromFragments (dataSet, pixelDa
   // tag + length
   const fragmentHeaderSize = 8;
 
+  console.log("_____> in readEncapsulatedPixelDataFromFragments in dicomparser<_____ ");
+
   return sharedCopy(byteStream.byteArray, fragmentZeroPosition + fragments[startFragmentIndex].offset + fragmentHeaderSize, fragments[startFragmentIndex].length);
 
 /*
