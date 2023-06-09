@@ -16,9 +16,7 @@ export default function sharedCopy (byteArray, byteOffset, length) {
   if (typeof Buffer !== 'undefined' && byteArray instanceof Buffer) {
     return byteArray.slice(byteOffset, byteOffset + length);
   } else if (byteArray instanceof Uint8Array) {
-    console.log(' -----> in byte Array');
-    // return new Uint8Array(byteArray.buffer, byteArray.byteOffset + byteOffset, length);
-    return new Uint8Array(byteArray.buffer.slice(byteArray.byteOffset + byteOffset, byteArray.byteOffset + byteOffset + length));    
+    return new Uint8Array(byteArray.buffer, byteArray.byteOffset + byteOffset, length);
   }
   throw 'dicomParser.from: unknown type for byteArray';
 }
