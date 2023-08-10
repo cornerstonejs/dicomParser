@@ -6,7 +6,7 @@ declare module 'dicom-parser' {
    * 
    * The `x` at the start is here to allow property access without requiring the use of the index access syntax.
    */
-  export type Tag = `x${string}`;
+  export type Tag = `x${string}` | string;
 
   export const enum VR {
     /** Application Entity */ 
