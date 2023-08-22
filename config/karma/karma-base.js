@@ -12,9 +12,9 @@ delete webpackConfig.output.library;
 webpackConfig.module.rules.push({
   test: /\.js$/,
   include: path.resolve('./src/'),
-  loader: 'istanbul-instrumenter-loader',
-  query: {
-    esModules: true
+  loader: 'babel-loader',
+  options: {
+    plugins: ['babel-plugin-istanbul']
   }
 });
 
