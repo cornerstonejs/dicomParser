@@ -1,6 +1,6 @@
 const webpack = require('webpack');
-const merge = require('./merge');
-const baseConfig = require('./webpack-base');
+const merge = require('./merge.cjs');
+const baseConfig = require('./webpack-base.cjs');
 
 const devConfig = {
   devServer: {

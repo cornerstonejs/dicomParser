@@ -2,7 +2,7 @@ const path = require('path');
 const rootPath = process.cwd();
 const context = path.join(rootPath, "src");
 const outputPath = path.join(rootPath, 'dist');
-const bannerPlugin = require(path.join(__dirname, 'plugins', 'banner.js'));
+const bannerPlugin = require(path.join(__dirname, 'plugins', 'banner.cjs'));
 
 module.exports = {
   mode: 'development',

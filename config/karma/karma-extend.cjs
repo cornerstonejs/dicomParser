@@ -1,4 +1,4 @@
-const baseConfig = require('./karma-base.js');
+const baseConfig = require('./karma-base.cjs');
 
 module.exports = function (extendedConfig) {
   'use strict';

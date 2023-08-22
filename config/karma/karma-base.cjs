@@ -1,5 +1,5 @@
 const path = require('path');
-const webpackConfig = require('../webpack');
+const webpackConfig = require('../webpack/index.cjs');
 
 /* eslint no-process-env:0 */
 process.env.CHROME_BIN = require('puppeteer').executablePath();
@@ -12,16 +12,13 @@ delete webpackConfig.output.library;
 webpackConfig.module.rules.push({
   test: /\.js$/,
   include: path.resolve('./src/'),
-  loader: 'babel-loader',
-  options: {
-    plugins: ['babel-plugin-istanbul']
-  }
+  loader: 'babel-loader'
 });
 
 module.exports = {
   basePath: '../../',
   frameworks: ['mocha'],
-  reporters: ['progress', 'coverage'],
+  reporters: ['progress'],
   files: [
     'test/**/*_test.js'
   ],
@@ -30,8 +27,7 @@ module.exports = {
     'karma-webpack',
     'karma-mocha',
     'karma-chrome-launcher',
-    'karma-firefox-launcher',
-    'karma-coverage'
+    'karma-firefox-launcher'
   ],
 
   preprocessors: {
@@ -48,15 +44,5 @@ module.exports = {
       timings: false,
       errorDetails: true
     }
-  },
-
-  coverageReporter: {
-    dir: './coverage',
-    reporters: [
-      {type: 'html', subdir: 'html'},
-      {type: 'lcov', subdir: '.'},
-      {type: 'text', subdir: '.', file: 'text.txt'},
-      {type: 'text-summary', subdir: '.', file: 'text-summary.txt'}
-    ]
   }
 };
