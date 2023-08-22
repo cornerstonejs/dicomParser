@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import ByteStream from '../src/byteStream';
-import readDicomElementExplicit from '../src/readDicomElementExplicit';
-import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser';
+import ByteStream from '../src/byteStream.js';
+import readDicomElementExplicit from '../src/readDicomElementExplicit.js';
+import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
 
 function testFourByteLength(vr) {
     // Arrange

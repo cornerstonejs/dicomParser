@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import ByteStream from '../src/byteStream';
-import readDicomElementImplicit from '../src/readDicomElementImplicit';
-import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser';
+import ByteStream from '../src/byteStream.js';
+import readDicomElementImplicit from '../src/readDicomElementImplicit.js';
+import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
 
 describe('readDicomElementImplicit', () => {
 

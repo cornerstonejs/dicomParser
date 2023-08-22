@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import bigEndianByteArrayParser from '../src/bigEndianByteArrayParser';
+import bigEndianByteArrayParser from '../src/bigEndianByteArrayParser.js';
 
 describe('bigEndianByteArrayParser', () => {
 

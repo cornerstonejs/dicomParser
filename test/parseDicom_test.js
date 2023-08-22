@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import parseDicom from '../src/parseDicom';
+import parseDicom from '../src/parseDicom.js';
 
 describe('parseDicom', () => {
 

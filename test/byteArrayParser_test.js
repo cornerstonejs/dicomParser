@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import * as byteArrayParser from '../src/byteArrayParser';
+import * as byteArrayParser from '../src/byteArrayParser.js';
 
 describe('byteArrayParser', () => {
 

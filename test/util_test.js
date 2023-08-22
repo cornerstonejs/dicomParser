@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import * as util from '../src/util';
+import * as util from '../src/util/index.js';
 
 describe('util', () => {
 

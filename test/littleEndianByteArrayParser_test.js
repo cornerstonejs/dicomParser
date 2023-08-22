@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser';
+import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
 
 describe('littleEndianByteArrayParser', () => {
 

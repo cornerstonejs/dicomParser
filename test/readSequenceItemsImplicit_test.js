@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import ByteStream from '../src/byteStream';
-import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser';
-import readSequenceItemsImplicit from '../src/readSequenceElementImplicit';
+import ByteStream from '../src/byteStream.js';
+import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
+import readSequenceItemsImplicit from '../src/readSequenceElementImplicit.js';
 
 describe('readSequenceItemsImplicit', () => {
 

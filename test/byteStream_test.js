@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import ByteStream from '../src/byteStream';
-import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser';
-import bigEndianByteArrayParser from '../src/bigEndianByteArrayParser';
+import ByteStream from '../src/byteStream.js';
+import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
+import bigEndianByteArrayParser from '../src/bigEndianByteArrayParser.js';
 
 describe('ByteStream', () => {
 

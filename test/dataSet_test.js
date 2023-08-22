@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import ByteStream from '../src/byteStream'
-import DataSet from '../src/dataSet';
-import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser';
-import bigEndianByteArrayParser from '../src/bigEndianByteArrayParser';
-import * as dicomDataSetParsers from '../src/parseDicomDataSet';
+import ByteStream from '../src/byteStream.js';
+import DataSet from '../src/dataSet.js';
+import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
+import bigEndianByteArrayParser from '../src/bigEndianByteArrayParser.js';
+import * as dicomDataSetParsers from '../src/parseDicomDataSet.js';
 
 describe('DataSet', () => {
 
