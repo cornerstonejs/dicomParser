@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect } from '@esm-bundle/chai';
 import * as byteArrayParser from '../src/byteArrayParser.js';
 
 describe('byteArrayParser', () => {

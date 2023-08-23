@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect } from '@esm-bundle/chai';
 import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
 
 describe('littleEndianByteArrayParser', () => {

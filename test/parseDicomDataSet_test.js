@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect } from '@esm-bundle/chai';
 import DataSet from '../src/dataSet.js';
 import ByteStream from '../src/byteStream.js';
 import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';

@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect } from '@esm-bundle/chai';
 import * as util from '../src/util/index.js';
 
 describe('util', () => {
