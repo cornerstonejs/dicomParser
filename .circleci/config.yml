@@ -6,7 +6,7 @@ orbs:
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: cimg/node:16.18-browsers
+    - image: cimg/node:lts-browsers
       environment:
         NODE_ENV: development 
 
@@ -48,7 +48,7 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
       - run:
           name: Publish package
-          command: npx semantic-release@19.0.5
+          command: npx semantic-release
 
 
 workflows:

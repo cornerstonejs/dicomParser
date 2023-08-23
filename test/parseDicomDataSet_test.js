@@ -1,8 +1,8 @@
-import { expect } from 'chai';
-import DataSet from '../src/dataSet';
-import ByteStream from '../src/byteStream';
-import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser';
-import * as dicomDataSetParsers from '../src/parseDicomDataSet';
+import { expect } from '@esm-bundle/chai';
+import DataSet from '../src/dataSet.js';
+import ByteStream from '../src/byteStream.js';
+import littleEndianByteArrayParser from '../src/littleEndianByteArrayParser.js';
+import * as dicomDataSetParsers from '../src/parseDicomDataSet.js';
 
 describe('parseDicomDataSet', () => {
 
