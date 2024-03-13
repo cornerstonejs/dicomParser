@@ -12,8 +12,8 @@ Live Examples
 
 The best way to see the power of this library is to actually see it in use.  A number of live examples are
 included that are not only useful but also show how to use dicomParser.
-[Click here for a list of all live examples](https://rawgithub.com/cornerstonejs/dicomParser/master/examples/index.html)
-Make sure you try out the [DICOM Dump with Data Dictionary](https://rawgit.com/cornerstonejs/dicomParser/master/examples/dumpWithDataDictionary/index.html)
+[Click here for a list of all live examples](https://cornerstonejs.github.io/dicomParser/examples/index.html)
+Make sure you try out the [DICOM Dump with Data Dictionary](https://cornerstonejs.github.io/dicomParser/examples/dumpWithDataDictionary/index.html)
 which is a very useful tool and excellent example of most features.
 
 Community
@@ -72,7 +72,7 @@ catch(ex)
 }
 ```
 
-[See the live examples for more in depth usage of the library](https://rawgithub.com/cornerstonejs/dicomParser/master/examples/index.html)
+[See the live examples for more in depth usage of the library](https://cornerstonejs.github.io/dicomParser/examples/index.html)
 
 Note that actually displaying DICOM images is quite complex due to the variety of pixel formats and compression
 algorithms that DICOM supports.  If you are interested in displaying images, please take a look at the
@@ -80,8 +80,8 @@ algorithms that DICOM supports.  If you are interested in displaying images, ple
 [cornerstoneWADOImageLoader](https://github.com/cornerstonejs/cornerstoneWADOImageLoader) which uses this
 library to extract the pixel data from DICOM files and display the images with
 [cornerstone library](https://github.com/cornerstonejs/cornerstone).
-You can find the actual code that extracts grayscale pixel data using this library
-[here](https://github.com/cornerstonejs/cornerstoneWADOImageLoader/blob/master/src/makeGrayscaleImage.js).
+You can find the actual code that extracts pixel data using this library
+[here](https://github.com/cornerstonejs/cornerstoneWADOImageLoader/blob/master/src/imageLoader/createImage.js).
 
 Options
 -------

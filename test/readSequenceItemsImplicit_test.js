@@ -28,7 +28,7 @@ describe('readSequenceItemsImplicit', () => {
                  0xfe, 0xff, 0xdd, 0xe0, 0x00, 0x00, 0x00, 0x00,
     ];
     const callback = (tag) => {
-      return undefined; // nothing should be interpreted as an SQ
+      return (tag === 'x7fe00010') ? 'OW' : undefined;
     };
     const byteStream = new ByteStream(littleEndianByteArrayParser, convertToByteArray(bytes));
     const element = { length: 0xFFFFFFFF };
@@ -48,6 +48,7 @@ describe('readSequenceItemsImplicit', () => {
 
     expect(pixelData).to.be.ok;
     expect(pixelData.length).to.equal(8);
+    expect(pixelData.vr).to.equal('OW');
     expect(sequenceItem.dataSet.elements['xfffee00d']).to.be.ok;
     expect(byteStream.warnings.length).to.equal(0);
   });
@@ -95,7 +96,7 @@ describe('readSequenceItemsImplicit', () => {
                  0xfe, 0xff, 0xdd, 0xe0, 0x00, 0x00, 0x00, 0x00,
     ];
     const callback = (tag) => {
-      return undefined; // nothing should be interpreted as an SQ
+      return (tag === 'x7fe00010') ? 'OW' : undefined;
     };
     const byteStream = new ByteStream(littleEndianByteArrayParser, convertToByteArray(bytes));
     const element = { length: 0xFFFFFFFF };
@@ -115,6 +116,7 @@ describe('readSequenceItemsImplicit', () => {
 
     expect(pixelData).to.be.ok;
     expect(pixelData.length).to.equal(8);
+    expect(pixelData.vr).to.equal('OW');
     expect(byteStream.warnings.length).to.equal(0);
   });
 
@@ -128,7 +130,7 @@ describe('readSequenceItemsImplicit', () => {
                  0xfe, 0xff, 0x00, 0xe0, 0x0A, 0x00, 0x00, 0x00,
     ];
     const callback = (tag) => {
-      return undefined; // nothing should be interpreted as an SQ
+      return (tag === 'x7fe00010') ? 'OW' : undefined;
     };
     const byteStream = new ByteStream(littleEndianByteArrayParser, convertToByteArray(bytes));
     const element = {dataOffset: 0, length: 24};
@@ -148,6 +150,7 @@ describe('readSequenceItemsImplicit', () => {
 
     expect(pixelData).to.be.ok;
     expect(pixelData.length).to.equal(8);
+    expect(pixelData.vr).to.equal('OW');
     expect(byteStream.warnings.length).to.equal(0);
   });
 

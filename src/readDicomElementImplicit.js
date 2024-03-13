@@ -7,10 +7,9 @@ import { isPrivateTag } from './util/util.js';
  * Internal helper functions for for parsing DICOM elements
  */
 
-const isSequence = (element, byteStream, vrCallback) => {
-  // if a data dictionary callback was provided, use that to verify that the element is a sequence.
-  if (typeof vrCallback !== 'undefined') {
-    return (vrCallback(element.tag) === 'SQ');
+const isSequence = (element, byteStream) => {
+  if (element.vr !== undefined) {
+    return (element.vr === 'SQ');
   }
 
   if ((byteStream.position + 4) <= byteStream.byteArray.length) {
@@ -35,8 +34,11 @@ export default function readDicomElementImplicit (byteStream, untilTag, vrCallba
     throw 'dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'';
   }
 
+  const tag = readTag(byteStream);
+
   const element = {
-    tag: readTag(byteStream),
+    tag,
+    vr: (vrCallback !== undefined ? vrCallback(tag) : undefined),
     length: byteStream.readUint32(),
     dataOffset: byteStream.position
   };
@@ -49,9 +51,14 @@ export default function readDicomElementImplicit (byteStream, untilTag, vrCallba
     return element;
   }
 
-  if (isSequence(element, byteStream, vrCallback) && !isPrivateTag(element.tag)) {
+  // always parse sequences with undefined lengths, since there's no other way to know how long they are.
+  if (isSequence(element, byteStream) && (!isPrivateTag(element.tag) || element.hadUndefinedLength)) {
     // parse the sequence
-    readSequenceItemsImplicit(byteStream, element);
+    readSequenceItemsImplicit(byteStream, element, vrCallback);
+
+    if (isPrivateTag(element.tag)) {
+      element.items = undefined;
+    }
 
     return element;
   }

@@ -123,7 +123,7 @@
 <script src="../pako.min.js"></script>
 
 <!-- include the data dictionary -->
-<script src="dataDictionary.js"></script>
+<script src="../dataDictionary.js"></script>
 
 <!-- include the uids -->
 <script src="uids.js"></script>
@@ -626,11 +626,15 @@ function dumpFile()
         setTimeout(function() {
             var sha1Hash = sha1(byteArray, 0, byteArray.length);
 
-            // Invoke the paresDicom function and get back a DataSet object with the contents
+            // Invoke the parseDicom function and get back a DataSet object with the contents
             try {
                 var start = new Date().getTime();
                 var options = {
-                    untilTag: untilTag
+                    untilTag: untilTag,
+                    vrCallback(tag) {
+                        const formatted = `(${tag.substring(1, 5).toUpperCase()},${tag.substring(5, 9).toUpperCase()})`;
+                        return !!TAG_DICT[formatted] ? TAG_DICT[formatted].vr : undefined;
+                    }
                 };
 
                 dataSet = dicomParser.parseDicom(byteArray, options);
