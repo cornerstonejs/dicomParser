@@ -53,7 +53,7 @@ export default function readDicomElementExplicit (byteStream, warnings, untilTag
     element.hadUndefinedLength = true;
   }
 
-  if (element.tag === untilTag) {
+  if (element.tag >= untilTag) {
     return element;
   }
 

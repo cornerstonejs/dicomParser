@@ -47,7 +47,7 @@ export default function readDicomElementImplicit (byteStream, untilTag, vrCallba
     element.hadUndefinedLength = true;
   }
 
-  if (element.tag === untilTag) {
+  if (element.tag >= untilTag) {
     return element;
   }
 
