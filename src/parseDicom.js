@@ -7,6 +7,7 @@ import readPart10Header from './readPart10Header.js';
 import sharedCopy from './sharedCopy.js';
 import * as byteArrayParser from './byteArrayParser.js';
 import * as parseDicomDataSet from './parseDicomDataSet.js';
+import {DicomParserError} from "./util/errors";
 
 // LEE (Little Endian Explicit) is the transfer syntax used in dimse operations when there is a split
 // between the header and data.
@@ -26,8 +27,7 @@ const BEI = '1.2.840.10008.1.2.2';
  * @param byteArray the byte array
  * @param options object to control parsing behavior (optional)
  * @returns {DataSet}
- * @throws error if an error occurs while parsing.  The exception object will contain a
- *         property dataSet with the elements successfully parsed before the error.
+ * @throws {DicomParserError} an error occurs while parsing, check the `clause` property to get the original error.
  */
 
 export default function parseDicom(byteArray, options = {}) {
@@ -143,13 +143,8 @@ export default function parseDicom(byteArray, options = {}) {
       } else {
         parseDicomDataSet.parseDicomDataSetImplicit(dataSet, dataSetByteStream, dataSetByteStream.byteArray.length, options);
       }
-    } catch (e) {
-      const ex = {
-        exception: e,
-        dataSet
-      };
-
-      throw ex;
+    } catch (error) {
+      throw new DicomParserError(dataSet, error);
     }
 
     return dataSet;
