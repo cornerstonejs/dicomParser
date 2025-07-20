@@ -1,4 +1,5 @@
 import readTag from './readTag.js';
+import { missingParameter } from './util/errors.js';
 
 /**
  * Internal helper functions for parsing DICOM elements
@@ -13,11 +14,11 @@ import readTag from './readTag.js';
  */
 export default function findEndOfEncapsulatedElement (byteStream, element, warnings) {
   if (byteStream === undefined) {
-    throw 'dicomParser.findEndOfEncapsulatedElement: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   if (element === undefined) {
-    throw 'dicomParser.findEndOfEncapsulatedElement: missing required parameter \'element\'';
+    throw new TypeError(missingParameter('element'));
   }
 
   element.encapsulatedPixelData = true;
@@ -27,7 +28,7 @@ export default function findEndOfEncapsulatedElement (byteStream, element, warni
   const basicOffsetTableItemTag = readTag(byteStream);
 
   if (basicOffsetTableItemTag !== 'xfffee000') {
-    throw 'dicomParser.findEndOfEncapsulatedElement: basic offset table not found';
+    throw new Error('Failed to find end of encapsulated element, basic offset table not found in byteStream');
   }
 
   const basicOffsetTableItemlength = byteStream.readUint32();
@@ -45,6 +46,7 @@ export default function findEndOfEncapsulatedElement (byteStream, element, warni
 
   while (byteStream.position < byteStream.byteArray.length) {
     const tag = readTag(byteStream);
+
     let length = byteStream.readUint32();
 
     if (tag === 'xfffee0dd') {

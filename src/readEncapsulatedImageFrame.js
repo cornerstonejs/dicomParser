@@ -1,4 +1,5 @@
 import readEncapsulatedPixelDataFromFragments from './readEncapsulatedPixelDataFromFragments.js';
+import { invalidParameter, missingParameter } from './util/errors.js';
 
 /**
  * Functionality for extracting encapsulated pixel data
@@ -27,7 +28,7 @@ const calculateNumberOfFragmentsForFrame = (frameIndex, basicOffsetTable, fragme
     }
   }
 
-  throw 'dicomParser.calculateNumberOfFragmentsForFrame: could not find fragment with offset matching basic offset table';
+  throw new Error('Failed to compute number of fragments for frame: could not find fragment with offset matching basic offset table.');
 };
 
 /**
@@ -39,7 +40,7 @@ const calculateNumberOfFragmentsForFrame = (frameIndex, basicOffsetTable, fragme
  *
  * @param dataSet - the dataSet containing the encapsulated pixel data
  * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
- * @param frameIndex - the zero based frame index
+ * @param {number} frameIndex - the zero based frame index
  * @param [basicOffsetTable] - optional array of starting offsets for frames
  * @param [fragments] - optional array of objects describing each fragment (offset, position, length)
  * @returns {object} with the encapsulated pixel data
@@ -51,37 +52,42 @@ export default function readEncapsulatedImageFrame (dataSet, pixelDataElement, f
 
   // Validate parameters
   if (dataSet === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: missing required parameter \'dataSet\'';
+    throw new TypeError(missingParameter('dataSet'));
   }
   if (pixelDataElement === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: missing required parameter \'pixelDataElement\'';
+    throw new TypeError(missingParameter('pixelDataElement'));
   }
   if (frameIndex === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: missing required parameter \'frameIndex\'';
+    throw new TypeError(missingParameter('frameIndex'));
   }
   if (basicOffsetTable === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' does not have basicOffsetTable';
+    throw new TypeError(invalidParameter('pixelDataElement', 'missing required property \'basicOffsetTable\''));
   }
   if (pixelDataElement.tag !== 'x7fe00010') {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to non pixel data tag (expected tag = x7fe00010)';
+    // PR question : should this be a warning, and we fall back to x7fe00010 anyway ?
+    throw new TypeError(invalidParameter(
+      'pixelDataElement',
+      `'tag' property refers to non pixel data tag, should be 'x7fe00010', got '${pixelDataElement.tag}'`
+    ));
   }
-  if (pixelDataElement.encapsulatedPixelData !== true) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (pixelDataElement.hadUndefinedLength !== true) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have undefined length';
-  }
-  if (pixelDataElement.fragments === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'pixelDataElement\' refers to pixel data element that does not have fragments';
+  if (
+    pixelDataElement.encapsulatedPixelData !== true ||
+      pixelDataElement.hadUndefinedLength !== true ||
+      pixelDataElement.fragments === undefined
+  ) {
+    // PR question : this can only originate from a defect in dicomParser, should it be signified in the error message
+    // and should we take any kind of action ?
+    throw new Error('Tried to read non-encapsulated pixel data as if it was encapsulated.');
   }
   if (basicOffsetTable.length === 0) {
-    throw 'dicomParser.readEncapsulatedImageFrame: basicOffsetTable has zero entries';
+    throw new RangeError(invalidParameter('basicOffsetTable', 'table has no entry.'));
   }
-  if (frameIndex < 0) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'frameIndex\' must be >= 0';
-  }
-  if (frameIndex >= basicOffsetTable.length) {
-    throw 'dicomParser.readEncapsulatedImageFrame: parameter \'frameIndex\' must be < basicOffsetTable.length';
+  if (frameIndex < 0 || basicOffsetTable.length <= frameIndex) {
+    throw new RangeError(invalidParameter(
+      'frameIndex',
+      `should map into the basic offset table [0..${basicOffsetTable.length - 1}], got ${
+        frameIndex.toString(10)}.`
+    ));
   }
 
   // find starting fragment based on the offset for the frame in the basic offset table
@@ -89,7 +95,7 @@ export default function readEncapsulatedImageFrame (dataSet, pixelDataElement, f
   const startFragmentIndex = findFragmentIndexWithOffset(fragments, offset);
 
   if (startFragmentIndex === undefined) {
-    throw 'dicomParser.readEncapsulatedImageFrame: unable to find fragment that matches basic offset table entry';
+    throw new RangeError('Failed to find fragment matching basic offset table entry.');
   }
 
   // calculate the number of fragments for this frame

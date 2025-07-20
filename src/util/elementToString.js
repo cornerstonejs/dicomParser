@@ -1,18 +1,26 @@
 import * as util from './util.js';
+import { invalidParameter, missingParameter } from './errors.js';
 
 /**
  * Converts an explicit VR element to a string or undefined if it is not possible to convert.
  * Throws an error if an implicit element is supplied
  * @param dataSet
  * @param element
- * @returns {*}
+ * @returns {string | undefined}
+ * @throws {TypeError} missing parameter or implicit element provided
  */
 export default function explicitElementToString (dataSet, element) {
-  if (dataSet === undefined || element === undefined) {
-    throw 'dicomParser.explicitElementToString: missing required parameters';
+  if (dataSet === undefined) {
+    throw new TypeError(missingParameter('dataSet'));
+  }
+  if (element === undefined) {
+    throw new TypeError(missingParameter('element'));
   }
   if (element.vr === undefined) {
-    throw 'dicomParser.explicitElementToString: cannot convert implicit element to string';
+    throw new TypeError(invalidParameter(
+      'element',
+      'should have a defined \'vr\' property, conversion of implicit element to string is not possible.'
+    ));
   }
   var vr = element.vr;
   var tag = element.tag;

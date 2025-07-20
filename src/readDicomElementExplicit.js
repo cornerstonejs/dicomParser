@@ -1,9 +1,9 @@
 import findEndOfEncapsulatedElement from './findEndOfEncapsulatedPixelData.js';
-import findAndSetUNElementLength from './findAndSetUNElementLength.js';
-import readSequenceItemsImplicit  from './readSequenceElementImplicit.js';
+import readSequenceItemsImplicit from './readSequenceElementImplicit.js';
 import readTag from './readTag.js';
 import findItemDelimitationItemAndSetElementLength from './findItemDelimitationItem.js';
 import readSequenceItemsExplicit from './readSequenceElementExplicit.js';
+import { missingParameter } from './util/errors.js';
 
 /**
  * Internal helper functions for for parsing DICOM elements
@@ -28,7 +28,7 @@ const getDataLengthSizeInBytesForVR = (vr) => {
 
 export default function readDicomElementExplicit (byteStream, warnings, untilTag) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readDicomElementExplicit: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   const element = {

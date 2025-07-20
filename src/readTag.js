@@ -2,6 +2,8 @@
  * Internal helper functions for parsing DICOM elements
  */
 
+import { missingParameter } from './util/errors.js';
+
 /**
  * Reads a tag (group number and element number) from a byteStream
  * @param byteStream the byte stream to read from
@@ -10,7 +12,7 @@
  */
 export default function readTag (byteStream) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readTag: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   const groupNumber = byteStream.readUint16() * 256 * 256;

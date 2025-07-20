@@ -41,12 +41,13 @@ const isStringVr = (vr) => stringVrs[vr];
  * Tests to see if a given tag in the format xggggeeee is a private tag or not
  * @param tag
  * @returns {boolean}
- * @throws error if fourth character cannot be parsed
+ * @throws {Error} fourth character of tag group cannot be parsed
  */
 const isPrivateTag = (tag) => {
   const lastGroupDigit = parseInt(tag[4], 16);
+
   if (isNaN(lastGroupDigit)) {
-    throw 'dicomParser.isPrivateTag: cannot parse last character of group';
+    throw new Error('Failed to parse last character of tag group as hex value');
   }
   const groupIsOdd = (lastGroupDigit % 2) === 1;
 
@@ -54,10 +55,11 @@ const isPrivateTag = (tag) => {
 };
 
 /**
- * Parses a PN formatted string into a javascript object with properties for givenName, familyName, middleName, prefix and suffix
+ * Parses a PN formatted string into a javascript object with properties for givenName, familyName, middleName, prefix
+ * and suffix
  * @param personName a string in the PN VR format
- * @param index
- * @returns {*} javascript object with properties for givenName, familyName, middleName, prefix and suffix or undefined if no element or data
+ * @returns {*} javascript object with properties for givenName, familyName, middleName, prefix and suffix or undefined
+ * if no element or data
  */
 const parsePN = (personName) => {
   if (personName === undefined) {

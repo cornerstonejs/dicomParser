@@ -2,6 +2,7 @@ import findItemDelimitationItemAndSetElementLength from './findItemDelimitationI
 import readSequenceItemsImplicit from './readSequenceElementImplicit.js';
 import readTag from './readTag.js';
 import { isPrivateTag } from './util/util.js';
+import { missingParameter } from './util/errors.js';
 
 /**
  * Internal helper functions for for parsing DICOM elements
@@ -31,7 +32,7 @@ const isSequence = (element, byteStream) => {
 
 export default function readDicomElementImplicit (byteStream, untilTag, vrCallback) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   const tag = readTag(byteStream);

@@ -1,3 +1,5 @@
+import { overflowErrorMessage, underflowErrorMessage } from './util/errors.js';
+
 /**
  * Internal helper functions for parsing different types from a big-endian byte array
  */
@@ -9,16 +11,16 @@ export default {
      *
      * @param byteArray the byte array to read from
      * @param position the position in the byte array to read from
-     * @returns {*} the parsed unsigned int 16
-     * @throws error if buffer overread would occur
+     * @returns {number} the parsed unsigned int 16
+     * @throws {RangeError} tried to read outside the buffer
      * @access private
      */
   readUint16 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readUint16: position cannot be less than 0';
+      throw new RangeError(underflowErrorMessage);
     }
     if (position + 2 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readUint16: attempt to read past end of buffer';
+      throw new RangeError(overflowErrorMessage);
     }
 
     return (byteArray[position] << 8) + byteArray[position + 1];
@@ -30,16 +32,16 @@ export default {
      *
      * @param byteArray the byte array to read from
      * @param position the position in the byte array to read from
-     * @returns {*} the parsed signed int 16
-     * @throws error if buffer overread would occur
+     * @returns {number} the parsed signed int 16
+     * @throws {RangeError} tried to read outside the buffer
      * @access private
      */
   readInt16 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readInt16: position cannot be less than 0';
+      throw new RangeError(underflowErrorMessage);
     }
     if (position + 2 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readInt16: attempt to read past end of buffer';
+      throw new RangeError(overflowErrorMessage);
     }
     var int16 = (byteArray[position] << 8) + byteArray[position + 1];
     // fix sign
@@ -56,17 +58,17 @@ export default {
      *
      * @param byteArray the byte array to read from
      * @param position the position in the byte array to read from
-     * @returns {*} the parsed unsigned int 32
-     * @throws error if buffer overread would occur
+     * @returns {number} the parsed unsigned int 32
+     * @throws {RangeError} tried to read outside the buffer
      * @access private
      */
   readUint32 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readUint32: position cannot be less than 0';
+      throw new RangeError(underflowErrorMessage);
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readUint32: attempt to read past end of buffer';
+      throw new RangeError(overflowErrorMessage);
     }
 
     var uint32 = (256 * (256 * (256 * byteArray[position] +
@@ -82,17 +84,17 @@ export default {
      *
      * @param byteArray the byte array to read from
      * @param position the position in the byte array to read from
-     * @returns {*} the parsed signed int 32
-     * @throws error if buffer overread would occur
+     * @returns {number} the parsed signed int 32
+     * @throws {RangeError} tried to read outside the buffer
      * @access private
      */
   readInt32 (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readInt32: position cannot be less than 0';
+      throw new RangeError(underflowErrorMessage);
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readInt32: attempt to read past end of buffer';
+      throw new RangeError(overflowErrorMessage);
     }
 
     var int32 = ((byteArray[position] << 24) +
@@ -108,17 +110,17 @@ export default {
      *
      * @param byteArray the byte array to read from
      * @param position the position in the byte array to read from
-     * @returns {*} the parsed 32-bit float
-     * @throws error if buffer overread would occur
+     * @returns {number} the parsed 32-bit float
+     * @throws {RangeError} tried to read outside the buffer
      * @access private
      */
   readFloat (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readFloat: position cannot be less than 0';
+      throw new RangeError(underflowErrorMessage);
     }
 
     if (position + 4 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readFloat: attempt to read past end of buffer';
+      throw new RangeError(overflowErrorMessage);
     }
 
     // I am sure there is a better way than this but this should be safe
@@ -139,17 +141,17 @@ export default {
      *
      * @param byteArray the byte array to read from
      * @param position the position in the byte array to read from
-     * @returns {*} the parsed 64-bit float
-     * @throws error if buffer overread would occur
+     * @returns {number} the parsed 64-bit float
+     * @throws {RangeError} tried to read outside the buffer
      * @access private
      */
   readDouble (byteArray, position) {
     if (position < 0) {
-      throw 'bigEndianByteArrayParser.readDouble: position cannot be less than 0';
+      throw new RangeError(underflowErrorMessage);
     }
 
     if (position + 8 > byteArray.length) {
-      throw 'bigEndianByteArrayParser.readDouble: attempt to read past end of buffer';
+      throw new RangeError(overflowErrorMessage);
     }
 
     // I am sure there is a better way than this but this should be safe

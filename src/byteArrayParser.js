@@ -2,6 +2,8 @@
  * Internal helper functions common to parsing byte arrays of any type
  */
 
+import { overflowErrorMessage, underflowErrorMessage } from './util/errors.js';
+
 /**
  * Reads a string of 8-bit characters from an array of bytes and advances
  * the position by length bytes.  A null terminator will end the string
@@ -11,16 +13,16 @@
  * @param position the position in the byte array to read from
  * @param length the maximum number of bytes to parse
  * @returns {string} the parsed string
- * @throws error if buffer overread would occur
+ * @throws {RangeError} tried to read outside the buffer
  * @access private
  */
 export function readFixedString (byteArray, position, length) {
   if (length < 0) {
-    throw 'dicomParser.readFixedString - length cannot be less than 0';
+    throw new RangeError(underflowErrorMessage);
   }
 
   if (position + length > byteArray.length) {
-    throw 'dicomParser.readFixedString: attempt to read past end of buffer';
+    throw new RangeError(overflowErrorMessage);
   }
 
   var result = '';

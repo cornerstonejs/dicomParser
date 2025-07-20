@@ -3,6 +3,7 @@ import readDicomElementImplicit from './readDicomElementImplicit.js';
 import readSequenceItem from './readSequenceItem.js';
 import readTag from './readTag.js';
 import * as parseDicomDataSet from './parseDicomDataSet.js';
+import { missingParameter } from './util/errors.js';
 
 /**
  * Internal helper functions for parsing DICOM elements
@@ -86,11 +87,11 @@ function readSQElementKnownLengthImplicit (byteStream, element, vrCallback) {
  */
 export default function readSequenceItemsImplicit (byteStream, element, vrCallback) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readSequenceItemsImplicit: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   if (element === undefined) {
-    throw 'dicomParser.readSequenceItemsImplicit: missing required parameter \'element\'';
+    throw new TypeError(missingParameter('element'));
   }
 
   element.items = [];
