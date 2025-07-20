@@ -1,5 +1,6 @@
 import sharedCopy from './sharedCopy.js';
 import { readFixedString } from './byteArrayParser.js';
+import { invalidParameter, missingParameter } from './util/errors.js';
 
 /**
  *
@@ -11,63 +12,67 @@ import { readFixedString } from './byteArrayParser.js';
  *
  * */
 
-/**
- * Constructor for ByteStream objects.
- * @param byteArrayParser a parser for parsing the byte array
- * @param byteArray a Uint8Array containing the byte stream
- * @param position (optional) the position to start reading from.  0 if not specified
- * @constructor
- * @throws will throw an error if the byteArrayParser parameter is not present
- * @throws will throw an error if the byteArray parameter is not present or invalid
- * @throws will throw an error if the position parameter is not inside the byte array
- */
 export default class ByteStream {
-  constructor (byteArrayParser, byteArray, position) {
+  /**
+   * Constructor for ByteStream objects.
+   * @param byteArrayParser a parser for parsing the byte array
+   * @param {Uint8Array | Buffer} byteArray a Uint8Array containing the byte stream
+   * @param {number} position (optional) the position to start reading from.  0 if not specified
+   * @constructor
+   * @throws {TypeError} missing or invalid `byteArrayParser` or `byteArray` parameter
+   * @throws {RangeError} incorrect start `position` parameter
+   */
+  constructor (byteArrayParser, byteArray, position = 0) {
     if (byteArrayParser === undefined) {
-      throw 'dicomParser.ByteStream: missing required parameter \'byteArrayParser\'';
+      throw new TypeError(missingParameter('byteArrayParser'));
     }
     if (byteArray === undefined) {
-      throw 'dicomParser.ByteStream: missing required parameter \'byteArray\'';
+      throw new TypeError(missingParameter('byteArray'));
     }
     if ((byteArray instanceof Uint8Array) === false &&
           ((typeof Buffer === 'undefined') ||
           (byteArray instanceof Buffer) === false)) {
-      throw 'dicomParser.ByteStream: parameter byteArray is not of type Uint8Array or Buffer';
+      throw new TypeError(invalidParameter('byteArray', 'should be of type Uint8Array or Buffer'));
     }
     if (position < 0) {
-      throw 'dicomParser.ByteStream: parameter \'position\' cannot be less than 0';
+      throw new RangeError(`ByteStream start position should be a positive integer or 0, got ${position.toString(10)}`);
     }
     if (position >= byteArray.length) {
-      throw 'dicomParser.ByteStream: parameter \'position\' cannot be greater than or equal to \'byteArray\' length';
+      throw new RangeError('ByteStream start position should be a positive integer strictly smaller than byteArray' +
+          `length (${byteArray.length}), got ${position.toString(10)}`);
     }
     this.byteArrayParser = byteArrayParser;
     this.byteArray = byteArray;
-    this.position = position ? position : 0;
+
+    this.position = position;
     this.warnings = []; // array of string warnings encountered while parsing
   }
 
   /**
-     * Safely seeks through the byte stream.  Will throw an exception if an attempt
-     * is made to seek outside of the byte array.
-     * @param offset the number of bytes to add to the position
-     * @throws error if seek would cause position to be outside of the byteArray
+     * Safely seeks through the byte stream.
+     * @param {number} offset the number of bytes to add to the position
+     * @throws {RangeError} seek would cause position to be outside the byteArray
      */
   seek (offset) {
-    if (this.position + offset < 0) {
-      throw 'dicomParser.ByteStream.prototype.seek: cannot seek to position < 0';
+    const newPosition = this.position + offset;
+
+    if (newPosition < 0) {
+      throw new RangeError(
+        `ByteStream cannot seek outside the byteArray tried to read position ${newPosition.toString(10)}`
+      );
     }
-    this.position += offset;
+    this.position = newPosition;
   }
 
   /**
      * Returns a new ByteStream object from the current position and of the requested number of bytes
      * @param numBytes the length of the byte array for the ByteStream to contain
      * @returns {dicomParser.ByteStream}
-     * @throws error if buffer overread would occur
+     * @throws {RangeError} error if buffer overflow would occur
      */
   readByteStream (numBytes) {
     if (this.position + numBytes > this.byteArray.length) {
-      throw 'dicomParser.ByteStream.prototype.readByteStream: readByteStream - buffer overread';
+      throw new RangeError('Attempted to read stream past buffer end');
     }
     var byteArrayView = sharedCopy(this.byteArray, this.position, numBytes);
 
@@ -76,7 +81,7 @@ export default class ByteStream {
     return new ByteStream(this.byteArrayParser, byteArrayView);
   }
 
-  getSize() {
+  getSize () {
     return this.byteArray.length;
   }
 
@@ -86,7 +91,7 @@ export default class ByteStream {
      * the position by 2 bytes
      *
      * @returns {*} the parsed unsigned int 16
-     * @throws error if buffer overread would occur
+     * @throws {RangeError} tried to read outside the buffer
      */
   readUint16 () {
     var result = this.byteArrayParser.readUint16(this.byteArray, this.position);
@@ -101,7 +106,7 @@ export default class ByteStream {
      * the position by 2 bytes
      *
      * @returns {*} the parse unsigned int 32
-     * @throws error if buffer overread would occur
+     * @throws {RangeError} tried to read outside the buffer
      */
   readUint32 () {
     var result = this.byteArrayParser.readUint32(this.byteArray, this.position);
@@ -117,7 +122,7 @@ export default class ByteStream {
      * but will not effect advancement of the position.
      * @param length the maximum number of bytes to parse
      * @returns {string} the parsed string
-     * @throws error if buffer overread would occur
+     * @throws {RangeError} tried to read outside the buffer
      */
   readFixedString (length) {
     var result = readFixedString(this.byteArray, this.position, length);

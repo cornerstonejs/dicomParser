@@ -1,3 +1,5 @@
+import { invalidParameter } from './util/errors.js';
+
 /**
  * Creates a new byteArray of the same type (Uint8Array or Buffer) of the specified length.
  * @param byteArray the underlying byteArray (either Uint8Array or Buffer)
@@ -10,5 +12,5 @@ export default function alloc (byteArray, length) {
   } else if (byteArray instanceof Uint8Array) {
     return new Uint8Array(length);
   }
-  throw 'dicomParser.alloc: unknown type for byteArray';
+  throw new TypeError(invalidParameter('byteArray', 'should be of type Uint8Array or Buffer'));
 }

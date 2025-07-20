@@ -1,4 +1,6 @@
 // Each JPEG image has an end of image marker 0xFFD9
+import { invalidParameter, missingParameter } from './errors';
+
 function isEndOfImageMarker (dataSet, position) {
   return (dataSet.byteArray[position] === 0xFF &&
   dataSet.byteArray[position + 1] === 0xD9);
@@ -35,31 +37,28 @@ function findLastImageFrameFragmentIndex (dataSet, pixelDataElement, startFragme
 export default function createJPEGBasicOffsetTable (dataSet, pixelDataElement, fragments) {
   // Validate parameters
   if (dataSet === undefined) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: missing required parameter dataSet';
+    throw new TypeError(missingParameter('dataSet'));
   }
   if (pixelDataElement === undefined) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: missing required parameter pixelDataElement';
+    throw new TypeError(missingParameter('pixelDataElement'));
   }
   if (pixelDataElement.tag !== 'x7fe00010') {
-    throw 'dicomParser.createJPEGBasicOffsetTable: parameter \'pixelDataElement\' refers to non pixel data tag (expected tag = x7fe00010\'';
+    throw new TypeError(invalidParameter(
+      'pixelDataElement',
+      `'tag' property refers to non pixel data tag, should be 'x7fe00010', got '${pixelDataElement.tag}'`)
+    );
   }
-  if (pixelDataElement.encapsulatedPixelData !== true) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (pixelDataElement.hadUndefinedLength !== true) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (pixelDataElement.basicOffsetTable === undefined) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (pixelDataElement.fragments === undefined) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (pixelDataElement.fragments.length <= 0) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: parameter \'pixelDataElement\' refers to pixel data element that does not have encapsulated pixel data';
+  if (
+    pixelDataElement.encapsulatedPixelData !== true ||
+      pixelDataElement.hadUndefinedLength !== true ||
+      pixelDataElement.basicOffsetTable === undefined ||
+      pixelDataElement.fragments === undefined ||
+      pixelDataElement.fragments.length <= 0
+  ) {
+    throw new Error('Tried to read non-encapsulated pixel data as if it was encapsulated.');
   }
   if (fragments && fragments.length <= 0) {
-    throw 'dicomParser.createJPEGBasicOffsetTable: parameter \'fragments\' must not be zero length';
+    throw new RangeError(invalidParameter('fragments', 'should be an array of at least one fragment object'));
   }
 
   // Default values

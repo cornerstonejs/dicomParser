@@ -1,5 +1,6 @@
 import readDicomElementExplicit from './readDicomElementExplicit.js';
 import readDicomElementImplicit from './readDicomElementImplicit.js';
+import { invalidParameter, missingParameter, overflowErrorMessage } from './util/errors.js';
 
 /**
  * Internal helper functions for parsing implicit and explicit DICOM data sets
@@ -7,18 +8,23 @@ import readDicomElementImplicit from './readDicomElementImplicit.js';
 
 /**
  * reads an explicit data set
+ * @param {DataSet} dataSet to read from
  * @param byteStream the byte stream to read from
- * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
+ * @param {number} maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
+ * @param {object} options
+ * @param {string} options.untilTag stop the parsing when encountering this tag
+ *
  */
 export function parseDicomDataSetExplicit (dataSet, byteStream, maxPosition, options = {}) {
   maxPosition = (maxPosition === undefined) ? byteStream.byteArray.length : maxPosition;
 
   if (byteStream === undefined) {
-    throw 'dicomParser.parseDicomDataSetExplicit: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   if (maxPosition < byteStream.position || maxPosition > byteStream.byteArray.length) {
-    throw 'dicomParser.parseDicomDataSetExplicit: invalid value for parameter \'maxP osition\'';
+    throw new RangeError(invalidParameter('maxPosition', `should be greater than current position (${byteStream.position.toString(10)
+    } and smaller than buffer length (${byteStream.byteArray.length.toString(10)}), got ${maxPosition.toString(10)}`));
   }
 
   const elements = dataSet.elements;
@@ -33,24 +39,34 @@ export function parseDicomDataSetExplicit (dataSet, byteStream, maxPosition, opt
   }
 
   if (byteStream.position > maxPosition) {
-    throw 'dicomParser:parseDicomDataSetExplicit: buffer overrun';
+    throw new RangeError(overflowErrorMessage);
   }
 }
 
 /**
  * reads an implicit data set
+ * @param {DataSet} dataSet to read from
  * @param byteStream the byte stream to read from
- * @param maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
+ * @param {number} maxPosition the maximum position to read up to (optional - only needed when reading sequence items)
+ * @param {object} options
+ * @param {string} options.untilTag stop the parsing when encountering this tag
  */
-export function parseDicomDataSetImplicit (dataSet, byteStream, maxPosition, options = {}) {
+export function parseDicomDataSetImplicit (
+  dataSet,
+  byteStream,
+  maxPosition,
+  options = {}
+) {
   maxPosition = (maxPosition === undefined) ? dataSet.byteArray.length : maxPosition;
 
   if (byteStream === undefined) {
-    throw 'dicomParser.parseDicomDataSetImplicit: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   if (maxPosition < byteStream.position || maxPosition > byteStream.byteArray.length) {
-    throw 'dicomParser.parseDicomDataSetImplicit: invalid value for parameter \'maxPosition\'';
+    throw new RangeError(invalidParameter('maxPosition', `should be greater than current position (${
+      byteStream.position.toString(10)} and smaller than buffer length (${
+      byteStream.byteArray.length.toString(10)}), got ${maxPosition.toString(10)}`));
   }
 
   const elements = dataSet.elements;

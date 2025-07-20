@@ -1,5 +1,6 @@
 import readEncapsulatedImageFrame from './readEncapsulatedImageFrame.js';
 import readEncapsulatedPixelDataFromFragments from './readEncapsulatedPixelDataFromFragments.js';
+import { invalidParameter, missingParameter } from './util/errors.js';
 
 /**
  * Functionality for extracting encapsulated pixel data
@@ -16,10 +17,10 @@ let deprecatedNoticeLogged = false;
  * @deprecated since version 1.6 - use readEncapsulatedPixelDataFromFragments() or readEncapsulatedImageFrame()
  * @param dataSet - the dataSet containing the encapsulated pixel data
  * @param pixelDataElement - the pixel data element (x7fe00010) to extract the frame from
- * @param frame - the zero based frame index
+ * @param {number} frameIndex - the zero based frame index
  * @returns {object} with the encapsulated pixel data
  */
-export default function readEncapsulatedPixelData (dataSet, pixelDataElement, frame) {
+export default function readEncapsulatedPixelData (dataSet, pixelDataElement, frameIndex) {
   if (!deprecatedNoticeLogged) {
     deprecatedNoticeLogged = true;
 
@@ -29,36 +30,38 @@ export default function readEncapsulatedPixelData (dataSet, pixelDataElement, fr
   }
 
   if (dataSet === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: missing required parameter \'dataSet\'';
+    throw new TypeError(missingParameter('dataSet'));
   }
   if (pixelDataElement === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: missing required parameter \'element\'';
+    throw new TypeError(missingParameter('pixelDataElement'));
   }
-  if (frame === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: missing required parameter \'frame\'';
+  if (frameIndex === undefined) {
+    throw new TypeError(missingParameter('frameIndex'));
   }
   if (pixelDataElement.tag !== 'x7fe00010') {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to non pixel data tag (expected tag = x7fe00010)';
+    throw new TypeError(invalidParameter(
+      'pixelDataElement',
+      `'tag' property refers to non pixel data tag, should be 'x7fe00010', got '${pixelDataElement.tag}'`
+    ));
   }
-  if (pixelDataElement.encapsulatedPixelData !== true) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
+  if (
+    pixelDataElement.encapsulatedPixelData !== true ||
+      pixelDataElement.hadUndefinedLength !== true ||
+      pixelDataElement.basicOffsetTable === undefined ||
+      pixelDataElement.fragments === undefined
+  ) {
+    throw new Error('Tried to read non-encapsulated pixel data as if it was encapsulated.');
   }
-  if (pixelDataElement.hadUndefinedLength !== true) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (pixelDataElement.basicOffsetTable === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (pixelDataElement.fragments === undefined) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'element\' refers to pixel data element that does not have encapsulated pixel data';
-  }
-  if (frame < 0) {
-    throw 'dicomParser.readEncapsulatedPixelData: parameter \'frame\' must be >= 0';
+  if (frameIndex < 0) {
+    throw new RangeError(invalidParameter(
+      'frameIndex',
+      `should be a positive integer, got ${frameIndex.toString(10)}`
+    ));
   }
 
   // If the basic offset table is not empty, we can extract the frame
   if (pixelDataElement.basicOffsetTable.length !== 0) {
-    return readEncapsulatedImageFrame(dataSet, pixelDataElement, frame);
+    return readEncapsulatedImageFrame(dataSet, pixelDataElement, frameIndex);
   }
 
   // No basic offset table, assume all fragments are for one frame - NOTE that this is NOT a valid

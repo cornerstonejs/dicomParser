@@ -7,7 +7,7 @@ import readPart10Header from './readPart10Header.js';
 import sharedCopy from './sharedCopy.js';
 import * as byteArrayParser from './byteArrayParser.js';
 import * as parseDicomDataSet from './parseDicomDataSet.js';
-import {DicomParserError} from "./util/errors";
+import { DicomParserError, missingParameter } from './util/errors.js';
 
 // LEE (Little Endian Explicit) is the transfer syntax used in dimse operations when there is a split
 // between the header and data.
@@ -30,23 +30,25 @@ const BEI = '1.2.840.10008.1.2.2';
  * @throws {DicomParserError} an error occurs while parsing, check the `clause` property to get the original error.
  */
 
-export default function parseDicom(byteArray, options = {}) {
+export default function parseDicom (byteArray, options = {}) {
   if (byteArray === undefined) {
-    throw new Error('dicomParser.parseDicom: missing required parameter \'byteArray\'');
+    throw new TypeError(missingParameter('byteArray'));
   }
 
-  
+
   const readTransferSyntax = (metaHeaderDataSet) => {
     if (metaHeaderDataSet.elements.x00020010 === undefined) {
-      throw new Error('dicomParser.parseDicom: missing required meta header attribute 0002,0010');
+      throw new Error('Missing required meta header attribute (0002,0010)');
     }
 
     const transferSyntaxElement = metaHeaderDataSet.elements.x00020010;
+
+
     return transferSyntaxElement && transferSyntaxElement.Value ||
       byteArrayParser.readFixedString(byteArray, transferSyntaxElement.dataOffset, transferSyntaxElement.length);
-  }
+  };
 
-  function isExplicit(transferSyntax) {
+  function isExplicit (transferSyntax) {
     // implicit little endian
     if (transferSyntax === '1.2.840.10008.1.2') {
       return false;
@@ -56,7 +58,7 @@ export default function parseDicom(byteArray, options = {}) {
     return true;
   }
 
-  function getDataSetByteStream(transferSyntax, position) {
+  function getDataSetByteStream (transferSyntax, position) {
     // Detect whether we are inside a browser or Node.js
     const isNode = (Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]');
 
@@ -100,7 +102,7 @@ export default function parseDicom(byteArray, options = {}) {
       }
 
       // throw exception since no inflater is available
-      throw 'dicomParser.parseDicom: no inflater available to handle deflate transfer syntax';
+      throw new Error('Failed to parse deflated dataset, no inflater available. Try providing one via options.inflater.');
     }
 
     // explicit big endian
@@ -113,7 +115,7 @@ export default function parseDicom(byteArray, options = {}) {
     return new ByteStream(littleEndianByteArrayParser, byteArray, position);
   }
 
-  function mergeDataSets(metaHeaderDataSet, instanceDataSet) {
+  function mergeDataSets (metaHeaderDataSet, instanceDataSet) {
     for (const propertyName in metaHeaderDataSet.elements) {
       if (metaHeaderDataSet.elements.hasOwnProperty(propertyName)) {
         instanceDataSet.elements[propertyName] = metaHeaderDataSet.elements[propertyName];
@@ -127,7 +129,7 @@ export default function parseDicom(byteArray, options = {}) {
     return instanceDataSet;
   }
 
-  function readDataSet(metaHeaderDataSet) {
+  function readDataSet (metaHeaderDataSet) {
     const transferSyntax = readTransferSyntax(metaHeaderDataSet);
     const explicit = isExplicit(transferSyntax);
     const dataSetByteStream = getDataSetByteStream(transferSyntax, metaHeaderDataSet.position);
@@ -151,7 +153,7 @@ export default function parseDicom(byteArray, options = {}) {
   }
 
   // main function here
-  function parseTheByteStream() {
+  function parseTheByteStream () {
     const metaHeaderDataSet = readPart10Header(byteArray, options);
     const dataSet = readDataSet(metaHeaderDataSet);
 

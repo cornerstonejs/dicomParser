@@ -2,6 +2,8 @@
  * Internal helper functions for parsing DICOM elements
  */
 
+import { missingParameter } from './util/errors.js';
+
 /**
  * reads from the byte stream until it finds the magic numbers for the item delimitation item
  * and then sets the length of the element
@@ -10,7 +12,7 @@
  */
 export default function findItemDelimitationItemAndSetElementLength (byteStream, element) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   const itemDelimitationItemLength = 8; // group, element, length

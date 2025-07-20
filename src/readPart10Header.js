@@ -2,6 +2,7 @@ import ByteStream from './byteStream.js';
 import DataSet from './dataSet.js';
 import littleEndianByteArrayParser from './littleEndianByteArrayParser.js';
 import readDicomElementExplicit from './readDicomElementExplicit.js';
+import { missingParameter } from './util/errors.js';
 
 /**
  * Parses a DICOM P10 byte array and returns a DataSet object with the parsed elements.  If the options
@@ -19,13 +20,13 @@ import readDicomElementExplicit from './readDicomElementExplicit.js';
 
 export default function readPart10Header (byteArray, options = {}) {
   if (byteArray === undefined) {
-    throw 'dicomParser.readPart10Header: missing required parameter \'byteArray\'';
+    throw new TypeError(missingParameter('byteArray'));
   }
 
   const { TransferSyntaxUID } = options;
   const littleEndianByteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
 
-  function readPrefix() {
+  function readPrefix () {
     if (littleEndianByteStream.getSize() <= 132 && TransferSyntaxUID) {
       return false;
     }
@@ -34,17 +35,20 @@ export default function readPart10Header (byteArray, options = {}) {
 
     if (prefix !== 'DICM') {
       const { TransferSyntaxUID } = options || {};
+
       if (!TransferSyntaxUID) {
-        throw 'dicomParser.readPart10Header: DICM prefix not found at location 132 - this is not a valid DICOM P10 file.';
+        throw new Error('Failed to find DICM prefix in preamble (index 132), buffer is not a valid DICOM P10 file.');
       }
       littleEndianByteStream.seek(0);
+
       return false;
     }
+
     return true;
   }
 
   // main function here
-  function readTheHeader() {
+  function readTheHeader () {
     // Per the DICOM standard, the header is always encoded in Explicit VR Little Endian (see PS3.10, section 7.1)
     // so use littleEndianByteStream throughout this method regardless of the transfer syntax
     const isPart10 = readPrefix();
@@ -55,10 +59,13 @@ export default function readPart10Header (byteArray, options = {}) {
     if (!isPart10) {
       littleEndianByteStream.position = 0;
       const metaHeaderDataSet = {
-        elements: { x00020010: { tag: 'x00020010', vr: 'UI', Value: TransferSyntaxUID } },
-        warnings,
+        elements: { x00020010: { tag: 'x00020010',
+          vr: 'UI',
+          Value: TransferSyntaxUID } },
+        warnings
       };
       // console.log('Returning metaHeaderDataSet', metaHeaderDataSet);
+
       return metaHeaderDataSet;
     }
 

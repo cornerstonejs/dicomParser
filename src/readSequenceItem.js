@@ -1,4 +1,5 @@
 import readTag from './readTag.js';
+import { missingParameter } from './util/errors.js';
 
 /**
  * Internal helper functions for parsing DICOM elements
@@ -14,7 +15,7 @@ import readTag from './readTag.js';
  */
 export default function readSequenceItem (byteStream) {
   if (byteStream === undefined) {
-    throw 'dicomParser.readSequenceItem: missing required parameter \'byteStream\'';
+    throw new TypeError(missingParameter('byteStream'));
   }
 
   const element = {
@@ -24,7 +25,9 @@ export default function readSequenceItem (byteStream) {
   };
 
   if (element.tag !== 'xfffee000') {
-    throw `dicomParser.readSequenceItem: item tag (FFFE,E000) not found at offset ${byteStream.position}`;
+    throw new Error(
+      `Failed to find sequence item tag (FFFE,E000) at offset ${byteStream.position}, found ${element.tag} instead.`
+    );
   }
 
   return element;

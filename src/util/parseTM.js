@@ -1,10 +1,14 @@
 /**
- * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and fractionalSeconds
+ * Parses a TM formatted string into a javascript object with properties for hours, minutes, seconds and
+ * fractionalSeconds
  * @param {string} time - a string in the TM VR format
- * @param {boolean} [validate] - true if an exception should be thrown if the date is invalid
- * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no element or data.  Missing fields are set to undefined
+ * @param {boolean} [validate = false] - should an exception be thrown when the data is invalid
+ * @returns {*} javascript object with properties for hours, minutes, seconds and fractionalSeconds or undefined if no
+ * element or data.  Missing fields are set to undefined
  */
 export default function parseTM (time, validate) {
+  const parsingError = `Failed to parse string as TM, format or value is not valid, got ${time}`;
+
   if (time.length >= 2) { // must at least have HH
     // 0123456789
     // HHMMSS.FFFFFF
@@ -24,7 +28,7 @@ export default function parseTM (time, validate) {
         (mm && (mm < 0 || mm > 59)) ||
         (ss && (ss < 0 || ss > 59)) ||
         (ffffff && (ffffff < 0 || ffffff > 999999))) {
-        throw `invalid TM '${time}'`;
+        throw new Error(parsingError);
       }
     }
 
@@ -37,7 +41,7 @@ export default function parseTM (time, validate) {
   }
 
   if (validate) {
-    throw `invalid TM '${time}'`;
+    throw new Error(parsingError);
   }
 
   return undefined;

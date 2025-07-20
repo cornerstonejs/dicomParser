@@ -1,5 +1,6 @@
 import explicitElementToString from './elementToString.js';
 import * as util from './util.js';
+import { missingParameter } from './errors.js';
 
 /**
  * converts an explicit dataSet to a javascript object
@@ -8,7 +9,7 @@ import * as util from './util.js';
  */
 export default function explicitDataSetToJS (dataSet, options) {
   if (dataSet === undefined) {
-    throw 'dicomParser.explicitDataSetToJS: missing required parameter dataSet';
+    throw new TypeError(missingParameter('dataSet'));
   }
 
   options = options || {
