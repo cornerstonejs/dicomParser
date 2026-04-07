@@ -91,6 +91,23 @@ export default class DataSet {
   }
 
   /**
+   * Finds the element for tag and returns an unsigned int 64 (as a BigInt) if it exists and has data
+   * @param tag The DICOM tag in the format xGGGGEEEE
+   * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
+   * @returns {*} unsigned int 64 (BigInt) or undefined if the attribute is not present or has data of length 0
+   */
+  uint64 (tag, index) {
+    var element = this.elements[tag];
+
+    index = (index !== undefined) ? index : 0;
+    if (element && element.length !== 0) {
+      return getByteArrayParser(element, this.byteArrayParser).readBigUint64(this.byteArray, element.dataOffset + (index * 8));
+    }
+
+    return undefined;
+  }
+
+  /**
      * Finds the element for tag and returns an signed int 32 if it exists and has data
      * @param tag The DICOM tag in the format xGGGGEEEE
      * @param index the index of the value in a multivalued element.  Default is index 0 if not supplied
@@ -178,7 +195,7 @@ export default class DataSet {
     var element = this.elements[tag];
 
     if( element && element.Value ) return element.Value;
-    
+
     if (element && element.length > 0) {
       var fixedString = readFixedString(this.byteArray, element.dataOffset, element.length);
 
