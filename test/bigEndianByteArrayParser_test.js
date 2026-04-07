@@ -1,3 +1,5 @@
+/* global BigInt */
+
 import { expect } from 'chai';
 import bigEndianByteArrayParser from '../src/bigEndianByteArrayParser';
 
@@ -121,6 +123,66 @@ describe('bigEndianByteArrayParser', () => {
 
         // Act / Assert
         expect(invoker).to.throw();
+    });
+
+  });
+
+  describe('#readBigUint64', () => {
+
+    it('should return the expected value', () => {
+      // Arrange
+      const byteArray = new Uint8Array(32);
+      byteArray[0] = 0x11;
+      byteArray[1] = 0x22;
+      byteArray[2] = 0x33;
+      byteArray[3] = 0x44;
+      byteArray[4] = 0x55;
+      byteArray[5] = 0x66;
+      byteArray[6] = 0x77;
+      byteArray[7] = 0x88;
+
+      // Act
+      const uint64 = bigEndianByteArrayParser.readBigUint64(byteArray, 0);
+
+      // Assert
+      expect(uint64).to.equal(BigInt('0x1122334455667788'));
+    });
+
+    it('should return the expected value', () => {
+      // Arrange
+      const byteArray = new Uint8Array(8);
+      byteArray[0] = 0xFF;
+      byteArray[1] = 0xFF;
+      byteArray[2] = 0xFF;
+      byteArray[3] = 0xFF;
+      byteArray[4] = 0xFF;
+      byteArray[5] = 0xFF;
+      byteArray[6] = 0xFF;
+      byteArray[7] = 0xFF;
+
+      // Act
+      const uint64 = bigEndianByteArrayParser.readBigUint64(byteArray, 0);
+
+      // Assert
+      expect(uint64).to.equal(BigInt('0xFFFFFFFFFFFFFFFF'));
+    });
+
+    it('should throw an exception on buffer overread', () => {
+      // Arrange
+      const byteArray = new Uint8Array(32);
+      const invoker = () => bigEndianByteArrayParser.readBigUint64(byteArray, 25);
+
+      // Act / Assert
+      expect(invoker).to.throw();
+    });
+
+    it('should throw an exception on position < 0', () => {
+      // Arrange
+      const byteArray = new Uint8Array(32);
+      const invoker = () => bigEndianByteArrayParser.readBigUint64(byteArray, -1);
+
+      // Act / Assert
+      expect(invoker).to.throw();
     });
 
   });

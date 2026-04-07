@@ -309,13 +309,90 @@ describe('ByteStream', () => {
 
   });
 
+  describe('#readBigUint64', () => {
+
+    it('should return the expected value', () => {
+      // Arrange
+      const byteArray = new Uint8Array(32);
+      byteArray[0] = 0x11;
+      byteArray[1] = 0x22;
+      byteArray[2] = 0x33;
+      byteArray[3] = 0x44;
+      byteArray[4] = 0x55;
+      byteArray[5] = 0x66;
+      byteArray[6] = 0x77;
+      byteArray[7] = 0x88;
+      const byteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
+
+      // Act
+      const uint64 = byteStream.readBigUint64();
+
+      // Assert
+      expect(uint64).to.equal(0x8877665544332211n);
+    });
+
+    it('should work with different parser', () => {
+      // Arrange
+      const byteArray = new Uint8Array(32);
+      byteArray[0] = 0x11;
+      byteArray[1] = 0x22;
+      byteArray[2] = 0x33;
+      byteArray[3] = 0x44;
+      byteArray[4] = 0x55;
+      byteArray[5] = 0x66;
+      byteArray[6] = 0x77;
+      byteArray[7] = 0x88;
+      const byteStream = new ByteStream(bigEndianByteArrayParser, byteArray);
+
+      // Act
+      const uint64 = byteStream.readBigUint64();
+
+      // Assert
+      expect(uint64).to.equal(0x1122334455667788n);
+    });
+
+    it('should read at end of buffer', () => {
+      // Arrange
+      const byteArray = new Uint8Array(8);
+      byteArray[0] = 0x11;
+      byteArray[1] = 0x22;
+      byteArray[2] = 0x33;
+      byteArray[3] = 0x44;
+      byteArray[4] = 0x55;
+      byteArray[5] = 0x66;
+      byteArray[6] = 0x77;
+      byteArray[7] = 0x88;
+      const byteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
+
+      // Act
+      const uint64 = byteStream.readBigUint64();
+
+      // Assert
+      expect(uint64).to.equal(0x8877665544332211n);
+    });
+
+
+    it('should throw an exception on buffer overread', () => {
+      // Arrange
+      const byteArray = new Uint8Array(32);
+      const byteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
+      const invoker = () => byteStream.readBigUint64();
+
+      byteStream.seek(31);
+
+      // Act / Assert
+      expect(invoker).to.throw();
+    });
+
+  });
+
   describe('#readFixedString', () => {
 
     it('should return the expected value', () => {
       // Arrange
       const byteArray = new Uint8Array(32);
       const str = 'Hello';
-      
+
       for (let i = 0; i < str.length; i++) {
           byteArray[i] = str.charCodeAt(i);
       }
@@ -353,7 +430,7 @@ describe('ByteStream', () => {
       // Arrange
       const byteArray = new Uint8Array(5);
       const str = 'Hello';
-      
+
       for (let i = 0; i < str.length; i++) {
           byteArray[i] = str.charCodeAt(i);
       }
