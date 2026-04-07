@@ -1,5 +1,5 @@
 declare module 'dicom-parser' {
- 
+
   export type ByteArray = Uint8Array | Buffer;
 
   export interface Fragment {
@@ -100,12 +100,13 @@ declare module 'dicom-parser' {
     byteArrayParser: ByteArrayParser;
     position: number;
     warnings: string[];
- 
+
     constructor(byteArrayParser: ByteArrayParser, byteArray: ByteArray, position: number);
     seek: (offset: number) => void;
     readByteStream: (numBytes: number) => ByteStream;
     readUint16: () => number;
     readUint32: () => number;
+    readBigUint64: () => BigInt;
     readFixedString: (length: number) => string;
   }
 
@@ -113,6 +114,7 @@ declare module 'dicom-parser' {
     readUint16: (byteArray: ByteArray, position: number) => number;
     readInt16: (byteArray: ByteArray, position: number) => number;
     readUint32: (byteArray: ByteArray, position: number) => number;
+    readBigUint64: (byteArray: ByteArray, position: number) => BigInt;
     readInt32: (byteArray: ByteArray, position: number) => number;
     readFloat: (byteArray: ByteArray, position: number) => number;
     readDouble: (byteArray: ByteArray, position: number) => number;
@@ -173,5 +175,5 @@ declare module 'dicom-parser' {
   export function readSequenceItemsImplicit(byteStream: ByteStream, element: Element, vrCallback?: vrCallback): void
   export function readSequenceItem(byteStream: ByteStream): Pick<Element, 'tag' | 'length' | 'dataOffset'>
   export function readTag(byteStream: ByteStream): string
- 
+
 }

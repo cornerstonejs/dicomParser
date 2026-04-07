@@ -19,7 +19,8 @@ const getDataLengthSizeInBytesForVR = (vr) => {
       vr === 'UC' ||
       vr === 'UR' ||
       vr === 'UT' ||
-      vr === 'UN') {
+      vr === 'UN' ||
+      vr === 'UV') {
     return 4;
   }
 
