@@ -1,3 +1,5 @@
+/* global BigInt */
+
 /**
  * Internal helper functions for parsing different types from a big-endian byte array
  */
@@ -75,6 +77,34 @@ export default {
                                           byteArray[position + 3]);
 
     return uint32;
+  },
+
+  /**
+   * Parses an unsigned int 64 from a big-endian byte array
+   *
+   * @param byteArray the byte array to read from
+   * @param position the position in the byte array to read from
+   * @returns {*} the parsed unsigned int 64
+   * @throws error if buffer overread would occur
+   * @access private
+   */
+  readBigUint64 (byteArray, position) {
+    if (position < 0) {
+      throw 'bigEndianByteArrayParser.readBigUint64: position cannot be less than 0';
+    }
+
+    if (position + 8 > byteArray.length) {
+      throw 'bigEndianByteArrayParser.readBigUint64: attempt to read past end of buffer';
+    }
+
+    var uint64 = 0n;
+
+    for (let i = 0; i < 8; i++) {
+      uint64 <<= 8n;
+      uint64 |= BigInt(byteArray[position + i]);
+    }
+
+    return uint64;
   },
 
   /**
