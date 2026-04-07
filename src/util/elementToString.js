@@ -53,6 +53,8 @@ export default function explicitElementToString (dataSet, element) {
     textResult = multiElementToString(element.length / 4, dataSet.uint32);
   } else if (vr === 'SL') {
     textResult = multiElementToString(element.length / 4, dataSet.int32);
+  } else if (vr === 'UV') {
+    textResult = multiElementToString(element.length / 8, dataSet.uint64);
   } else if (vr === 'FD') {
     textResult = multiElementToString(element.length / 8, dataSet.double);
   } else if (vr === 'FL') {
