@@ -112,6 +112,21 @@ export default class ByteStream {
   }
 
   /**
+   * Parses an unsigned int 64 as BigInt from a byte array and advances
+   * the position by 8 bytes
+   *
+   * @returns {*} the parsed unsigned int 64 (BigInt)
+   * @throws error if buffer overread would occur
+   */
+  readBigUint64 () {
+    var result = this.byteArrayParser.readBigUint64(this.byteArray, this.position);
+
+    this.position += 8;
+
+    return result;
+  }
+
+  /**
      * Reads a string of 8-bit characters from an array of bytes and advances
      * the position by length bytes.  A null terminator will end the string
      * but will not effect advancement of the position.
