@@ -29,6 +29,17 @@ const isSequence = (element, byteStream) => {
   return false;
 };
 
+/**
+ * Reads an implicit-VR element, parsing sequence items or skipping its value.
+ * A defined-length non-sequence value is skipped only as far as EOF; its declared
+ * length is preserved in the returned element.
+ *
+ * @param {ByteStream} byteStream Stream positioned at the element tag.
+ * @param {string} [untilTag] Stop after this tag's header, leaving its value unread.
+ * @param {function} [vrCallback] Optional function that returns the VR for a tag.
+ * @returns {Object} The element header and any parsed sequence items.
+ * @throws If byteStream is missing or an underlying read or seek fails.
+ */
 export default function readDicomElementImplicit (byteStream, untilTag, vrCallback) {
   if (byteStream === undefined) {
     throw 'dicomParser.readDicomElementImplicit: missing required parameter \'byteStream\'';
@@ -72,7 +83,7 @@ export default function readDicomElementImplicit (byteStream, untilTag, vrCallba
   }
 
   // non sequence element with known length, skip over the data part
-  byteStream.seek(element.length);
+  byteStream.seek(Math.min(element.length, byteStream.byteArray.length - byteStream.position));
 
   return element;
 }

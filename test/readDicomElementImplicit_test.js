@@ -57,6 +57,35 @@ describe('readDicomElementImplicit', () => {
     // Assert
     expect(element).to.be.ok;
     expect(byteStream.warnings.length).to.equal(1);
+    expect(element.length).to.equal(0xFFFFFF00);
+    expect(byteStream.position).to.equal(byteArray.length);
+  });
+
+  it('should stop at EOF for a defined-length element with a partial payload', () => {
+    const byteArray = convertToByteArray([
+      0x06, 0x30, 0xA6, 0x00, 0x10, 0x00, 0x00, 0x00,
+      0x01, 0x02, 0x03, 0x04
+    ]);
+    const byteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
+
+    const element = readDicomElementImplicit(byteStream);
+
+    expect(element.length).to.equal(16);
+    expect(element.dataOffset).to.equal(8);
+    expect(byteStream.position).to.equal(byteArray.length);
+  });
+
+  it('should skip only the declared payload when more bytes remain', () => {
+    const byteArray = convertToByteArray([
+      0x06, 0x30, 0xA6, 0x00, 0x04, 0x00, 0x00, 0x00,
+      0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
+    ]);
+    const byteStream = new ByteStream(littleEndianByteArrayParser, byteArray);
+
+    const element = readDicomElementImplicit(byteStream);
+
+    expect(element.length).to.equal(4);
+    expect(byteStream.position).to.equal(12);
   });
 
   it('should return the expected element and length (truncated element undefined)', () => {

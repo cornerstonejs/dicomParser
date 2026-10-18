@@ -53,10 +53,17 @@ export default class ByteStream {
      * @throws error if seek would cause position to be outside of the byteArray
      */
   seek (offset) {
-    if (this.position + offset < 0) {
+    const position = this.position + offset;
+    if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(position)) {
+      throw 'dicomParser.ByteStream.prototype.seek: position and offset must be safe integers';
+    }
+    if (position < 0) {
       throw 'dicomParser.ByteStream.prototype.seek: cannot seek to position < 0';
     }
-    this.position += offset;
+    if (position > this.byteArray.length) {
+      throw 'dicomParser.ByteStream.prototype.seek: cannot seek past end of buffer';
+    }
+    this.position = position;
   }
 
   /**

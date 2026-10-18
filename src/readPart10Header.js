@@ -63,13 +63,13 @@ export default function readPart10Header (byteArray, options = {}) {
     }
 
     while (littleEndianByteStream.position < littleEndianByteStream.byteArray.length) {
-      const position = littleEndianByteStream.position;
-      const element = readDicomElementExplicit(littleEndianByteStream, warnings);
+      const group = littleEndianByteStream.readUint16();
+      littleEndianByteStream.seek(-2);
 
-      if (element.tag > 'x0002ffff') {
-        littleEndianByteStream.position = position;
+      if (group > 0x0002) {
         break;
       }
+      const element = readDicomElementExplicit(littleEndianByteStream, warnings);
       // Cache the littleEndianByteArrayParser for meta header elements, since the rest of the data set may be big endian
       // and this parser will be needed later if the meta header values are to be read.
       element.parser = littleEndianByteArrayParser;
